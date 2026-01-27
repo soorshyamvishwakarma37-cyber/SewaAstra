@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>SewaAstra - Ultimate Home Services</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+<style>
+    :root { --primary: #ff6b00; --bg: #f8f9fa; --success: #28a745; --text: #333; }
+    
+    /* DARK MODE STYLES */
+    body.dark-mode { --bg: #121212; --text: #f1f1f1; }
+    body.dark-mode .app-header { background: #222; }
+    body.dark-mode .cat-grid, body.dark-mode .card, body.dark-mode .bottom-nav, body.dark-mode .profile-card, body.dark-mode .full-overlay { background: #1e1e1e; color: white; }
+    body.dark-mode .cat-icon { background: #333; border-color: #444; }
+    body.dark-mode .info-value { color: #fff; }
+    body.dark-mode input { background: #222; color: white; border-color: #444; }
+
+    * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { margin: 0; background: var(--bg); padding-bottom: 90px; overflow-x: hidden; color: var(--text); }
+
+    /* --- NEW ANIMATIONS ADDED --- */
+    @keyframes iconClick {
+        0% { transform: scale(1); }
+        50% { transform: scale(0.8); }
+        100% { transform: scale(1); }
+    }
+    .animate-icon { animation: iconClick 0.3s ease-out; }
+
+    @keyframes cardSlideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .card { animation: cardSlideUp 0.4s ease forwards; }
+    /* ---------------------------- */
+
+    .rating-row { display: flex; align-items: center; gap: 4px; margin: 4px 0 8px 0; }
+    .fa-star { color: #ffc107; font-size: 12px; }
+    .rating-val { font-size: 12px; font-weight: bold; color: #333; }
+    .review-count { font-size: 11px; color: #888; }
+    body.dark-mode .rating-val { color: #fff; }
+
+    .user-pic-circle { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid white; cursor: pointer; background: #eee; }
+    .large-profile-pic { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); margin-bottom: 10px; display: block; }
+    #photoInput { display: none; }
+
+    .full-overlay { position: fixed; inset: 0; background: white; display: flex; align-items: center; justify-content: center; z-index: 100000; flex-direction: column; text-align: center; padding: 20px; overflow-y: auto; }
+    .box { width: 100%; max-width: 350px; }
+    .box img { width: 220px; margin-bottom: 10px; animation: zoomIn 0.6s ease; }
+    .tagline { color: #666; font-size: 14px; margin-bottom: 30px; font-weight: 500; }
+    .welcome-note { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 5px; }
+    .sub-note { font-size: 13px; color: #888; margin-bottom: 20px; }
+
+    .box input { width: 100%; padding: 15px; margin: 8px 0; border: 2px solid #eee; border-radius: 15px; font-size: 16px; text-align: center; outline: none; transition: 0.3s; }
+    .box input:focus { border-color: var(--primary); background: #fffcf9; }
+    .box button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 15px; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(255,107,0,0.3); margin-top: 10px; }
+
+    .pay-options { display: flex; gap: 10px; margin: 15px 0; }
+    .pay-btn { flex: 1; padding: 10px; border: 2px solid #eee; border-radius: 12px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.3s; }
+    .pay-btn.active { border-color: var(--primary); background: #fff5ed; color: var(--primary); }
+    .pay-btn i { display: block; font-size: 18px; margin-bottom: 4px; }
+
+    .google-btn { background: white !important; color: #555 !important; border: 1px solid #ddd !important; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; box-shadow: none !important; }
+    .divider { margin: 15px 0; display: flex; align-items: center; color: #bbb; font-size: 12px; }
+    .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: #eee; margin: 0 10px; }
+
+    .legal-links { font-size: 11px; color: #aaa; margin-top: 20px; line-height: 2; }
+    .legal-links span { color: var(--primary); font-weight: bold; cursor: pointer; text-decoration: underline; margin: 0 5px; }
+
+    #welcomeToast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; display: none; z-index: 200001; animation: slideDown 0.4s ease; }
+    .app-header { background: var(--primary); padding: 15px; border-radius: 0 0 25px 25px; position: sticky; top: 0; z-index: 1000; }
+    .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; color: white; }
+    .brand-text { font-size: 24px; font-weight: 900; letter-spacing: 1px; }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .loc-badge { font-size: 11px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px; cursor: pointer; }
+    .search-container { position: relative; }
+    .search-container i { position: absolute; left: 15px; top: 14px; color: #888; }
+    .search-bar { width: 100%; padding: 12px 15px 12px 45px; border: none; border-radius: 15px; font-size: 14px; outline: none; }
+
+    .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 20px 15px; background: white; margin-top: -10px; border-radius: 25px; }
+    .cat-item { text-align: center; cursor: pointer; }
+    .cat-icon { width: 60px; height: 60px; background: #fff5ed; border: 1px solid #ffe0cc; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; transition: 0.3s; }
+    .cat-icon i { font-size: 24px; color: var(--primary); }
+    .cat-item span { font-size: 11px; font-weight: 700; color: #555; display: block; }
+
+    .sub-tabs { display: none; overflow-x: auto; padding: 10px 15px; background: white; white-space: nowrap; scrollbar-width: none; border-bottom: 1px solid #eee; }
+    .sub-tab { display: inline-block; padding: 8px 18px; background: #f0f0f0; border-radius: 20px; font-size: 12px; font-weight: 600; margin-right: 8px; cursor: pointer; }
+    .sub-tab.active { background: var(--primary); color: white; }
+
+    .service-scroll { display: flex; overflow-x: auto; padding: 15px; gap: 15px; scrollbar-width: none; }
+    .card { background: white; min-width: 170px; border-radius: 20px; padding: 12px; border: 1px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.05); flex-shrink: 0; }
+    .card img { width: 100%; height: 110px; border-radius: 15px; object-fit: cover; }
+    .card h4 { font-size: 14px; margin: 12px 0 6px; height: 38px; overflow: hidden; }
+    .price-row { display: flex; justify-content: space-between; align-items: center; }
+    .price-row b { color: var(--primary); font-size: 16px; }
+    .add-btn { background: var(--primary); color: white; border: none; padding: 7px 14px; border-radius: 10px; font-weight: bold; font-size: 11px; cursor: pointer; }
+
+    .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eee; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); }
+    .nav-item { text-align: center; color: #bbb; font-size: 11px; font-weight: 600; cursor: pointer; position: relative; }
+    .nav-item.active { color: var(--primary); }
+    .nav-item i { font-size: 22px; display: block; margin-bottom: 4px; }
+    .badge { position: absolute; top: -8px; right: -5px; background: #ff3b30; color: white; padding: 2px 7px; border-radius: 10px; font-size: 10px; }
+
+    .profile-card { width: 100%; background: #fff; border-radius: 20px; padding: 20px; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-height: 80vh; overflow-y: auto; }
+    .info-group { margin-bottom: 12px; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; }
+    .info-label { font-size: 11px; color: #888; display: block; }
+    .info-value { font-size: 15px; font-weight: 600; color: #333; }
+    
+    .lang-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+    .lang-btn { padding: 8px; border-radius: 10px; border: 1px solid #ddd; background: #f9f9f9; cursor: pointer; font-weight: bold; font-size: 12px; }
+    .lang-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    .track-box { background: #f0f0f0; padding: 10px; border-radius: 15px; margin: 10px 0; color: #333; }
+    .step { display: flex; align-items: center; gap: 10px; margin: 5px 0; font-size: 12px; }
+    .dot { width: 10px; height: 10px; background: #ccc; border-radius: 50%; }
+    .dot.active { background: var(--success); }
+
+    @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes slideDown { from { top: -50px; } to { top: 20px; } }
+</style>
+<style>/* ===== PROFILE PIC PERFECT CIRCLE FIX ===== */
+
+.profile-pic-wrapper{
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: #5a627d;          /* पीछे का रंग */
+  border: 3px solid var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.large-profile-pic{
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+</style>
+</head>
+<body id="mainBody">
+
+<div id="welcomeToast"></div>
+
+<div id="bookingPopup" class="full-overlay" style="display:none; background:rgba(0,0,0,0.8); z-index:999999;">
+    <div class="box" style="background:white; padding:20px; border-radius:20px;">
+        <h3 id="popTitle">Booking Details</h3>
+        <label style="font-size: 12px; color: #666; display: block; text-align: left;">Select Date & Time:</label>
+        <input type="date" id="bDate" style="text-align:left">
+        <input type="time" id="bTime" style="text-align:left">
+        <label style="font-size: 12px; color: #666; display: block; text-align: left; margin-top: 10px;">Payment Method:</label>
+        <div class="pay-options">
+            <div class="pay-btn active" id="btnOnline" onclick="setPayMethod('Online')">
+                <i class="fa fa-credit-card"></i> Online Pay
+            </div>
+            <div class="pay-btn" id="btnCash" onclick="setPayMethod('Cash')">
+                <i class="fa fa-money-bill-wave"></i> Cash (COD)
+            </div>
+        </div>
+        <button onclick="handleBooking()" id="confirmBtn">Continue to Book</button>
+        <button onclick="document.getElementById('bookingPopup').style.display='none'" style="background:#f0f0f0; color: #333; box-shadow: none;">Cancel</button>
+    </div>
+</div>
+
+<div id="payGateway" class="full-overlay" style="display:none; background:#fff; z-index:1000000;">
+    <div class="box">
+        <img src="https://cdn-icons-png.flaticon.com/512/10110/10110410.png" style="width:70px" />
+        <h2>Secure Payment</h2>
+        <p>Total Amount: <b id="payAmt" style="color:var(--primary); font-size: 24px;">₹0</b></p>
+        <div style="background:#f8f9fa; padding:15px; border-radius:15px; margin: 15px 0; border: 1px dashed #ccc;">
+            <p style="font-size:12px; margin-bottom:10px;">Supported UPI Apps</p>
+            <div style="display:flex; justify-content:space-around; font-size:30px; color:#555;">
+                <i class="fab fa-google-pay"></i>
+                <i class="fa fa-qrcode"></i>
+                <i class="fab fa-amazon-pay"></i>
+            </div>
+        </div>
+        <button onclick="finalCheckout('Online Paid')" style="background:var(--success)">Pay & Confirm Booking</button>
+        <button onclick="document.getElementById('payGateway').style.display='none'" style="background:none; color:#666; box-shadow:none;">Go Back</button>
+    </div>
+</div>
+
+<div id="loginScreen" class="full-overlay">
+    <div class="box">
+        <img src="sewaastra.png" alt="Sewaastra Logo" />
+        <div class="tagline">भारत की सबसे भरोसेमंद होम सर्विस ऐप</div>
+        <div class="welcome-note">नमस्ते!</div>
+        <div class="sub-note">आगे बढ़ने के लिए लॉगिन करें</div>
+        <input type="text" id="userName" placeholder="अपना नाम लिखें" />
+        <input type="email" id="userEmail" placeholder="ईमेल आईडी (Email ID)" />
+        <input type="password" id="userPass" placeholder="पासवर्ड (Password)" />
+        <input type="tel" id="mobileNum" placeholder="10 अंकों का मोबाइल नंबर" maxlength="10" />
+        <button onclick="login()">शुरू करें (Login)</button>
+        <div class="divider">अथवा</div>
+        <button class="google-btn" onclick="googleLogin()">
+            <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" style="width:20px; margin-bottom:0;" /> Google से लॉगिन करें
+        </button>
+        <div class="legal-links">
+            <span onclick="alert('Terms applied')">Terms</span> • 
+            <span onclick="alert('Policy info')">Policy</span> • 
+            <span onclick="alert('About SewaAstra')">About Us</span>
+        </div>
+    </div>
+</div>
+
+<div id="profileOverlay" class="full-overlay" style="display:none; background: rgba(0,0,0,0.5); z-index: 2000;">
+    <div class="box">
+        <div class="profile-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 id="profTitle" style="margin:0;">मेरी प्रोफाइल</h2>
+                <i class="fa fa-times" onclick="toggleProfile()" style="cursor:pointer; font-size: 20px;"></i>
+            </div>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <center>
+                    <img id="largePic" class="large-profile-pic" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" onclick="triggerUpload()" />
+                    <span style="font-size: 10px; color: var(--primary); font-weight: bold; cursor: pointer;" onclick="triggerUpload()">PHOTO बदलें</span>
+                    <input type="file" id="photoInput" accept="image/*" onchange="previewPhoto(this)" />
+                </center>
+            </div>
+            <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center">
+                <span>Dark Mode</span>
+                <input type="checkbox" id="darkBtn" onchange="toggleDark()" style="width:40px" />
+            </div>
+            <button onclick="shareApp()" style="width:100%; padding:10px; background:#e8f0fe; color:#1a73e8; border:none; border-radius:10px; font-weight:bold; margin-bottom:15px;">
+                <i class="fa fa-share-alt"></i> App Share करें
+            </button>
+            <div id="trackingUI" class="track-box" style="display:none">
+                <b id="trackHead">Live Tracking</b>
+                <div class="step"><div class="dot active"></div> Order Placed</div>
+                <div class="step"><div class="dot active"></div> Partner Assigned</div>
+                <div class="step"><div class="dot"></div> Service in Progress</div>
+            </div>
+            <div class="info-label">App Language / भाषा चुनें</div>
+            <div class="lang-box">
+                <button id="btnHi" class="lang-btn" onclick="setLang('hi',event)">हिन्दी</button>
+                <button id="btnEn" class="lang-btn" onclick="setLang('en',event)">English</button>
+                <button id="btnBh" class="lang-btn" onclick="setLang('bh')">भोजपुरी</button>
+                <button id="btnPb" class="lang-btn" onclick="setLang('pb',event)">ਪੰਜਾਬੀ</button>
+            </div>
+            <div class="info-group">
+                <span class="info-label" id="lblNm">नाम</span>
+                <span class="info-value" id="dispName">Guest</span>
+            </div>
+            <div class="info-group">
+                <span class="info-label" id="lblMob">मोबाइल नंबर</span>
+                <span class="info-value" id="dispMobile">Not Logged In</span>
+            </div>
+            <h3 style="font-size: 16px; margin: 15px 0 10px;" id="lblHist">ऑर्डर हिस्ट्री</h3>
+            <div id="orderHistoryList"></div>
+            <button onclick="logout()" style="background: #333; margin-top: 15px; padding: 10px;" id="btnLogout">लॉगआउट</button>
+        </div>
+    </div>
+</div>
+
+<header class="app-header">
+    <div class="header-top">
+        <div class="brand-text">SEWAASTRA</div>
+        <div class="header-actions">
+            <div class="loc-badge" onclick="getLoc()"><i class="fa fa-map-marker-alt"></i> <span id="locTxt">Set Location</span></div>
+            <div id="headerProfile" onclick="toggleProfile()">
+                <img id="headerPic" class="user-pic-circle" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" />
+            </div>
+        </div>
+    </div>
+    <div class="search-container">
+        <i class="fa fa-search"></i>
+        <input type="text" id="srch" class="search-bar" placeholder="मोबाइल, AC, फ्रिज रिपेयर खोजें..." onkeyup="filter()" />
+    </div>
+</header>
+
+<div class="cat-grid">
+    <div class="cat-item" onclick="load('mobile', this)"><div class="cat-icon"><i class="fa fa-mobile-alt"></i></div><span>Mobile</span></div>
+    <div class="cat-item" onclick="load('ac', this)"><div class="cat-icon"><i class="fa fa-wind"></i></div><span>AC</span></div>
+    <div class="cat-item" onclick="load('fridge', this)"><div class="cat-icon"><i class="fa fa-snowflake"></i></div><span>Fridge</span></div>
+    <div class="cat-item" onclick="load('wm', this)"><div class="cat-icon"><i class="fa fa-tint"></i></div><span>Washing</span></div>
+    <div class="cat-item" onclick="load('tv', this)"><div class="cat-icon"><i class="fa fa-tv"></i></div><span>Smart TV</span></div>
+    <div class="cat-item" onclick="load('elec', this)"><div class="cat-icon"><i class="fa fa-bolt"></i></div><span>Electric</span></div>
+    <div class="cat-item" onclick="load('plumbing', this)"><div class="cat-icon"><i class="fa fa-wrench"></i></div><span>Plumber</span></div>
+    <div class="cat-item" onclick="load('more', this)"><div class="cat-icon"><i class="fa fa-plus-circle"></i></div><span>More</span></div>
+</div>
+
+<div id="subTabsArea" class="sub-tabs"></div>
+<div class="section-header" style="padding:15px; font-weight:800; font-size:18px;"><span id="catTitle">Top Recommended</span></div>
+<div class="service-scroll" id="display"></div>
+
+<!-- bottom nav -->
+<footer class="bottom-nav">
+    <div class="nav-item active" onclick="location.reload()" id="navHome"><i class="fa fa-home"></i>Home</div>
+    <div class="nav-item" onclick="window.open('tel:7869969190')" id="navSupp"><i class="fa fa-headset"></i>Support</div>
+    <div class="nav-item" onclick="checkout()"><i class="fa fa-shopping-cart"></i>Cart <span class="badge" id="bCount">0</span></div>
+    <div class="nav-item" onclick="showHistory()" id="navHis"><i class="fa fa-history"></i>History</div>
+</footer>
+
+<script>
+function showHistory() {
+    // मान लें कि 'orderHistory' वह ऐरे (array) है जहाँ डेटा स्टोर है
+    // अगर आपके पास डेटाबेस है, तो यहाँ उसे फेच (fetch) करें
+    let orderHistory = []; // अभी यह खाली है
+
+    if (orderHistory.length === 0) {
+        alert("कोई इतिहास नहीं मिला"); // यहाँ आप अपनी भाषा के अनुसार बदल सकते हैं
+    } else {
+        // यहाँ हिस्ट्री दिखाने का लॉजिक लिखें
+        console.log("Showing history...", orderHistory);
+        alert("Displaying your history");
+    }
+}
+</script>
+
+<script>
+let cart = [];
+let mapsLink = "Not provided";
+let selectedPayment = "Online";
+// --- LANGUAGE DATA ---
+const translations = {
+    'en': { navHome: 'Home', navSupp: 'Support', navHis: 'History', noHis: 'No History Found' },
+    'hi': { navHome: 'होम', navSupp: 'सहायता', navHis: 'इतिहास', noHis: 'कोई इतिहास नहीं मिला' },
+    'bh': { navHome: 'घर', navSupp: 'मदद', navHis: 'पुराना', noHis: 'कुछु नइखे' },
+    'pb': { navHome: 'ਘਰ', navSupp: 'ਸਹਾਇਤਾ', navHis: 'ਇਤਿਹਾਸ', noHis: 'ਕੋਈ ਇਤਿਹਾਸ ਨਹੀਂ' }
+};
+
+let currentLang = 'hi'; // Default language
+
+function setLang(langCode, event) {
+    currentLang = langCode;
+
+    // 1. Touch Feel (Vibration)
+    if (navigator.vibrate) {
+        navigator.vibrate(50);
+    }
+
+    // 2. Button Animation (Touch Feel Effect)
+    if (event && event.currentTarget) {
+        const btn = event.currentTarget;
+        btn.style.transform = "scale(0.9)";
+        setTimeout(() => {
+            btn.style.transform = "scale(1)";
+        }, 100);
+    }
+
+    // 3. Text Update Logic
+    const data = translations[langCode];
+    if (data) {
+        const homeNav = document.getElementById('navHome');
+        const suppNav = document.getElementById('navSupp');
+        const hisNav = document.getElementById('navHis');
+
+        if (homeNav) homeNav.innerHTML = `<i class="fa fa-home"></i>${data.navHome}`;
+        if (suppNav) suppNav.innerHTML = `<i class="fa fa-headset"></i>${data.navSupp}`;
+        if (hisNav) hisNav.innerHTML = `<i class="fa fa-history"></i>${data.navHis}`;
+    }
+} // setLang यहाँ बंद होना चाहिए
+
+function showHistory() {
+    let orderHistory = []; // अभी यह खाली है
+    if (orderHistory.length === 0) {
+        alert(translations[currentLang].noHis);
+    } else {
+        alert("Showing history...");
+    }
+}
+
+// --- LOGIN LOGIC ---
+function login() {
+    const name = document.getElementById('userName').value.trim();
+    const email = document.getElementById('userEmail').value.trim();
+    const pass = document.getElementById('userPass').value.trim();
+    const num = document.getElementById('mobileNum').value.trim();
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const mobileRegex = /^[6-9]\d{9}$/;
+
+    if (name.length < 3) { alert("कृपया अपना पूरा नाम लिखें!"); return; }
+    if (!emailRegex.test(email)) { alert("सही ईमेल आईडी डालें!"); return; }
+    if (pass.length < 6) { alert("पासवर्ड कम से कम 6 अक्षरों का हो!"); return; }
+    if (!mobileRegex.test(num)) { alert("10 अंकों का सही मोबाइल नंबर डालें!"); return; }
+
+    localStorage.setItem('sw_user', num); 
+    localStorage.setItem('sw_name', name);
+    showWelcome(name);
+    setTimeout(() => { document.getElementById('loginScreen').style.display = 'none'; }, 1000);
+}
+
+// --- FILTER FUNCTION ---
+function filter() {
+    let input = document.getElementById('srch').value.toLowerCase();
+    let cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        let text = card.querySelector('h4').innerText.toLowerCase();
+        card.style.display = text.includes(input) ? "block" : "none";
+    });
+}
+
+function triggerUpload() { document.getElementById('photoInput').click(); }
+
+function previewPhoto(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const photoData = e.target.result;
+            localStorage.setItem('sw_user_photo', photoData);
+            updatePhotoUI(photoData);
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function updatePhotoUI(data) {
+    if(data) {
+        document.getElementById('headerPic').src = data;
+        document.getElementById('largePic').src = data;
+    }
+}
+
+const mainData = {
+    'mobile': [
+        {n:'Broken Screen (Combo)', p:1499, i:'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?w=200'},
+        {n:'Battery Replacement', p:899, i:'https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?w=200'},
+        {n:'Charging Port Repair', p:399, i:'https://images.unsplash.com/photo-1591405351990-4726e331f141?w=200'},
+        {n:'Liquid Damage Fix', p:599, i:'https://images.unsplash.com/photo-1542744095-2ad48ef00bc3?w=200'},
+        {n:'Mic/Speaker Issue', p:349, i:'https://images.unsplash.com/photo-1589003077984-894e133dabab?w=200'}
+    ],
+    'ac': [
+        {n:'AC Deep Cleaning', p:499, i:'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=200'},
+        {n:'Gas Refilling', p:1500, i:'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=200'},
+        {n:'AC Installation', p:1199, i:'https://images.unsplash.com/photo-1591123109673-3f7595379f07?w=200'},
+        {n:'PCB Repair', p:1800, i:'https://images.unsplash.com/photo-1555664424-778a1e5e1b48?w=200'}
+    ],
+    'fridge': [
+        {n:'Not Cooling Repair', p:399, i:'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200'},
+        {n:'Fridge Gas Fill', p:1800, i:'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?w=200'},
+        {n:'Thermostat Change', p:550, i:'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=200'}
+    ],
+    'wm': [
+        {n:'Drainage Issue', p:299, i:'https://images.unsplash.com/photo-1582733775062-adc905f458ad?w=200'},
+        {n:'Drum/Motor Fix', p:999, i:'https://images.unsplash.com/photo-1610557892470-55d9e80c0bce?w=200'},
+        {n:'Fully Auto Service', p:599, i:'https://images.unsplash.com/photo-1521903062400-b80a2bb0cd35?w=200'}
+    ],
+    'tv': [
+        {n:'LED Wall Mount', p:249, i:'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=200'},
+        {n:'No Picture Fix', p:1500, i:'https://images.unsplash.com/photo-1461151304267-38535e770f75?w=200'},
+        {n:'Sound System Repair', p:499, i:'https://images.unsplash.com/photo-1509281373149-e957c6296406?w=200'}
+    ],
+    'elec': [
+        {n:'New Point Fitting', p:149, i:'https://images.unsplash.com/photo-1621905252507-b354bcadcabc?w=200'},
+        {n:'Inverter Setup', p:499, i:'https://images.unsplash.com/photo-1620288627223-53302f4e8c74?w=200'},
+        {n:'Fan/Light Fix', p:99, i:'https://images.unsplash.com/photo-1565551904791-7f86449171f1?w=200'}
+    ],
+    'plumbing': [
+        {n:'Pipe Leakage Repair', p:199, i:'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=200'},
+        {n:'Toilet/Sink Install', p:499, i:'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=200'}
+    ]
+};
+
+const moreData = {
+    'Cleaning': [
+        {n:'Sofa Spa Cleaning', p:799, i:'https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=200'},
+        {n:'Bathroom Deep Clean', p:349, i:'https://via.placeholder.com/200'},
+        {n:'Full House Deep Clean', p:3499, i:'https://via.placeholder.com/200'}
+    ],
+    'Pest Control': [
+        {n:'Cockroach Control', p:699, i:'https://via.placeholder.com/200'},
+        {n:'Termite Protection', p:1999, i:'https://via.placeholder.com/200'}
+    ],
+    'Carpentry': [
+        {n:'Door/Lock Fix', p:199, i:'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=200'},
+        {n:'Furniture Repair', p:499, i:'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=200'}
+    ]
+};
+
+function setPayMethod(m) {
+    selectedPayment = m;
+    document.getElementById('btnOnline').classList.toggle('active', m === 'Online');
+    document.getElementById('btnCash').classList.toggle('active', m === 'Cash');
+}
+
+function handleBooking() {
+    let date = document.getElementById('bDate').value;
+    let time = document.getElementById('bTime').value;
+    if(!date || !time) return alert("Please select date and time");
+
+    if(selectedPayment === "Online") {
+        let total = cart.reduce((s, i) => s + i.p, 0);
+        document.getElementById('payAmt').innerText = "₹" + total;
+        document.getElementById('payGateway').style.display = 'flex';
+    } else {
+        finalCheckout('Cash on Delivery');
+    }
+}
+
+function shareApp() {
+    if (navigator.share) {
+        navigator.share({ title: 'SewaAstra', text: 'भारत की सबसे भरोसेमंद होम सर्विस ऐप!', url: window.location.href });
+    } else { alert("Link Copied: " + window.location.href); }
+}
+
+function toggleDark() {
+    document.body.classList.toggle('dark-mode');
+    localStorage.setItem('sw_dark', document.body.classList.contains('dark-mode'));
+}
+
+function checkout() {
+    if(cart.length === 0) return alert("Cart खाली है");
+    document.getElementById('bookingPopup').style.display = 'flex';
+}
+
+function finalCheckout(payStatus) {
+    let date = document.getElementById('bDate').value;
+    let time = document.getElementById('bTime').value;
+    let items = cart.map(i => i.n).join(', ');
+    let total = cart.reduce((s, i) => s + i.p, 0);
+    let history = JSON.parse(localStorage.getItem('sw_history') || "[]");
+    history.push({date: new Date().toLocaleDateString(), items, total, bDate: date, bTime: time, payment: payStatus});
+    localStorage.setItem('sw_history', JSON.stringify(history));
+    localStorage.setItem('sw_tracking', 'active');
+
+    let msg = `*New Order: SewaAstra*%0A*Items:* ${items}%0A*Total:* ₹${total}%0A*Date:* ${date} at ${time}%0A*Payment:* ${payStatus}%0A*User:* ${localStorage.getItem('sw_name')}`;
+    window.open(`https://wa.me/${WHATSAPP_PHONE}?text=${msg}`);
+    location.reload();
+}
+
+function googleLogin() {
+    localStorage.setItem('sw_user', 'GoogleUser'); localStorage.setItem('sw_name', 'Google User');
+    showWelcome('Google User');
+    setTimeout(() => { document.getElementById('loginScreen').style.display = 'none'; }, 1000);
+}
+
+function showWelcome(name) {
+    const toast = document.getElementById('welcomeToast');
+    toast.innerText = `Welcome to SewaAstraै, ${name}! 👋`;
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 3000);
+}
+
+function toggleProfile() {
+    const overlay = document.getElementById('profileOverlay');
+    if(overlay.style.display === 'none' || overlay.style.display === "") {
+        document.getElementById('dispName').innerText = localStorage.getItem('sw_name') || "Guest";
+        document.getElementById('dispMobile').innerText = localStorage.getItem('sw_user') || "Not Logged In";
+        if(localStorage.getItem('sw_tracking')) document.getElementById('trackingUI').style.display = 'block';
+        loadHistory();
+        overlay.style.display = 'flex';
+    } else overlay.style.display = 'none';
+}
+
+function setLang(lang) {
+    localStorage.setItem('sw_lang', lang);
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    const btnId = 'btn' + lang.charAt(0).toUpperCase() + lang.slice(1);
+    if(document.getElementById(btnId)) document.getElementById(btnId).classList.add('active');
+}
+
+function load(id, element) {
+    if(element) {
+        const iconBox = element.querySelector('.cat-icon');
+        iconBox.classList.remove('animate-icon');
+        void iconBox.offsetWidth; // reflow trigger
+        iconBox.classList.add('animate-icon');
+    }
+    const display = document.getElementById('display');
+    const tabs = document.getElementById('subTabsArea');
+    display.innerHTML = ''; tabs.style.display='none';
+    if(id==='more'){
+        document.getElementById('catTitle').innerText = "Premium Services";
+        tabs.style.display='flex'; tabs.innerHTML='';
+        for(let group in moreData) tabs.innerHTML += `<div class="sub-tab" onclick="loadSub('${group}')">${group}</div>`;
+        loadSub(Object.keys(moreData)[0]);
+    } else {
+        document.getElementById('catTitle').innerText = id.toUpperCase() + " Services";
+        (mainData[id] || []).forEach(s => display.innerHTML += createCard(s));
+    }
+}
+
+function loadSub(group) {
+    const display = document.getElementById('display');
+    display.innerHTML = '';
+    document.querySelectorAll('.sub-tab').forEach(t => t.classList.toggle('active', t.innerText===group));
+    moreData[group].forEach(s => display.innerHTML += createCard(s));
+}
+
+function createCard(s) {
+    const rating = (Math.random() * (4.9 - 4.4) + 4.4).toFixed(1);
+    const reviews = Math.floor(Math.random() * 400) + 100;
+    return `<div class="card">
+        <img src="${s.i}" onerror="this.src='https://via.placeholder.com/150'" />
+        <h4>${s.n}</h4>
+        <div class="rating-row"><i class="fa fa-star"></i><span class="rating-val">${rating}</span><span class="review-count">(${reviews})</span></div>
+        <div class="price-row"><b>₹${s.p}</b><button class="add-btn" onclick="addToCart('${s.n}', ${s.p})">ADD</button></div>
+    </div>`;
+}
+
+function addToCart(n, p) { cart.push({n, p}); document.getElementById('bCount').innerText = cart.length; }
+
+function getLoc() { navigator.geolocation.getCurrentPosition(() => document.getElementById('locTxt').innerText = "Linked ✅", () => alert("GPS चालू करें")); }
+
+function loadHistory() {
+    const history = JSON.parse(localStorage.getItem('sw_history') || "[]");
+    const container = document.getElementById('orderHistoryList');
+    container.innerHTML = history.length === 0 ? '<p>No orders yet</p>' : history.reverse().map(o => `
+        <div style="background:#f9f9f9; color:#333; padding:10px; border-radius:10px; margin-bottom:8px; border-left:4px solid var(--primary); font-size:12px;">
+            <b>${o.date}</b><br>${o.items}<br>Slot: ${o.bDate} ${o.bTime}<br><b>₹${o.total}</b>
+        </div>`).join('');
+}
+
+function logout() { localStorage.clear(); location.reload(); }
+
+window.onload = () => {
+    if(localStorage.getItem('sw_user')) document.getElementById('loginScreen').style.display='none';
+    if(localStorage.getItem('sw_dark')==='true'){ document.body.classList.add('dark-mode'); document.getElementById('darkBtn').checked=true; }
+    const savedPhoto=localStorage.getItem('sw_user_photo');
+    if(savedPhoto) updatePhotoUI(savedPhoto);
+    load('mobile');
+    setLang(localStorage.getItem('sw_lang') || 'hi');
+};
+</script>
+
+<script>
+/* ========= LANGUAGE PATCH – DO NOT DELETE OLD CODE ========= */
+
+const LANG_DATA = {
+  hi: { home:"होम", support:"सहायता", history:"इतिहास", noHistory:"कोई इतिहास नहीं मिला" },
+  en: { home:"Home", support:"Support", history:"History", noHistory:"No history found" },
+  bh: { home:"घर", support:"मदद", history:"पुराना", noHistory:"कुछु नइखे" },
+  pb: { home:"ਘਰ", support:"ਸਹਾਇਤਾ", history:"ਇਤਿਹਾਸ", noHistory:"ਕੋਈ ਇਤਿਹਾਸ ਨਹੀਂ" }
+};
+
+window.currentLang = localStorage.getItem("sw_lang") || "hi";
+
+window.setLang = function(lang, event){
+  currentLang = lang;
+  localStorage.setItem("sw_lang", lang);
+  document.querySelectorAll(".lang-btn").forEach(b=>b.classList.remove("active"));
+  if(event && event.currentTarget){
+    event.currentTarget.classList.add("active");
+    event.currentTarget.style.transform="scale(0.88)";
+  }
+  if(navigator.vibrate) navigator.vibrate(40);
+  document.getElementById("navHome").innerHTML =
+    `<i class="fa fa-home"></i>${LANG_DATA[lang].home}`;
+  document.getElementById("navSupp").innerHTML =
+    `<i class="fa fa-headset"></i>${LANG_DATA[lang].support}`;
+  document.getElementById("navHis").innerHTML =
+    `<i class="fa fa-history"></i>${LANG_DATA[lang].history}`;
+};
+
+window.showHistory = function(){
+  let history = JSON.parse(localStorage.getItem("sw_history") || "[]");
+  if(history.length===0){
+    alert(LANG_DATA[currentLang].noHistory);
+  } else {
+    toggleProfile();
+  }
+};
+
+/* Auto apply saved language on load */
+window.addEventListener("load", ()=>{
+  let saved = localStorage.getItem("sw_lang") || "hi";
+  let btnId = "btn"+saved.charAt(0).toUpperCase()+saved.slice(1);
+  if(document.getElementById(btnId)){
+    document.getElementById(btnId).classList.add("active");
+  }
+  setLang(saved);
+});
+</script>
+
+<style>
+.lang-btn {
+  transition: transform 0.15s ease;
+}
+.lang-btn:active {
+  transform: scale(0.88);
+}
+</style>
+
+</body>
+</html>
