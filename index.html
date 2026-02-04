@@ -305,6 +305,7 @@ function showHistory() {
         // यहाँ हिस्ट्री दिखाने का लॉजिक लिखें
         console.log("Showing history...", orderHistory);
         alert("Displaying your history");
+
     }
 }
 </script>
@@ -417,56 +418,65 @@ function updatePhotoUI(data) {
 const mainData = {
     'mobile': [
         {n:'Broken Screen (Combo)', p:1499, i:'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?w=200'},
-        {n:'Battery Replacement', p:899, i:'https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?w=200'},
-        {n:'Charging Port Repair', p:399, i:'https://images.unsplash.com/photo-1591405351990-4726e331f141?w=200'},
-        {n:'Liquid Damage Fix', p:599, i:'https://images.unsplash.com/photo-1542744095-2ad48ef00bc3?w=200'},
-        {n:'Mic/Speaker Issue', p:349, i:'https://images.unsplash.com/photo-1589003077984-894e133dabab?w=200'}
+        {n:'Battery Replacement', p:899, i:'bettry.png'},
+        {n:'Charging Port Repair', p:399, i:'charging.png'},
+        {n:'Liquid Damage Fix', p:599, i:'liquid.png'},
+        {n:'Mobile Hang', p:499, i:'hang.png'},
+        {n:'Mic/Speaker Issue', p:349, i:'speeker.png'}
     ],
     'ac': [
-        {n:'AC Deep Cleaning', p:499, i:'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=200'},
-        {n:'Gas Refilling', p:1500, i:'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=200'},
-        {n:'AC Installation', p:1199, i:'https://images.unsplash.com/photo-1591123109673-3f7595379f07?w=200'},
-        {n:'PCB Repair', p:1800, i:'https://images.unsplash.com/photo-1555664424-778a1e5e1b48?w=200'}
+        {n:'AC Deep Cleaning', p:499, i:'ac cleen.png'},
+        {n:'Gas Refilling', p:1500, i:'ac gas.png'},
+        {n:'AC Installation', p:1199, i:'ac install.png'},
+        {n:'PCB Repair', p:1800, i:'Ac pbc.png'}
     ],
     'fridge': [
-        {n:'Not Cooling Repair', p:399, i:'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200'},
-        {n:'Fridge Gas Fill', p:1800, i:'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?w=200'},
-        {n:'Thermostat Change', p:550, i:'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=200'}
+        {n:'Not Cooling Repair', p:399, i:'not cooling.png'},
+        {n:'Fridge Gas Fill', p:1800, i:'fridge gas.png'},
+        {n:'PBC Circuit Repair', p:699, i:'pbc circit.png'},
+        {n:'Thermostat Change', p:550, i:'Thermostat.png'}
     ],
     'wm': [
-        {n:'Drainage Issue', p:299, i:'https://images.unsplash.com/photo-1582733775062-adc905f458ad?w=200'},
-        {n:'Drum/Motor Fix', p:999, i:'https://images.unsplash.com/photo-1610557892470-55d9e80c0bce?w=200'},
-        {n:'Fully Auto Service', p:599, i:'https://images.unsplash.com/photo-1521903062400-b80a2bb0cd35?w=200'}
+        {n:'Drainage Issue', p:299, i:'Drainage.png'},
+        {n:'Drum/Motor Fix', p:999, i:'moter.png'},
+        {n:'Fully Auto Service', p:599, i:'full auto .png'}
     ],
     'tv': [
-        {n:'LED Wall Mount', p:249, i:'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=200'},
-        {n:'No Picture Fix', p:1500, i:'https://images.unsplash.com/photo-1461151304267-38535e770f75?w=200'},
-        {n:'Sound System Repair', p:499, i:'https://images.unsplash.com/photo-1509281373149-e957c6296406?w=200'}
+        {n:'LED Wall Mount', p:249, i:'Led Wall.png'},
+        {n:'No Picture Fix', p:1500, i:'No Picture.png'},
+        {n:'Sound System Repair', p:499, i:'Sound System.png'}
     ],
     'elec': [
-        {n:'New Point Fitting', p:149, i:'https://images.unsplash.com/photo-1621905252507-b354bcadcabc?w=200'},
-        {n:'Inverter Setup', p:499, i:'https://images.unsplash.com/photo-1620288627223-53302f4e8c74?w=200'},
-        {n:'Fan/Light Fix', p:99, i:'https://images.unsplash.com/photo-1565551904791-7f86449171f1?w=200'}
+        {n:'New Point Fitting', p:149, i:'New Point.png'},
+        {n:'Inverter Setup', p:499, i:'Inverter.png'},
+        {n:'Fan/Light Fix', p:99, i:'Fan.png'}
     ],
     'plumbing': [
-        {n:'Pipe Leakage Repair', p:199, i:'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=200'},
-        {n:'Toilet/Sink Install', p:499, i:'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=200'}
+        {n:'Pipe Leakage Repair', p:199, i:'Pipe.png'},
+        {n:'Toilet/Sink Install', p:499, i:'Toilet.png'}
     ]
+
+
 };
 
 const moreData = {
     'Cleaning': [
-        {n:'Sofa Spa Cleaning', p:799, i:'https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=200'},
-        {n:'Bathroom Deep Clean', p:349, i:'https://via.placeholder.com/200'},
-        {n:'Full House Deep Clean', p:3499, i:'https://via.placeholder.com/200'}
+        {n:'Sofa Spa Cleaning', p:799, i:'Sofa.png'},
+        {n:'Bathroom Deep Clean', p:349, i:'bathroom.png'},
+        {n:'Full House Deep Clean', p:3499, i:'Fullhomeclean.png'}
     ],
     'Pest Control': [
-        {n:'Cockroach Control', p:699, i:'https://via.placeholder.com/200'},
-        {n:'Termite Protection', p:1999, i:'https://via.placeholder.com/200'}
+        {n:'Cockroach Control', p:699, i:'cocroch.png'},
+        {n:'Termite Protection', p:1999, i:'contro.png'}
     ],
     'Carpentry': [
-        {n:'Door/Lock Fix', p:199, i:'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=200'},
-        {n:'Furniture Repair', p:499, i:'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=200'}
+        {n:'Door/Lock Fix', p:199, i:'Door.png'},
+        {n:'Furniture Repair', p:499, i:'Furniture.png'}
+    ],
+    'Laptop':[
+        {n:'Softwere problme',p:699,i:'Soft.png' },
+        {n:'Keyboard Change',p:699,i:'Keybord.png' },
+        {n:'display broken',p:699,i:'laptop.png' }
     ]
 };
 
@@ -517,7 +527,7 @@ function finalCheckout(payStatus) {
     localStorage.setItem('sw_tracking', 'active');
 
     let msg = `*New Order: SewaAstra*%0A*Items:* ${items}%0A*Total:* ₹${total}%0A*Date:* ${date} at ${time}%0A*Payment:* ${payStatus}%0A*User:* ${localStorage.getItem('sw_name')}`;
-    window.open(`https://wa.me/${WHATSAPP_PHONE}?text=${msg}`);
+    window.open(`https://wa.me/${7869969190}?text=${msg}`);
     location.reload();
 }
 
