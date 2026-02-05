@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    
-<m<!-- Google tag (gtag.js) -->
+  <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-52QKXTC1J4"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -11,7 +10,11 @@
 
   gtag('config', 'G-52QKXTC1J4');
 </script>
-    <meta charset="UTF-8" />
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics-compat.js"></script>
+
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>SewaAstra - Ultimate Home Services</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
@@ -202,7 +205,7 @@
         <input type="email" id="userEmail" placeholder="ईमेल आईडी (Email ID)" />
         <input type="password" id="userPass" placeholder="पासवर्ड (Password)" />
         <input type="tel" id="mobileNum" placeholder="10 अंकों का मोबाइल नंबर" maxlength="10" />
-        <button onclick="login()">शुरू करें (Login)</button>
+        <button id="login-btn" onclick="sendOTP()">शुरू करें (Login)</button>
         <div class="divider">अथवा</div>
         <button class="google-btn" onclick="googleLogin()">
             <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" style="width:20px; margin-bottom:0;" /> Google से लॉगिन करें
@@ -549,7 +552,7 @@ function googleLogin() {
 
 function showWelcome(name) {
     const toast = document.getElementById('welcomeToast');
-    toast.innerText = `Welcome to SewaAstraै, ${name}! 👋`;
+    toast.innerText = `Welcome to SewaAstra ${name}! 👋`;
     toast.style.display = 'block';
     setTimeout(() => { toast.style.display = 'none'; }, 3000);
 }
@@ -693,6 +696,63 @@ window.addEventListener("load", ()=>{
   transform: scale(0.88);
 }
 </style>
+<script>
+  // आपकी असली Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyA4kInzUxzF6Or1sHfzXavx1nVM0x40lak",
+    authDomain: "sewaastra.firebaseapp.com",
+    databaseURL: "https://sewaastra-default-rtdb.firebaseio.com",
+    projectId: "sewaastra",
+    storageBucket: "sewaastra.firebasestorage.app",
+    messagingSenderId: "211091351218",
+    appId: "1:211091351218:web:5602f5f1a36a21c3464bab",
+    measurementId: "G-52QKXTC1J4"
+  };
+
+  // Firebase शुरू करें
+  if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+      firebase.analytics();
+  }
+
+   function sendOTP() {
+    const number = document.getElementById('mobileNum').value;
+    if(number.length !== 10) {
+        alert("कृपया 10 अंकों का सही मोबाइल नंबर डालें।");
+        return;
+    }
+
+    const phoneNumber = "+91" + number;
+
+    // अगर recaptchaVerifier पहले से बना हुआ है, तो उसे दोबारा न बनाएँ
+    if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('login-btn', {
+            'size': 'invisible'
+        });
+    }
+
+    firebase.auth().signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
+        .then((confirmationResult) => {
+            const code = prompt("OTP दर्ज करें:");
+            if (code) {
+                return confirmationResult.confirm(code);
+            }
+        })
+        .then((result) => {
+            alert("लॉगिन सफल!");
+            window.location.href = "home.html";
+        })
+        .catch((error) => {
+            // अगर reCAPTCHA एरर दे, तो उसे 'Reset' करें
+            if (window.recaptchaVerifier) {
+                window.recaptchaVerifier.render().then(function(widgetId) {
+                    grecaptcha.reset(widgetId);
+                });
+            }
+            alert("गलती: " + error.message);
+        });
+}
+</script>
 
 </body>
 </html>
