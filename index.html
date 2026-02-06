@@ -753,6 +753,27 @@ window.addEventListener("load", ()=>{
         });
 }
 </script>
+<script>// इसे अपनी स्क्रिप्ट के अंत में जोड़ें
+firebase.auth().onAuthStateChanged((user) => {
+    // अपनी लॉगिन वाली मुख्य DIV की ID यहाँ लिखें (जैसे auth-container)
+    const loginSection = document.getElementById('auth-ui'); 
+    const profileSection = document.getElementById('user-profile');
 
+    if (user) {
+        // लॉगिन सफल: लॉगिन फॉर्म छुपाएं और प्रोफाइल दिखाएं
+        if(loginSection) loginSection.style.display = "none";
+        if(profileSection) profileSection.style.display = "block";
+
+        // Google से मिला डेटा स्क्रीन पर डालें
+        document.getElementById('user-display-name').innerText = user.displayName;
+        document.getElementById('user-email').innerText = user.email;
+        document.getElementById('user-img').src = user.photoURL || 'https://via.placeholder.com/80';
+    } else {
+        // यूजर लॉगआउट है: लॉगिन फॉर्म दिखाएं
+        if(loginSection) loginSection.style.display = "block";
+        if(profileSection) profileSection.style.display = "none";
+    }
+});
+</script>
 </body>
 </html>
