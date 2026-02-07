@@ -776,5 +776,46 @@ firebase.auth().onAuthStateChanged((user) => {
     }
 });
 </script>
+  <script type="module">
+    // 1. फायरबेस मॉड्यूल्स इम्पोर्ट करें
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // 2. आपकी कॉन्फ़िगरेशन (तीनों फाइल्स में एक ही रहेगी)
+    const firebaseConfig = {
+        apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
+        authDomain: "sewaastra.firebaseapp.com",
+        projectId: "sewaastra",
+        storageBucket: "sewaastra.firebasestorage.app",
+        messagingSenderId: "211091351218",
+        appId: "1:211091351218:web:47fe25d6db3e8dd0464bab"
+    };
+
+    // 3. फायरबेस शुरू करें
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app); // अब डेटा Firestore में जाएगा
+
+    // --- अब तीनों फाइल्स के लिए अलग-अलग फंक्शन्स ---
+
+    // A. पार्टनर ऐप के लिए (डेटा भेजना)
+    window.registerPartner = async (partnerData) => {
+        await addDoc(collection(db, "partners"), partnerData);
+    };
+
+    // B. कस्टमर ऐप के लिए (बुकिंग करना)
+    window.makeBooking = async (bookingData) => {
+        await addDoc(collection(db, "bookings"), bookingData);
+    };
+
+    // C. एडमिन ऐप के लिए (डेटा देखना)
+    window.loadAdminData = () => {
+        onSnapshot(collection(db, "partners"), (snap) => { /* टेबल अपडेट करें */ });
+        onSnapshot(collection(db, "bookings"), (snap) => { /* टेबल अपडेट करें */ });
+    };
+
+</script>
+
 </body>
 </html>
