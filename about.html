@@ -1,0 +1,143 @@
+ <!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us | SewaAstra - Innovation in Service</title>
+    <style>
+        :root {
+            --primary: #e67e22;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f9f9f9;
+        }
+        /* Hero Section */
+        .about-hero {
+            background: linear-gradient(rgba(44, 62, 80, 0.9), rgba(44, 62, 80, 0.9)), url('https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+        .about-hero h1 { font-size: 3rem; margin: 0; letter-spacing: 2px; }
+        
+        /* Content Box */
+        .content-container {
+            max-width: 900px;
+            margin: -50px auto 50px;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        .badge {
+            background: var(--primary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        h2 { color: var(--dark); border-left: 5px solid var(--primary); padding-left: 15px; margin-top: 30px; }
+        
+        /* Story Section */
+        .story-text {
+            line-height: 1.8;
+            font-size: 1.1rem;
+            color: #555;
+        }
+        .highlight { color: var(--primary); font-weight: bold; }
+
+        /* Founder Section */
+        .founder-card {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 40px;
+            border: 1px dashed var(--primary);
+        }
+        .founder-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-right: 20px;
+            border: 3px solid var(--primary);
+        }
+        
+        /* Footer Links */
+        .back-home {
+            display: inline-block;
+            margin-top: 30px;
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: bold;
+            border: 2px solid var(--primary);
+            padding: 10px 25px;
+            border-radius: 25px;
+            transition: 0.3s;
+        }
+        .back-home:hover { background: var(--primary); color: white; }
+
+        @media (max-width: 600px) {
+            .founder-card { flex-direction: column; text-align: center; }
+            .founder-img { margin: 0 0 15px 0; }
+            .about-hero h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <section class="about-hero">
+        <div>
+            <h1>SEWAASTRA</h1>
+            <p>सेवा भी, समाधान भी।</p>
+        </div>
+    </section>
+
+    <div class="content-container">
+        <span class="badge">Our Journey</span>
+        <h2>एक अटूट संकल्प</h2>
+        <div class="story-text">
+            <p><b>SewaAstra (सेवाअस्त्र)</b> की शुरुआत भोपाल की गलियों से हुई, जहाँ एक सपने ने जन्म लिया। यह सपना था—तकनीक को आम आदमी के दरवाजे तक पहुँचाने का।</p>
+            
+            <p>एक मध्यमवर्गीय परिवार से ताल्लुक रखने वाले <span class="highlight">शूरश्याम विश्वकर्मा</span> के पास न तो बड़ी डिग्री थी और न ही कोडिंग का अनुभव। लेकिन उनके पास थी—एक अटूट इच्छाशक्ति। जब बड़ी कंपनियों ने छोटे शहरों को केवल डेटा समझा, तब शूरश्याम ने <b>AI (Artificial Intelligence)</b> को अपना साथी बनाया और खुद ही इस "सेवाअस्त्र" का निर्माण किया।</p>
+
+            <p>आज SewaAstra केवल एक ऐप नहीं है, बल्कि उन हजारों हुनरमंद हाथों का सम्मान है जो आपके घर की हर समस्या (AC, Fridge, Plumbing, Electrical) को चुटकियों में हल करने की ताकत रखते हैं।</p>
+        </div>
+
+        <h2>हमारा मिशन (Our Mission)</h2>
+        <p class="story-text">हमारा लक्ष्य सरल है: <b>"हर घर को मिले बेहतरीन सेवा और हर हुनर को मिले सही दाम।"</b> हम बिचौलियों को हटाकर सीधे ग्राहक और सेवा प्रदाता के बीच एक भरोसेमंद पुल बना रहे हैं।</p>
+
+        <div class="founder-card">
+            <img src="surya.png" alt="Founder" class="founder-img">
+            <div>
+                <h4 style="margin:0;">शूरश्याम विश्वकर्मा</h4>
+                <p style="margin:5px 0; font-size: 14px; color: #777;">संस्थापक एवं मुख्य डेवलपर</p>
+                <p style="font-style: italic; font-size: 13px;">"यदि आप में कुछ सीखने की चाह है, तो दुनिया की कोई भी तकनीक आपसे दूर नहीं है।"</p>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="index.html" class="back-home">मुख्य पेज पर वापस जाएँ</a>
+        </div>
+        
+        <p style="text-align:center; font-size: 12px; color: #aaa; margin-top: 40px;">
+            © 2026 SewaAstra Technologies | Made with pride in Bhopal 🇮🇳
+        </p>
+    </div>
+
+</body>
+</html>
