@@ -362,7 +362,7 @@ function showHistory() {
 let cart = [];
 let mapsLink = "Not provided";
 
-let selectedPayment = "Online";
+let selectedPayment = "shoorshyam.vishwakarma@ybl";
 // --- LANGUAGE DATA ---
 const translations = {
     'en': { navHome: 'Home', navSupp: 'Support', navHis: 'History', noHis: 'No History Found' },
@@ -891,45 +891,27 @@ function googleLogin() {
     </p>
 </footer>
   
-<div id="language-section" style="background: #fff; padding: 15px; text-align: center; border-top: 2px solid #ff6600; margin-top: 30px;">
-    <h4 style="color: #ff6600; margin-bottom: 10px; font-family: sans-serif;">भाषा चुनें / Choose Language</h4>
-    <div id="google_translate_element"></div>
-</div>
+ <div id="google_translate_element" style="display:none;"></div>
 
 <script type="text/javascript">
 function googleTranslateElementInit() {
   new google.translate.TranslateElement({
-    pageLanguage: 'hi', 
-    includedLanguages: 'hi,en,bn,pa,gu,mr,ta,te', 
-    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+    pageLanguage: 'hi',
     autoDisplay: false
   }, 'google_translate_element');
 }
-</script>
 
+// भाषा बदलने वाला फंक्शन
+function changeLanguage(langCode) {
+    var selectField = document.querySelector(".goog-te-combo");
+    if (selectField) {
+        selectField.value = langCode;
+        selectField.dispatchEvent(new Event('change'));
+    }
+}
+</script>
 <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
-<style>
-    /* SewaAstra Custom Styling for Translator */
-    #google_translate_element {
-        display: inline-block;
-        padding: 5px;
-        border: 1px solid #ff6600;
-        border-radius: 8px;
-        background: #fffaf7;
-    }
-    
-    /* गूगल के ऊपरी बार को हटाने के लिए */
-    .goog-te-banner-frame.skiptranslate { display: none !important; }
-    body { top: 0px !important; }
-    
-    /* मोबाइल रिस्पॉन्सिव */
-    @media (max-width: 600px) {
-        #language-section {
-            padding: 10px;
-        }
-    }
-</style>
 
 </body>
 </html>
