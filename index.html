@@ -130,39 +130,6 @@
 
     @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     @keyframes slideDown { from { top: -50px; } to { top: 20px; } }
-</style>
- <style>
-    /* 1. ऊपर आने वाले गूगल के नीले/सफ़ेद बार को पूरी तरह छुपाने के लिए */
-    .goog-te-banner-frame.skiptranslate, 
-    .goog-te-banner-frame,
-    #goog-gt-tt, 
-    .goog-te-balloon-frame { 
-        display: none !important; 
-    }
-
-    /* 2. पेज को ऊपर खिसकने से रोकने के लिए */
-    body { 
-        top: 0px !important; 
-        position: static !important;
-    }
-
-    /* 3. आपके प्रोफाइल के अंदर बटन को सही से फिट करना */
-    #google_translate_element {
-        width: 100%;
-        max-width: 300px; /* प्रोफाइल बॉक्स के हिसाब से */
-        margin: 5px auto;
-    }
-
-    .goog-te-gadget-simple {
-        width: 100%;
-        background-color: #fff !important;
-        border: 2px solid #ff6600 !important; /* SewaAstra Orange */
-        border-radius: 12px !important;
-        padding: 8px !important;
-        display: flex !important;
-        justify-content: center;
-    }
-</style>
 
 </head>
 
@@ -912,6 +879,38 @@ function googleLogin() {
 </script>
 
 <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</style>
+ <style>
+    /* 1. ऊपर आने वाले गूगल के नीले/सफ़ेद बार को पूरी तरह छुपाने के लिए */
+    .goog-te-banner-frame.skiptranslate, 
+    .goog-te-banner-frame,
+    #goog-gt-tt, 
+    .goog-te-balloon-frame { 
+        display: none !important; 
+    }
 
+    /* 2. पेज को ऊपर खिसकने से रोकने के लिए */
+    body { 
+        top: 0px !important; 
+        position: static !important;
+    }
+
+    /* 3. आपके प्रोफाइल के अंदर बटन को सही से फिट करना */
+    #google_translate_element {
+        width: 100%;
+        max-width: 300px; /* प्रोफाइल बॉक्स के हिसाब से */
+        margin: 5px auto;
+    }
+
+    .goog-te-gadget-simple {
+        width: 100%;
+        background-color: #fff !important;
+        border: 2px solid #ff6600 !important; /* SewaAstra Orange */
+        border-radius: 12px !important;
+        padding: 8px !important;
+        display: flex !important;
+        justify-content: center;
+    }
+</style>
 </body>
 </html>
