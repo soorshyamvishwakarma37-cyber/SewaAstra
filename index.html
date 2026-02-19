@@ -267,13 +267,12 @@
                 <div class="step"><div class="dot"></div> Service in Progress</div>
             </div>
             <div class="info-label">App Language / भाषा चुनें</div>
-             <div class="lang-box">
-    <button id="btnHi" class="lang-btn" onclick="setLang('hi', event)">हिन्दी</button>
-    <button id="btnEn" class="lang-btn" onclick="setLang('en', event)">English</button>
-    <button id="btnBh" class="lang-btn" onclick="setLang('bh', event)">भोजपुरी</button>
-    <button id="btnPb" class="lang-btn" onclick="setLang('pb', event)">ਪੰਜਾਬੀ</button>
-</div>
-
+            <div class="lang-box">
+               <button id="btnHi" class="lang-btn" onclick="setLang('hi',event)"> हिन्दी</button>
+               <button id="btnEn" class="lang-btn" onclick="setLang('en',event)">English</button>
+               <button id="btnBh" class="lang-btn" onclick="setLang('bh')">Bhojpuri</button>
+              <button id="btnPb" class="lang-btn" onclick="setLang('pb', event)">साधी</button>
+            </div>
             <div class="info-group">
                 <span class="info-label" id="lblNm">नाम</span>
                 <span class="info-value" id="dispName">Guest</span>
@@ -306,7 +305,7 @@
 </header>
 
 <div class="cat-grid">
-    <div class="cat-item" onclick="load('mobile', this)"><div class="cat-icon"><i class="fa fa-mobile-alt"></i></div><span>Mobile</span></div>
+     <div class="cat-item" onclick="load('mobile', this)"><div class="cat-icon"><i class="fa fa-mobile-alt"></i></div><span>Mobile</span></div>
     <div class="cat-item" onclick="load('ac', this)"><div class="cat-icon"><i class="fa fa-wind"></i></div><span>AC</span></div>
     <div class="cat-item" onclick="load('fridge', this)"><div class="cat-icon"><i class="fa fa-snowflake"></i></div><span>Fridge</span></div>
     <div class="cat-item" onclick="load('wm', this)"><div class="cat-icon"><i class="fa fa-tint"></i></div><span>Washing</span></div>
@@ -891,39 +890,6 @@ function googleLogin() {
         <a href="terms.html" style="text-decoration: none; color: #007bff; margin: 0 10px;">Terms of Service</a>
     </p>
 </footer>
-  
-<div id="google_translate_element" style="display:none;"></div>
-
-<script type="text/javascript">
-function googleTranslateElementInit() {
-  new google.translate.TranslateElement({
-    pageLanguage: 'hi', 
-    autoDisplay: false
-  }, 'google_translate_element');
-}
-
-// यह फंक्शन आपके 4 बटनों को काम पर लगा देगा
-function changeAppLanguage(langCode) {
-    var selectField = document.querySelector(".goog-te-combo");
-    if (selectField) {
-        selectField.value = langCode;
-        selectField.dispatchEvent(new Event('change'));
-    } else {
-        console.log("Translator not loaded yet. Please wait.");
-    }
-}
-</script>
-
-<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
-<style>
-    /* ऊपर आने वाले गूगल बार को छुपाने के लिए */
-    .goog-te-banner-frame.skiptranslate { display: none !important; }
-    body { top: 0px !important; }
-</style>
-<div id="google_translate_element" style="display:none;"></div>
-<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
-
+   
 </body>
 </html>
