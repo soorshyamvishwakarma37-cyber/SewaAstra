@@ -131,45 +131,38 @@
     @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     @keyframes slideDown { from { top: -50px; } to { top: 20px; } }
 </style>
-<style>/* ===== PROFILE PIC PERFECT CIRCLE FIX ===== */
+ 
+</head>
+<style>/* गूगल के फालतू ऊपरी बार को छुपाने के लिए */
+.goog-te-banner-frame.skiptranslate { display: none !important; }
+body { top: 0px !important; }
 
-.profile-pic-wrapper{
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  background: #5a627d;          /* पीछे का रंग */
-  border: 3px solid var(--primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+/* ड्रॉपडाउन को सुंदर और SewaAstra के ऑरेंज थीम में बदलने के लिए */
+#google_translate_element {
+    margin: 15px 0;
+    text-align: center;
 }
-.large-profile-pic{
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
-}
-</style>
-  <style>/* Google Translate ke upar waale frame ko chhupane ke liye */
-.goog-te-banner-frame.skiptranslate {
-    display: none !important;
-}
-body {
-    top: 0px !important;
-}
-/* Dropdown ko app ke hisaab se sundar banane ke liye */
+
 .goog-te-gadget-simple {
     background-color: #fff !important;
-    border: 1px solid #ff6600 !important; /* SewaAstra theme color */
-    padding: 8px !important;
-    border-radius: 4px !important;
-    font-size: 14px !important;
+    border: 2px solid #ff6600 !important; /* आपका थीम कलर */
+    padding: 10px !important;
+    border-radius: 12px !important;
+    font-family: 'Poppins', sans-serif !important;
+    cursor: pointer;
+    display: inline-flex !important;
+    align-items: center;
+}
+
+/* गूगल लोगो छुपाने के लिए (ताकि क्लीन दिखे) */
+.goog-te-gadget-icon { display: none !important; }
+.goog-te-menu-value span {
+    color: #333 !important;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 13px;
 }
 </style>
-</head>
-
 <body id="mainBody">
 
 <div id="welcomeToast"></div>
@@ -284,7 +277,8 @@ body {
                 <div class="step"><div class="dot"></div> Service in Progress</div>
             </div>
             <div class="info-label">App Language / भाषा चुनें</div>
-             <div id="google_translate_element" style="padding: 10px; text-align: center;"></div>
+              <div id="google_translate_element"></div>
+
             <div class="info-group">
                 <span class="info-label" id="lblNm">नाम</span>
                 <span class="info-value" id="dispName">Guest</span>
@@ -848,18 +842,18 @@ function googleLogin() {
         <a href="terms.html" style="text-decoration: none; color: #007bff; margin: 0 10px;">Terms of Service</a>
     </p>
 </footer>
-   <script type="text/javascript">
+ <script type="text/javascript">
 function googleTranslateElementInit() {
   new google.translate.TranslateElement({
-    pageLanguage: 'hi', // Aapke app ki default bhasha
-    includedLanguages: 'hi,en,pa,bn,mr,gu', // Jo bhashayein aap dikhana chahte hain
+    pageLanguage: 'hi', 
+    includedLanguages: 'hi,en,pa,bn,mr,gu', 
     layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
     autoDisplay: false
   }, 'google_translate_element');
 }
 </script>
-
 <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
 
 </body>
 </html>
