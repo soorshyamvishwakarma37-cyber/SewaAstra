@@ -827,43 +827,48 @@ function googleLogin() {
     </p>
 </footer>
   <style>
-    /* 1. गूगल के ऊपरी फालतू बार और लोगो को पूरी तरह हटाना */
+    /* 1. ऊपर आने वाले गूगल बार और पॉपअप को पूरी तरह छुपाना */
     .goog-te-banner-frame.skiptranslate, 
-    .goog-te-gadget-icon, 
-    #goog-gt-tt { 
+    .goog-te-banner-frame,
+    #goog-gt-tt, 
+    .goog-te-balloon-frame,
+    .goog-te-gadget-icon { 
         display: none !important; 
     }
-    body { top: 0px !important; }
 
-    /* 2. प्रोफाइल सेक्शन में बटन को सही से Adjust करना */
+    /* 2. पेज को ऊपर खिसकने से रोकना */
+    body { 
+        top: 0px !important; 
+        position: static !important;
+    }
+
+    /* 3. प्रोफाइल के अंदर बटन को फिट करना */
     #google_translate_element {
         width: 100%;
-        margin: 10px 0;
+        margin: 8px 0;
         display: flex;
         justify-content: center;
     }
 
-    /* ड्रॉपडाउन बॉक्स का नया लुक (SewaAstra थीम) */
+    /* ड्रॉपडाउन को SewaAstra जैसा सुंदर बनाना */
     .goog-te-gadget-simple {
+        width: 100% !important;
         background-color: #fff !important;
-        border: 2px solid #ff6600 !important; /* SewaAstra Orange */
-        padding: 10px 15px !important;
-        border-radius: 12px !important;
-        cursor: pointer;
-        display: inline-flex !important;
+        border: 2px solid #ff6600 !important; /* आपका थीम कलर */
+        border-radius: 10px !important;
+        padding: 8px !important;
+        display: flex !important;
+        justify-content: center;
         align-items: center;
-        width: 100% !important; /* बॉक्स की पूरी चौड़ाई के लिए */
         box-sizing: border-box;
-        justify-content: space-between;
     }
 
-    /* टेक्स्ट का स्टाइल */
+    /* ड्रॉपडाउन के अंदर का टेक्स्ट */
     .goog-te-menu-value span {
         color: #333 !important;
-        font-weight: 600 !important;
+        font-weight: bold;
         text-transform: uppercase;
-        font-size: 14px;
-        font-family: 'Poppins', sans-serif !important;
+        font-size: 13px;
     }
 </style>
 
@@ -877,40 +882,7 @@ function googleLogin() {
         }, 'google_translate_element');
     }
 </script>
-
 <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-</style>
- <style>
-    /* 1. ऊपर आने वाले गूगल के नीले/सफ़ेद बार को पूरी तरह छुपाने के लिए */
-    .goog-te-banner-frame.skiptranslate, 
-    .goog-te-banner-frame,
-    #goog-gt-tt, 
-    .goog-te-balloon-frame { 
-        display: none !important; 
-    }
 
-    /* 2. पेज को ऊपर खिसकने से रोकने के लिए */
-    body { 
-        top: 0px !important; 
-        position: static !important;
-    }
-
-    /* 3. आपके प्रोफाइल के अंदर बटन को सही से फिट करना */
-    #google_translate_element {
-        width: 100%;
-        max-width: 300px; /* प्रोफाइल बॉक्स के हिसाब से */
-        margin: 5px auto;
-    }
-
-    .goog-te-gadget-simple {
-        width: 100%;
-        background-color: #fff !important;
-        border: 2px solid #ff6600 !important; /* SewaAstra Orange */
-        border-radius: 12px !important;
-        padding: 8px !important;
-        display: flex !important;
-        justify-content: center;
-    }
-</style>
 </body>
 </html>
