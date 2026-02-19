@@ -152,7 +152,24 @@
   display: block;
 }
 </style>
+  <style>/* Google Translate ke upar waale frame ko chhupane ke liye */
+.goog-te-banner-frame.skiptranslate {
+    display: none !important;
+}
+body {
+    top: 0px !important;
+}
+/* Dropdown ko app ke hisaab se sundar banane ke liye */
+.goog-te-gadget-simple {
+    background-color: #fff !important;
+    border: 1px solid #ff6600 !important; /* SewaAstra theme color */
+    padding: 8px !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
+}
+</style>
 </head>
+
 <body id="mainBody">
 
 <div id="welcomeToast"></div>
@@ -267,12 +284,7 @@
                 <div class="step"><div class="dot"></div> Service in Progress</div>
             </div>
             <div class="info-label">App Language / भाषा चुनें</div>
-            <div class="lang-box">
-                <button id="btnHi" class="lang-btn" onclick="setLang('hi')">हिन्दी</button>
-                <button id="btnEn" class="lang-btn" onclick="setLang('en')">English</button>
-                <button id="btnBh" class="lang-btn" onclick="setLang('bh')">Bhojpuri</button>
-                <button id="btnPb" class="lang-btn" onclick="setLang('pb')">ਪੰਜਾਬੀ</button>
-            </div>
+             <div id="google_translate_element" style="padding: 10px; text-align: center;"></div>
             <div class="info-group">
                 <span class="info-label" id="lblNm">नाम</span>
                 <span class="info-value" id="dispName">Guest</span>
@@ -363,13 +375,7 @@ let cart = [];
 let mapsLink = "Not provided";
 
 let selectedPayment = "shoorshyam.vishwakarma@ybl";
-// --- LANGUAGE DATA ---
-const translations = {
-    'en': { navHome: 'Home', navSupp: 'Support', navHis: 'History', noHis: 'No History Found' },
-    'hi': { navHome: 'होम', navSupp: 'सहायता', navHis: 'इतिहास', noHis: 'कोई इतिहास नहीं मिला' },
-    'bh': { navHome: 'घर', navSupp: 'मदद', navHis: 'पुराना', noHis: 'कुछु नइखे' },
-    'pb': { navHome: 'ਘਰ', navSupp: 'ਸਹਾਇਤਾ', navHis: 'ਇਤਿਹਾਸ', noHis: 'ਕੋਈ ਇਤਿਹਾਸ ਨਹੀਂ' }
-};
+
 
 let currentLang = 'hi'; // Default language
 
@@ -675,54 +681,6 @@ window.onload = () => {
 };
 </script>
 
-<script>
-/* ========= LANGUAGE PATCH – DO NOT DELETE OLD CODE ========= */
-
-const LANG_DATA = {
-  hi: { home:"होम", support:"सहायता", history:"इतिहास", noHistory:"कोई इतिहास नहीं मिला" },
-  en: { home:"Home", support:"Support", history:"History", noHistory:"No history found" },
-  bh: { home:"घर", support:"मदद", history:"पुराना", noHistory:"कुछु नइखे" },
-  pb: { home:"ਘਰ", support:"ਸਹਾਇਤਾ", history:"ਇਤਿਹਾਸ", noHistory:"ਕੋਈ ਇਤਿਹਾਸ ਨਹੀਂ" }
-};
-
-window.currentLang = localStorage.getItem("sw_lang") || "hi";
-
-window.setLang = function(lang, event){
-  currentLang = lang;
-  localStorage.setItem("sw_lang", lang);
-  document.querySelectorAll(".lang-btn").forEach(b=>b.classList.remove("active"));
-  if(event && event.currentTarget){
-    event.currentTarget.classList.add("active");
-    event.currentTarget.style.transform="scale(0.88)";
-  }
-  if(navigator.vibrate) navigator.vibrate(40);
-  document.getElementById("navHome").innerHTML =
-    `<i class="fa fa-home"></i>${LANG_DATA[lang].home}`;
-  document.getElementById("navSupp").innerHTML =
-    `<i class="fa fa-headset"></i>${LANG_DATA[lang].support}`;
-  document.getElementById("navHis").innerHTML =
-    `<i class="fa fa-history"></i>${LANG_DATA[lang].history}`;
-};
-
-window.showHistory = function(){
-  let history = JSON.parse(localStorage.getItem("sw_history") || "[]");
-  if(history.length===0){
-    alert(LANG_DATA[currentLang].noHistory);
-  } else {
-    toggleProfile();
-  }
-};
-
-/* Auto apply saved language on load */
-window.addEventListener("load", ()=>{
-  let saved = localStorage.getItem("sw_lang") || "hi";
-  let btnId = "btn"+saved.charAt(0).toUpperCase()+saved.slice(1);
-  if(document.getElementById(btnId)){
-    document.getElementById(btnId).classList.add("active");
-  }
-  setLang(saved);
-});
-</script>
 
 <style>
 .lang-btn {
@@ -890,6 +848,18 @@ function googleLogin() {
         <a href="terms.html" style="text-decoration: none; color: #007bff; margin: 0 10px;">Terms of Service</a>
     </p>
 </footer>
-   
+   <script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'hi', // Aapke app ki default bhasha
+    includedLanguages: 'hi,en,pa,bn,mr,gu', // Jo bhashayein aap dikhana chahte hain
+    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+    autoDisplay: false
+  }, 'google_translate_element');
+}
+</script>
+
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
 </body>
 </html>
