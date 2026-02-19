@@ -151,32 +151,7 @@
   object-fit: cover;
   display: block;
 }
-</style>
- <div id="customToast" class="status-msg"></div>
-
-<div id="otpModal" class="confirm-overlay" style="display:none;">
-    <div class="confirm-box">
-        <h3>OTP दर्ज करें</h3>
-        <p>आपके मोबाइल पर भेजे गए 6 अंकों का कोड लिखें</p>
-        <input type="number" id="otpInput" class="otp-input-field" placeholder="000000" maxlength="6">
-        <div class="btn-group">
-            <button class="btn-confirm btn-no" onclick="closeOtpModal()">रद्द करें</button>
-            <button class="btn-confirm btn-yes" id="verifyOtpBtn">वेरिफाई करें</button>
-        </div>
-    </div>
-</div>
-
-<div id="logoutModal" class="confirm-overlay" style="display:none;">
-    <div class="confirm-box">
-        <i class="fa fa-sign-out-alt" style="font-size:40px; color:#ff6b00; margin-bottom:15px;"></i>
-        <h3>लॉगआउट?</h3>
-        <p>क्या आप वाकई SewaAstra से लॉगआउट करना चाहते हैं?</p>
-        <div class="btn-group">
-            <button class="btn-confirm btn-no" onclick="closeLogoutModal()">नहीं</button>
-            <button class="btn-confirm btn-yes" onclick="finalLogout()">हाँ, लॉगआउट</button>
-        </div>
-    </div>
-</div>
+</style> 
 
 </head>
 <body id="mainBody">
@@ -764,44 +739,45 @@ window.addEventListener("load", ()=>{
   }
 
  
-   function sendOTP() {
-    const number = document.getElementById('mobileNum').value;
-    if(number.length !== 10) {
-        alert("कृपया 10 अंकों का सही मोबाइल नंबर डालें।");
-        return;
-    }
+   function sendOTP() {
+    const number = document.getElementById('mobileNum').value;
+    if(number.length !== 10) {
+        alert("कृपया 10 अंकों का सही मोबाइल नंबर डालें।");
+        return;
+    }
 
-    const phoneNumber = "+91" + number;
+    const phoneNumber = "+91" + number;
 
-    // अगर recaptchaVerifier पहले से बना हुआ है, तो उसे दोबारा न बनाएँ
-    if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('login-btn', {
-            'size': 'invisible'
-        });
-    }
+    // अगर recaptchaVerifier पहले से बना हुआ है, तो उसे दोबारा न बनाएँ
+    if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('login-btn', {
+            'size': 'invisible'
+        });
+    }
 
-    firebase.auth().signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
-        .then((confirmationResult) => {
-            const code = prompt("OTP दर्ज करें:");
-            if (code) {
-                return confirmationResult.confirm(code);
-            }
-        })
-        .then((result) => {
-            alert("लॉगिन सफल!");
-            window.location.href = "index.html";
-        })
-        .catch((error) => {
-            // अगर reCAPTCHA एरर दे, तो उसे 'Reset' करें
-            if (window.recaptchaVerifier) {
-                window.recaptchaVerifier.render().then(function(widgetId) {
-                    grecaptcha.reset(widgetId);
-                });
-            }
-            alert("गलती: " + error.message);
-        });
+    firebase.auth().signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
+        .then((confirmationResult) => {
+            const code = prompt("OTP दर्ज करें:");
+            if (code) {
+                return confirmationResult.confirm(code);
+            }
+        })
+        .then((result) => {
+            alert("लॉगिन सफल!");
+            window.location.href = "index.html";
+        })
+        .catch((error) => {
+            // अगर reCAPTCHA एरर दे, तो उसे 'Reset' करें
+            if (window.recaptchaVerifier) {
+                window.recaptchaVerifier.render().then(function(widgetId) {
+                    grecaptcha.reset(widgetId);
+                });
+            }
+            alert("गलती: " + error.message);
+        });
 }
 </script>
+   
 <script>// इसे अपनी स्क्रिप्ट के अंत में जोड़ें
 firebase.auth().onAuthStateChanged((user) => {
     // अपनी लॉगिन वाली मुख्य DIV की ID यहाँ लिखें (जैसे auth-container)
@@ -813,7 +789,7 @@ firebase.auth().onAuthStateChanged((user) => {
         if(loginSection) loginSection.style.display = "none";
         if(profileSection) profileSection.style.display = "block";
 
-        // Google से मिला डेटा स्क्रीन पर डालें
+         // Google से मिला डेटा स्क्रीन पर डालें
         document.getElementById('user-display-name').innerText = user.displayName;
         document.getElementById('user-email').innerText = user.email;
         document.getElementById('user-img').src = user.photoURL || 'https://via.placeholder.com/80';
@@ -905,142 +881,5 @@ function googleLogin() {
    <p>
  <a href="about.html" style="text-decoration: none; color: #2c3e50; font-family: sans-serif; font-size: 13px; font-weight: 600; padding: 0 10px;">꧁✿[ About us ]✿꧂</a></p>
 </footer>
- <script>// 1. Firebase Auth State Listener (पेज लोड होते ही चेक करेगा)
-firebase.auth().onAuthStateChanged((user) => {
-    const loginScreen = document.getElementById('loginScreen');
-    
-    if (user) {
-        // अगर यूजर लॉगिन है
-        loginScreen.style.display = "none"; 
-
-        // नाम और नंबर निकालें (Google से या LocalStorage से)
-        let savedName = user.displayName || localStorage.getItem('sw_name') || "Guest User";
-        let savedPhone = user.phoneNumber || localStorage.getItem('sw_user') || "Verified";
-
-        // UI में नाम और नंबर दिखाएँ
-        document.getElementById('dispName').innerText = savedName;
-        document.getElementById('dispMobile').innerText = savedPhone;
-
-        // सुरक्षित रखने के लिए दोबारा सेव करें
-        localStorage.setItem('sw_name', savedName);
-        localStorage.setItem('sw_user', savedPhone);
-
-        if(user.photoURL) updatePhotoUI(user.photoURL);
-        
-    } else {
-        // अगर लॉगआउट है तो लॉगिन स्क्रीन दिखाएँ
-        loginScreen.style.display = "flex";
-        // लॉगआउट होने पर पुराना डेटा साफ़ करें
-        document.getElementById('dispName').innerText = "Guest";
-        document.getElementById('dispMobile').innerText = "Not Logged In";
-    }
-});
-
-// 2. Fixed OTP Login Function
-function sendOTP() {
-    const nameInput = document.getElementById('userName').value.trim();
-    const phoneInput = document.getElementById('mobileNum').value.trim();
-
-    if(nameInput.length < 3) { alert("कृपया अपना नाम लिखें"); return; }
-    if(phoneInput.length !== 10) { alert("10 अंकों का नंबर डालें"); return; }
-
-    // डेटा को तुरंत सेव करें ताकि OTP के बाद इस्तेमाल हो सके
-    localStorage.setItem('sw_name', nameInput);
-    localStorage.setItem('sw_user', phoneInput);
-
-    const phoneNumber = "+91" + phoneInput;
-
-    if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('login-btn', { 'size': 'invisible' });
-    }
-
-    firebase.auth().signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
-        .then((confirmationResult) => {
-            const code = prompt("OTP दर्ज करें जो आपके मोबाइल पर आया है:");
-            if (code) return confirmationResult.confirm(code);
-        })
-        .then((result) => {
-            alert("लॉगिन सफल!");
-            // यहाँ पेज रिफ्रेश करने की ज़रूरत नहीं, Firebase अपने आप State बदल देगा
-        })
-        .catch((error) => {
-            alert("Error: " + error.message);
-            if (window.recaptchaVerifier) grecaptcha.reset();
-        });
-}
-
-// 3. Fixed Logout Function (यह सबसे ज़रूरी है)
-function logout() {
-    if(confirm("क्या आप लॉगआउट करना चाहते हैं?")) {
-        firebase.auth().signOut().then(() => {
-            localStorage.clear(); // सारा पुराना डेटा साफ़ करें
-            alert("लॉगआउट सफल!");
-            location.reload(); // पेज को रिफ्रेश करें ताकि लॉगिन स्क्रीन आ जाए
-        }).catch((error) => {
-            alert("लॉगआउट में समस्या: " + error.message);
-        });
-    }
-}
-</script>
- <script>// --- 1. STATUS TOAST FUNCTION ---
-function showStatus(text, type='success') {
-    const toast = document.getElementById('customToast');
-    toast.innerText = text;
-    toast.className = `status-msg msg-${type}`;
-    toast.style.display = 'block';
-    setTimeout(() => { toast.style.display = 'none'; }, 3000);
-}
-
-// --- 2. LOGOUT LOGIC ---
-function logout() {
-    document.getElementById('logoutModal').style.display = 'flex';
-}
-
-function closeLogoutModal() {
-    document.getElementById('logoutModal').style.display = 'none';
-}
-
-function finalLogout() {
-    firebase.auth().signOut().then(() => {
-        localStorage.clear();
-        closeLogoutModal();
-        showStatus("लॉगआउट सफल! 🚪");
-        setTimeout(() => location.reload(), 1500);
-    });
-}
-
-// --- 3. OTP & LOGIN LOGIC ---
-function sendOTP() {
-    const name = document.getElementById('userName').value;
-    const number = document.getElementById('mobileNum').value;
-    
-    if(number.length !== 10) return showStatus("सही नंबर डालें", "error");
-
-    localStorage.setItem('sw_name', name);
-    localStorage.setItem('sw_user', number);
-
-    if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('login-btn', {'size': 'invisible'});
-    }
-
-    firebase.auth().signInWithPhoneNumber("+91" + number, window.recaptchaVerifier)
-    .then((confirmationResult) => {
-        // डिफ़ॉल्ट prompt हटाकर अपना Modal खोलें
-        document.getElementById('otpModal').style.display = 'flex';
-        
-        document.getElementById('verifyOtpBtn').onclick = () => {
-            const code = document.getElementById('otpInput').value;
-            confirmationResult.confirm(code).then(() => {
-                document.getElementById('otpModal').style.display = 'none';
-                showStatus("लॉगिन सफल! ✨");
-            }).catch(err => showStatus("गलत OTP", "error"));
-        };
-    }).catch(err => showStatus("Error: " + err.message, "error"));
-}
-
-function closeOtpModal() {
-    document.getElementById('otpModal').style.display = 'none';
-}
-</script>
 </body>
 </html>
