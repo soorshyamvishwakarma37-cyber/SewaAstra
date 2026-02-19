@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="hi">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -131,6 +131,7 @@
     @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     @keyframes slideDown { from { top: -50px; } to { top: 20px; } }
 </style>
+ 
 </head>
 
 <body id="mainBody">
@@ -247,21 +248,7 @@
                 <div class="step"><div class="dot"></div> Service in Progress</div>
             </div>
             <div class="info-label">App Language / भाषा चुनें</div>
-               <div class="info-label">App Language / भाषा चुनें</div>
-<div id="google_translate_element"></div>
-
-<script type="text/javascript">
-    function googleTranslateElementInit() {
-        new google.translate.TranslateElement({
-            pageLanguage: 'hi', 
-            includedLanguages: 'hi,en,pa,bn,mr,gu', 
-            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-            autoDisplay: false
-        }, 'google_translate_element');
-    }
-</script>
-<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
+              <div id="google_translate_element"></div>
 
             <div class="info-group">
                 <span class="info-label" id="lblNm">नाम</span>
@@ -826,5 +813,52 @@ function googleLogin() {
         <a href="terms.html" style="text-decoration: none; color: #007bff; margin: 0 10px;">Terms of Service</a>
     </p>
 </footer>
+  <style>
+    /* बटन का डिज़ाइन और गूगल बार छुपाने के लिए */
+    #google_translate_element {
+        text-align: center;
+        padding: 15px;
+        background: #fff;
+    }
+
+    .goog-te-gadget-simple {
+        background-color: #fff !important;
+        border: 2px solid #ff6600 !important; /* SewaAstra Orange */
+        padding: 8px 12px !important;
+        border-radius: 10px !important;
+        cursor: pointer;
+        display: inline-flex !important;
+        align-items: center;
+        font-family: sans-serif !important;
+    }
+
+    /* गूगल का ऊपरी हिस्सा और लोगो छुपाने के लिए */
+    .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon { display: none !important; }
+    body { top: 0px !important; }
+    
+    .goog-te-menu-value span {
+        color: #333 !important;
+        font-weight: bold;
+        font-size: 13px;
+    }
+</style>
+
+<div id="google_translate_element"></div>
+
+<script type="text/javascript">
+    // गूगल ट्रांसलेट इंजन को लोड करना
+    function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+            pageLanguage: 'hi', 
+            includedLanguages: 'hi,en,pa,bn,mr,gu', 
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+            autoDisplay: false
+        }, 'google_translate_element');
+    }
+</script>
+
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+
 </body>
 </html>
