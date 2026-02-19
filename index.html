@@ -131,9 +131,28 @@
     @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     @keyframes slideDown { from { top: -50px; } to { top: 20px; } }
 </style>
- 
-</head>
+<style>/* ===== PROFILE PIC PERFECT CIRCLE FIX ===== */
 
+.profile-pic-wrapper{
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: #5a627d;          /* पीछे का रंग */
+  border: 3px solid var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.large-profile-pic{
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+</style>
+</head>
 <body id="mainBody">
 
 <div id="welcomeToast"></div>
@@ -167,7 +186,7 @@
             <p style="font-size:12px; margin-bottom:10px;">Supported UPI Apps</p>
             <div style="display:flex; justify-content:space-around; font-size:30px; color:#555;">
                 <i class="fab fa-google-pay"></i>
-                <i class="fa fa -qrcode"></i>
+                <i class="fa fa-qrcode"></i>
                 <i class="fab fa-amazon-pay"></i>
             </div>
         </div>
@@ -183,6 +202,8 @@
         <div class="welcome-note">नमस्ते!</div>
         <div class="sub-note">आगे बढ़ने के लिए लॉगिन करें</div>
         <input type="text" id="userName" placeholder="अपना नाम लिखें" />
+        <input type="email" id="userEmail" placeholder="ईमेल आईडी (Email ID)" />
+        <input type="password" id="userPass" placeholder="पासवर्ड (Password)" />
         <input type="tel" id="mobileNum" placeholder="10 अंकों का मोबाइल नंबर" maxlength="10" />
         <button id="login-btn" onclick="sendOTP()">शुरू करें (Login)</button>
         <div class="divider">अथवा</div>
@@ -190,32 +211,9 @@
             <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" style="width:20px; margin-bottom:0;" /> Google से लॉगिन करें
         </button>
         <div class="legal-links">
-            <footer style="
-    position: fixed; 
-    bottom: 0; 
-    left: 0; 
-    width: 100%; 
-    background-color: rgba(255, 255, 255, 0.95); 
-    backdrop-filter: blur(5px); 
-    border-top: 1px solid #eee; 
-    padding: 12px 0; 
-    text-align: center; 
-    z-index: 1000;
-">
-    <div style="margin-bottom: 5px;">
-        <a href="terms.html" style="text-decoration: none; color: #2c3e50; font-family: sans-serif; font-size: 13px; font-weight: 600; padding: 0 10px;">Terms</a> 
-        <span style="color: #ccc;">|</span>
-        <a href="policy.html" style="text-decoration: none; color: #2c3e50; font-family: sans-serif; font-size: 13px; font-weight: 600; padding: 0 10px;">Policy</a> 
-        <span style="color: #ccc;">|</span>
-        <a href="about.html" style="text-decoration: none; color: #2c3e50; font-family: sans-serif; font-size: 13px; font-weight: 600; padding: 0 10px;">About Us</a>
-    </div>
-    <p style="margin: 0; font-size: 10px; color: #95a5a6; font-family: sans-serif; letter-spacing: 1px;">
-        © 2026 SEWAASTRA • MADE IN INDIA
-    </p>
-</footer>
-
-<div style="height: 60px;"></div>
-
+            <span onclick="alert('Terms applied')">Terms</span> • 
+            <span onclick="alert('Policy info')">Policy</span> • 
+            <span onclick="alert('About SewaAstra')">About Us</span>
         </div>
     </div>
 </div>
@@ -248,8 +246,12 @@
                 <div class="step"><div class="dot"></div> Service in Progress</div>
             </div>
             <div class="info-label">App Language / भाषा चुनें</div>
-              <div id="google_translate_element"></div>
-
+            <div class="lang-box">
+                <button id="btnHi" class="lang-btn" onclick="setLang('hi')">हिन्दी</button>
+                <button id="btnEn" class="lang-btn" onclick="setLang('en')">English</button>
+                <button id="btnBh" class="lang-btn" onclick="setLang('bh')">भोजपुरी</button>
+                <button id="btnPb" class="lang-btn" onclick="setLang('pb')">ਪੰਜਾਬੀ</button>
+            </div>
             <div class="info-group">
                 <span class="info-label" id="lblNm">नाम</span>
                 <span class="info-value" id="dispName">Guest</span>
@@ -282,7 +284,7 @@
 </header>
 
 <div class="cat-grid">
-     <div class="cat-item" onclick="load('mobile', this)"><div class="cat-icon"><i class="fa fa-mobile-alt"></i></div><span>Mobile</span></div>
+    <div class="cat-item" onclick="load('mobile', this)"><div class="cat-icon"><i class="fa fa-mobile-alt"></i></div><span>Mobile</span></div>
     <div class="cat-item" onclick="load('ac', this)"><div class="cat-icon"><i class="fa fa-wind"></i></div><span>AC</span></div>
     <div class="cat-item" onclick="load('fridge', this)"><div class="cat-icon"><i class="fa fa-snowflake"></i></div><span>Fridge</span></div>
     <div class="cat-item" onclick="load('wm', this)"><div class="cat-icon"><i class="fa fa-tint"></i></div><span>Washing</span></div>
@@ -320,27 +322,19 @@ function showHistory() {
     }
 }
 </script>
-<div style="text-align:center; padding: 25px 10px; background-color: #ffffff; border-top: 1px solid #eee; margin-top: 30px;">
-    
-    <div style="margin-bottom: 12px;">
-        <a href="terms.html" style="text-decoration: none; color: #2c3e50; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; padding: 5px 12px; transition: 0.3s;">Terms</a> 
-        <span style="color: #bdc3c7;">|</span>
-        <a href="policy.html" style="text-decoration: none; color: #2c3e50; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; padding: 5px 12px; transition: 0.3s;">Policy</a> 
-        <span style="color: #bdc3c7;">|</span>
-        <a href="about.html" style="text-decoration: none; color: #2c3e50; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; padding: 5px 12px; transition: 0.3s;">About Us</a>
-    </div>
-
-    <p style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #95a5a6; margin: 0; letter-spacing: 0.5px; text-transform: uppercase;">
-        © 2026 SewaAstra Technology • Built with Pride 🇮🇳
-    </p>
-</div>
 
 <script>
 let cart = [];
 let mapsLink = "Not provided";
 
-let selectedPayment = "shoorshyam.vishwakarma@ybl";
-
+let selectedPayment = "Online";
+// --- LANGUAGE DATA ---
+const translations = {
+    'en': { navHome: 'Home', navSupp: 'Support', navHis: 'History', noHis: 'No History Found' },
+    'hi': { navHome: 'होम', navSupp: 'सहायता', navHis: 'इतिहास', noHis: 'कोई इतिहास नहीं मिला' },
+    'bh': { navHome: 'घर', navSupp: 'मदद', navHis: 'पुराना', noHis: 'कुछु नइखे' },
+    'pb': { navHome: 'ਘਰ', navSupp: 'ਸਹਾਇਤਾ', navHis: 'ਇਤਿਹਾਸ', noHis: 'ਕੋਈ ਇਤਿਹਾਸ ਨਹੀਂ' }
+};
 
 let currentLang = 'hi'; // Default language
 
@@ -646,6 +640,54 @@ window.onload = () => {
 };
 </script>
 
+<script>
+/* ========= LANGUAGE PATCH – DO NOT DELETE OLD CODE ========= */
+
+const LANG_DATA = {
+  hi: { home:"होम", support:"सहायता", history:"इतिहास", noHistory:"कोई इतिहास नहीं मिला" },
+  en: { home:"Home", support:"Support", history:"History", noHistory:"No history found" },
+  bh: { home:"घर", support:"मदद", history:"पुराना", noHistory:"कुछु नइखे" },
+  pb: { home:"ਘਰ", support:"ਸਹਾਇਤਾ", history:"ਇਤਿਹਾਸ", noHistory:"ਕੋਈ ਇਤਿਹਾਸ ਨਹੀਂ" }
+};
+
+window.currentLang = localStorage.getItem("sw_lang") || "hi";
+
+window.setLang = function(lang, event){
+  currentLang = lang;
+  localStorage.setItem("sw_lang", lang);
+  document.querySelectorAll(".lang-btn").forEach(b=>b.classList.remove("active"));
+  if(event && event.currentTarget){
+    event.currentTarget.classList.add("active");
+    event.currentTarget.style.transform="scale(0.88)";
+  }
+  if(navigator.vibrate) navigator.vibrate(40);
+  document.getElementById("navHome").innerHTML =
+    `<i class="fa fa-home"></i>${LANG_DATA[lang].home}`;
+  document.getElementById("navSupp").innerHTML =
+    `<i class="fa fa-headset"></i>${LANG_DATA[lang].support}`;
+  document.getElementById("navHis").innerHTML =
+    `<i class="fa fa-history"></i>${LANG_DATA[lang].history}`;
+};
+
+window.showHistory = function(){
+  let history = JSON.parse(localStorage.getItem("sw_history") || "[]");
+  if(history.length===0){
+    alert(LANG_DATA[currentLang].noHistory);
+  } else {
+    toggleProfile();
+  }
+};
+
+/* Auto apply saved language on load */
+window.addEventListener("load", ()=>{
+  let saved = localStorage.getItem("sw_lang") || "hi";
+  let btnId = "btn"+saved.charAt(0).toUpperCase()+saved.slice(1);
+  if(document.getElementById(btnId)){
+    document.getElementById(btnId).classList.add("active");
+  }
+  setLang(saved);
+});
+</script>
 
 <style>
 .lang-btn {
@@ -813,52 +855,5 @@ function googleLogin() {
         <a href="terms.html" style="text-decoration: none; color: #007bff; margin: 0 10px;">Terms of Service</a>
     </p>
 </footer>
-  <style>
-    /* बटन का डिज़ाइन और गूगल बार छुपाने के लिए */
-    #google_translate_element {
-        text-align: center;
-        padding: 15px;
-        background: #fff;
-    }
-
-    .goog-te-gadget-simple {
-        background-color: #fff !important;
-        border: 2px solid #ff6600 !important; /* SewaAstra Orange */
-        padding: 8px 12px !important;
-        border-radius: 10px !important;
-        cursor: pointer;
-        display: inline-flex !important;
-        align-items: center;
-        font-family: sans-serif !important;
-    }
-
-    /* गूगल का ऊपरी हिस्सा और लोगो छुपाने के लिए */
-    .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon { display: none !important; }
-    body { top: 0px !important; }
-    
-    .goog-te-menu-value span {
-        color: #333 !important;
-        font-weight: bold;
-        font-size: 13px;
-    }
-</style>
-
-<div id="google_translate_element"></div>
-
-<script type="text/javascript">
-    // गूगल ट्रांसलेट इंजन को लोड करना
-    function googleTranslateElementInit() {
-        new google.translate.TranslateElement({
-            pageLanguage: 'hi', 
-            includedLanguages: 'hi,en,pa,bn,mr,gu', 
-            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-            autoDisplay: false
-        }, 'google_translate_element');
-    }
-</script>
-
-<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
-
 </body>
 </html>
