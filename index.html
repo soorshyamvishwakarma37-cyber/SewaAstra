@@ -133,36 +133,7 @@
 </style>
  
 </head>
-<style>/* गूगल के फालतू ऊपरी बार को छुपाने के लिए */
-.goog-te-banner-frame.skiptranslate { display: none !important; }
-body { top: 0px !important; }
 
-/* ड्रॉपडाउन को सुंदर और SewaAstra के ऑरेंज थीम में बदलने के लिए */
-#google_translate_element {
-    margin: 15px 0;
-    text-align: center;
-}
-
-.goog-te-gadget-simple {
-    background-color: #fff !important;
-    border: 2px solid #ff6600 !important; /* आपका थीम कलर */
-    padding: 10px !important;
-    border-radius: 12px !important;
-    font-family: 'Poppins', sans-serif !important;
-    cursor: pointer;
-    display: inline-flex !important;
-    align-items: center;
-}
-
-/* गूगल लोगो छुपाने के लिए (ताकि क्लीन दिखे) */
-.goog-te-gadget-icon { display: none !important; }
-.goog-te-menu-value span {
-    color: #333 !important;
-    font-weight: bold;
-    text-transform: uppercase;
-    font-size: 13px;
-}
-</style>
 <body id="mainBody">
 
 <div id="welcomeToast"></div>
@@ -196,7 +167,7 @@ body { top: 0px !important; }
             <p style="font-size:12px; margin-bottom:10px;">Supported UPI Apps</p>
             <div style="display:flex; justify-content:space-around; font-size:30px; color:#555;">
                 <i class="fab fa-google-pay"></i>
-                <i class="fa fa-qrcode"></i>
+                <i class="fa fa -qrcode"></i>
                 <i class="fab fa-amazon-pay"></i>
             </div>
         </div>
@@ -842,16 +813,50 @@ function googleLogin() {
         <a href="terms.html" style="text-decoration: none; color: #007bff; margin: 0 10px;">Terms of Service</a>
     </p>
 </footer>
- <script type="text/javascript">
-function googleTranslateElementInit() {
-  new google.translate.TranslateElement({
-    pageLanguage: 'hi', 
-    includedLanguages: 'hi,en,pa,bn,mr,gu', 
-    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-    autoDisplay: false
-  }, 'google_translate_element');
-}
+  <style>
+    /* बटन का डिज़ाइन और गूगल बार छुपाने के लिए */
+    #google_translate_element {
+        text-align: center;
+        padding: 15px;
+        background: #fff;
+    }
+
+    .goog-te-gadget-simple {
+        background-color: #fff !important;
+        border: 2px solid #ff6600 !important; /* SewaAstra Orange */
+        padding: 8px 12px !important;
+        border-radius: 10px !important;
+        cursor: pointer;
+        display: inline-flex !important;
+        align-items: center;
+        font-family: sans-serif !important;
+    }
+
+    /* गूगल का ऊपरी हिस्सा और लोगो छुपाने के लिए */
+    .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon { display: none !important; }
+    body { top: 0px !important; }
+    
+    .goog-te-menu-value span {
+        color: #333 !important;
+        font-weight: bold;
+        font-size: 13px;
+    }
+</style>
+
+<div id="google_translate_element"></div>
+
+<script type="text/javascript">
+    // गूगल ट्रांसलेट इंजन को लोड करना
+    function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+            pageLanguage: 'hi', 
+            includedLanguages: 'hi,en,pa,bn,mr,gu', 
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+            autoDisplay: false
+        }, 'google_translate_element');
+    }
 </script>
+
 <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 
