@@ -673,7 +673,7 @@ function updatePhotoUI(data) {
 
 const mainData = {
     'mobile': [
-        {n:'Broken Screen (Combo)', p:1499, i:'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?w=200'},
+        {n:'Broken Screen (Combo)', p:1, i:'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?w=200'},
         {n:'Battery Replacement', p:899, i:'bettry.png'},
         {n:'Charging Port Repair', p:399, i:'charging.png'},
         {n:'Liquid Damage Fix', p:599, i:'liquid.png'},
@@ -1320,7 +1320,7 @@ function openPaymentApps() {
     
     // यह है जादुई UPI लिंक जो सभी ऐप्स को खोलता है
     // pa = आपकी UPI ID, pn = नाम, am = अमाउंट, cu = करेंसी
-    let upiUrl = `upi://pay?pa=7869969190@ybl&pn=SewaAstra&am=${amount}&cu=INR&tn=ServiceBooking-${name}`;
+    let upiUrl = `upi://pay?pa=shoorshyam.vishwakarma@ybl&pn=SewaAstra&am=${amount}&cu=INR&tn=ServiceBooking-${name}`;
 
     // मोबाइल के सभी पेमेंट ऐप्स को सिग्नल भेजना
     window.location.href = upiUrl;
@@ -1348,7 +1348,7 @@ function setPayMode(mode) {
     if(mode === 'Online') {
         let amt = document.getElementById('fTotal').innerText.replace('₹', '');
         if(amt == "0") return alert("Cart खाली है");
-        window.location.href = `upi://pay?pa=7869969190@ybl&pn=SewaAstra&am=${amt}&cu=INR`;
+        window.location.href = `upi://pay?pa=shoorshyam.vishwakarma@ybl&pn=SewaAstra&am=${amt}&cu=INR`;
     }
 }
 
