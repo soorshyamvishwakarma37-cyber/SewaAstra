@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="hi">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -152,7 +152,224 @@
   display: block;
 }
 </style> 
+<style>/* Blinkit Style Modern Cart */
+.cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; z-index: 200000; align-items: flex-end; backdrop-filter: blur(4px); }
+.cart-panel { background: #f4f6f8; width: 100%; border-radius: 25px 25px 0 0; padding: 20px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+.cart-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+.item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f1f1; }
+.item-row:last-child { border: none; }
+.qty-ctrl { display: flex; align-items: center; gap: 12px; background: var(--primary); color: white; padding: 5px 12px; border-radius: 8px; font-weight: bold; }
+.bill-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; color: #555; }
+.total-amt { font-size: 18px; font-weight: 900; color: #000; border-top: 2px solid #eee; pt: 10px; margin-top: 10px; }
+.input-field { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-top: 8px; font-size: 14px; outline: none; }</style>
+<style>.address-card { background: #fff; border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #eef0f2; }
+.loc-btn { 
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 10px; background: #e8f5e9; color: #1b5e20;
+    border: 1px dashed #1b5e20; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 10px;
+}
+.addr-input { 
+    width: 100%; border: none; border-bottom: 1px solid #eee; 
+    padding: 10px 0; font-size: 14px; outline: none; margin-top: 5px;
+}
+.addr-input:focus { border-bottom: 2px solid var(--primary); }</style>
+<style>#mapPreview {
+    width: 100%;
+    height: 120px;
+    border-radius: 12px;
+    margin-top: 10px;
+    display: none; /* शुरू में छुपा रहेगा */
+    border: 1px solid #ddd;
+    background-size: cover;
+    background-position: center;
+}</style>
+<style>#cartToast {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 10px;
+    padding: 16px;
+    position: fixed;
+    z-index: 999999;
+    left: 50%;
+    bottom: 100px;
+    transform: translateX(-50%);
+    font-size: 14px;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
 
+#cartToast.show-toast {
+    visibility: visible;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 100px; opacity: 1;}
+}
+
+@keyframes fadeout {
+    from {bottom: 100px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+}</style>
+<style>/* ADD बटन का नया लुक */
+.add-btn {
+    background: transparent;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: all 0.3s ease; /* धीरे से रंग भरने के लिए */
+    cursor: pointer;
+}
+
+/* जब बटन 'Filled' क्लास के साथ हो (Add होने के बाद) */
+.add-btn.filled {
+    background: var(--primary); /* पूरा रंग भर जाएगा */
+    color: white;
+    border-color: var(--primary);
+}</style>
+<style>#history {
+    background: #fdfdfd;
+    min-height: 100vh;
+    padding-bottom: 80px; /* नेविगेशन बार के लिए जगह */
+}
+
+.history-card {
+    background: #fff;
+    margin: 15px;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+}
+
+.pay-online-badge {
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: bold;
+}</style>
+<Style>.s-btn {
+    background: #fff;
+    border: 1px solid #eee;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    font-weight: bold;
+    text-align: left;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    cursor: pointer;
+}
+.s-btn:active { background: #e8f5e9; border-color: #15a04a; }</Style>
+<style>/* Full Page Container */
+#supportPage {
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    background-color: #f8f9fa; /* Light grey background */
+}
+
+/* Header Styling */
+.support-header {
+    background: #ffffff;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+}
+
+/* Problem Cards */
+.support-tile {
+    background: #ffffff;
+    border: 1px solid #f0f0f0;
+    padding: 20px;
+    border-radius: 16px;
+    margin: 12px 20px;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.support-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+    border-color: #15a04a;
+}
+
+.support-tile i {
+    color: #15a04a;
+    font-size: 14px;
+}
+
+/* Contact Box Styling */
+.contact-container {
+    background: #ffffff;
+    margin: 20px;
+    padding: 25px;
+    border-radius: 24px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    border: 1px solid #e8f5e9;
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Premium Buttons */
+.btn-wa {
+    background: #25d366;
+    color: white;
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2);
+}
+
+.btn-call {
+    background: #15a04a;
+    color: white;
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(21, 160, 74, 0.2);
+}
+
+.back-link {
+    color: #888;
+    font-size: 14px;
+    margin-top: 20px;
+    display: inline-block;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+}</style>
 </head>
 <body id="mainBody">
 
@@ -323,7 +540,10 @@
 <!-- bottom nav -->
 <footer class="bottom-nav">
     <div class="nav-item active" onclick="location.reload()" id="navHome"><i class="fa fa-home"></i>Home</div>
-    <div class="nav-item" onclick="window.open('tel:7869969190')" id="navSupp"><i class="fa fa-headset"></i>Support</div>
+  <div class="nav-item" onclick="openSupportView()" id="navSupp">
+    <i class="fa fa-headset"></i>
+    <span>Support</span>
+</div>
     <div class="nav-item" onclick="checkout()"><i class="fa fa-shopping-cart"></i>Cart <span class="badge" id="bCount">0</span></div>
     <div class="nav-item" onclick="showHistory()" id="navHis"><i class="fa fa-history"></i>History</div>
 </footer>
@@ -881,5 +1101,662 @@ function googleLogin() {
    <p>
  <a href="about.html" style="text-decoration: none; color: #2c3e50; font-family: sans-serif; font-size: 13px; font-weight: 600; padding: 0 10px;">꧁✿[ About us ]✿꧂</a></p>
 </footer>
+<div id="fullCartPanel" class="cart-overlay" onclick="closeCart(event)">
+    <div class="cart-panel" onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h2 style="margin:0;">चेकआउट करें</h2>
+            <i class="fa fa-times-circle" onclick="closeCart()" style="font-size:24px; color:#ccc;"></i>
+        </div>
+
+        <div class="cart-card" id="cartItemsList">
+            </div>
+
+
+        <div class="cart-card">
+            <div class="bill-row"><span>Item Total</span> <span id="sTotal">₹0</span></div>
+            <div class="bill-row" style="color:green;"><span>Discount</span> <span>-₹50</span></div>
+            <div class="bill-row"><span>Handling Fee</span> <span>₹10</span></div>
+            <div class="bill-row total-amt"><span>Total to Pay</span> <span id="fTotal">₹0</span></div>
+            <p style="font-size:11px; color:#888; margin-top:10px; text-align:center;">UPI ID: 7869969190@ybl</p>
+        </div>
+        <div class="cart-card">
+    <label style="font-size:12px; font-weight:bold; color:var(--primary)">भुगतान का तरीका (Payment Method)</label>
+    <div class="address-card">
+    <button class="loc-btn" onclick="getLiveLocation()">
+        <i class="fa fa-crosshairs"></i> Auto-Detect Location
+    </button>
+    <input type="text" id="manualAddr" class="addr-input" placeholder="मकान नं, गली या लैंडमार्क">
+    <input type="tel" id="altMobile" class="addr-input" placeholder="Alternate Mobile No.">
+    <input type="hidden" id="googleMapsLink" value="Not Provided">
+</div>
+
+        <div class="cart-card">
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1">
+                    <label style="font-size:11px; font-weight:bold; color:var(--primary)">तारीख (Date)</label>
+                    <input type="date" id="cartDate" class="input-field">
+                </div>
+                <div style="flex:1">
+                    <label style="font-size:11px; font-weight:bold; color:var(--primary)">समय (Time)</label>
+                    <input type="time" id="cartTime" class="input-field">
+                </div>
+            </div>
+            <textarea id="cartRemark" class="input-field" placeholder="कोई खास निर्देश? (उदा. सीढ़ी लेकर आएं)"></textarea>
+        </div>
+<div id="mapPreview"></div>
+<p id="locStatus" style="font-size: 10px; color: #15a04a; margin-top: 5px; display:none;">
+    <i class="fa fa-check-circle"></i> आपकी लोकेशन मैप पर सेट हो गई है
+</p>
+
+<div class="cart-card">
+    <div style="display:flex; gap:10px;">
+        <button id="payCash" onclick="setPayMode('Cash')" style="flex:1; padding:12px; border:2px solid #ddd; border-radius:12px;">Cash</button>
+        <button id="payOnline" onclick="setPayMode('Online')" style="flex:1; padding:12px; border:2px solid #ddd; border-radius:12px;">Online</button>
+    </div>
+</div>
+</div>
+
+        <button onclick="sendOrderToWA()" style="width:100%; padding:18px; background:#15a04a; color:white; border:none; border-radius:15px; font-weight:bold; font-size:18px; box-shadow: 0 5px 15px rgba(21,160,74,0.3);">
+            Order Place करें (WhatsApp)
+        </button>
+    </div>
+</div>
+
+<script>// आज की तारीख और समय ऑटो-सेट करने के लिए
+function setDefaultDateTime() {
+    const now = new Date();
+    document.getElementById('cartDate').value = now.toISOString().split('T')[0];
+    const hours = String(now.getHours()).padStart(2, '0');
+    const mins = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('cartTime').value = `${hours}:${mins}`;
+}
+
+// कार्ट दिखाएं
+function checkout() {
+    if(cart.length === 0) return alert("आपका कार्ट खाली है!");
+    document.getElementById('fullCartPanel').style.display = 'flex';
+    setDefaultDateTime();
+    renderCart();
+}
+
+function closeCart() {
+    document.getElementById('fullCartPanel').style.display = 'none';
+}
+
+// कार्ट के अंदर + - के साथ सामान दिखाना
+function renderCart() {
+    let list = document.getElementById('cartItemsList');
+    let subtotal = 0;
+    list.innerHTML = "";
+
+    cart.forEach((item, index) => {
+        subtotal += (item.p * (item.qty || 1));
+        list.innerHTML += `
+            <div class="item-row">
+                <div>
+                    <div style="font-weight:bold; font-size:15px;">${item.n}</div>
+                    <div style="color:var(--primary); font-size:13px;">₹${item.p}</div>
+                </div>
+                
+                <div class="qty-ctrl">
+                    <i class="fa fa-minus" onclick="updateQty('${item.n}', -1)"></i>
+                    <span>${item.qty || 1}</span>
+                    <i class="fa fa-plus" onclick="updateQty('${item.n}', 1)"></i>
+                </div>
+            </div>`;
+    });
+
+    let final = (subtotal - 50) + 10; // 50 discount, 10 fee
+    document.getElementById('sTotal').innerText = "₹" + subtotal;
+    document.getElementById('fTotal').innerText = "₹" + (final < 10 ? 10 : final);
+}
+
+ function updateQty(name, change) {
+    let item = cart.find(i => i.n === name);
+    if(item) {
+        item.qty = (item.qty || 1) + change;
+        
+        // अगर संख्या 0 हो जाए तो आइटम हटा दो
+        if(item.qty <= 0) {
+            cart = cart.filter(i => i.n !== name);
+        }
+    }
+
+    // अगर पूरा कार्ट खाली हो जाए (0 आइटम) तो वापस होम पर चले जाओ
+    if (cart.length === 0) {
+        alert("आपका कार्ट खाली हो गया है!");
+        closeCart(); // यह कार्ट पैनल बंद कर देगा
+        document.getElementById('bCount').innerText = "0";
+        return; 
+    }
+
+    renderCart(); // स्क्रीन अपडेट करें
+    document.getElementById('bCount').innerText = cart.length;
+}
+
+// व्हाट्सएप पर ऑर्डर भेजना
+function sendOrderToWA() {
+    let date = document.getElementById('cartDate').value;
+    let time = document.getElementById('cartTime').value;
+    let remark = document.getElementById('cartRemark').value;
+    let itemsTxt = cart.map(i => `${i.n} (x${i.qty || 1})`).join(', ');
+    let total = document.getElementById('fTotal').innerText;
+    
+    
+    let msg = `*SewaAstra - New Order*%0A--------------------%0A*Items:* ${itemsTxt}%0A*Total:* ${total}%0A*Date:* ${date}%0A*Time:* ${time}%0A*Remark:* ${remark || 'None'}%0A*Client:* ${localStorage.getItem('sw_name')}`;
+    
+    window.open(`https://wa.me/917869969190?text=${msg}`);
+}</script>
+<script>let selectedMode = ""; // यह स्टोर करेगा कि Cash चुना या Online
+
+function setPayMode(mode) {
+    selectedMode = mode;
+    // बटन्स का कलर बदलना
+    document.getElementById('payCash').style.borderColor = mode === 'Cash' ? '#15a04a' : '#ddd';
+    document.getElementById('payOnline').style.borderColor = mode === 'Online' ? '#15a04a' : '#ddd';
+}
+
+function handleFinalOrder() {
+    if (!selectedMode) return alert("कृपया भुगतान का तरीका चुनें");
+
+    if (selectedMode === 'Online') {
+        startUPIPayment();
+    } else {
+        sendOrderToWA("Cash on Delivery");
+    }
+}
+
+function startUPIPayment() {
+    let amount = document.getElementById('fTotal').innerText.replace('₹', '');
+    let name = localStorage.getItem('sw_name') || "SewaAstraUser";
+    
+    // UPI URL: इसमें 7869969190@ybl पर पेमेंट जाएगा
+    let upiUrl = `upi://pay?pa=7869969190@ybl&pn=SewaAstra&am=${amount}&cu=INR&tn=OrderFor-${name}`;
+
+    // मोबाइल ऐप्स खोलना
+    window.location.href = upiUrl;
+
+    // चूंकि वेब ब्राउज़र पेमेंट 'Success' को डायरेक्ट ट्रैक नहीं कर सकता (बिना API के)
+    // हम 5 सेकंड बाद यूजर से पूछेंगे
+    setTimeout(() => {
+        let done = confirm("क्या आपका पेमेंट सफल रहा? सफल होने पर ही 'OK' दबाएं।");
+        if (done) {
+            sendOrderToWA("Online Paid (Verified)");
+        }
+    }, 5000);
+}
+
+// व्हाट्सएप फंक्शन को अपडेट किया गया
+function sendOrderToWA(status) {
+    let date = document.getElementById('cartDate').value;
+    let time = document.getElementById('cartTime').value;
+    let remark = document.getElementById('cartRemark').value;
+    let itemsTxt = cart.map(i => `${i.n} (x${i.qty || 1})`).join(', ');
+    let total = document.getElementById('fTotal').innerText;
+    
+    let msg = `*SewaAstra - NEW ORDER*%0A--------------------%0A*Status:* ${status}%0A*Items:* ${itemsTxt}%0A*Total:* ${total}%0A*Date:* ${date}%0A*Time:* ${time}%0A*Remark:* ${remark || 'None'}%0A*Client:* ${localStorage.getItem('sw_name')}`;
+    
+    window.open(`https://wa.me/917869969190?text=${msg}`);
+    location.reload(); // ऑर्डर के बाद कार्ट साफ़
+}</script>
+<script>function setPayMode(mode) {
+    selectedMode = mode;
+    
+    // बटन्स का रंग बदलना
+    document.getElementById('payCash').style.borderColor = mode === 'Cash' ? '#15a04a' : '#ddd';
+    document.getElementById('payOnline').style.borderColor = mode === 'Online' ? '#15a04a' : '#ddd';
+
+    // अगर 'Online' चुना है, तो तुरंत पेमेंट ऐप्स खोलें
+    if (mode === 'Online') {
+        openPaymentApps();
+    }
+}
+
+function openPaymentApps() {
+    let amount = document.getElementById('fTotal').innerText.replace('₹', '');
+    if(amount == "0") return alert("कार्ट खाली है!");
+
+    let name = localStorage.getItem('sw_name') || "Customer";
+    
+    // यह है जादुई UPI लिंक जो सभी ऐप्स को खोलता है
+    // pa = आपकी UPI ID, pn = नाम, am = अमाउंट, cu = करेंसी
+    let upiUrl = `upi://pay?pa=7869969190@ybl&pn=SewaAstra&am=${amount}&cu=INR&tn=ServiceBooking-${name}`;
+
+    // मोबाइल के सभी पेमेंट ऐप्स को सिग्नल भेजना
+    window.location.href = upiUrl;
+
+    // पेमेंट के बाद वापस आने पर कन्फर्मेशन मांगना
+    setTimeout(() => {
+        let done = confirm("क्या आपने पेमेंट पूरा कर लिया है? \n\n'OK' तभी दबाएं जब पेमेंट सफल (Successful) हो गया हो।");
+        if (done) {
+            sendOrderToWA("Online Paid (UPI Verified)");
+        } else {
+            alert("पेमेंट कैंसिल कर दिया गया। कृपया फिर से कोशिश करें।");
+            setPayMode(''); // मोड रीसेट करें
+        }
+    }, 5000); 
+}</script>
+<script>let selectedMode = ""; 
+
+// 1. पेमेंट मोड सेट करना
+function setPayMode(mode) {
+    selectedMode = mode;
+    document.getElementById('payCash').style.border = mode === 'Cash' ? '2px solid #15a04a' : '2px solid #ddd';
+    document.getElementById('payOnline').style.border = mode === 'Online' ? '2px solid #15a04a' : '2px solid #ddd';
+    
+    // अगर ऑनलाइन है तो तुरंत ऐप्स खोलें
+    if(mode === 'Online') {
+        let amt = document.getElementById('fTotal').innerText.replace('₹', '');
+        if(amt == "0") return alert("Cart खाली है");
+        window.location.href = `upi://pay?pa=7869969190@ybl&pn=SewaAstra&am=${amt}&cu=INR`;
+    }
+}
+
+// 2. लाइव लोकेशन डिटेक्ट करना
+function getLiveLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            const mapsLink = `https://www.google.com/maps?q=${position.coords.latitude},${position.coords.longitude}`;
+            document.getElementById('googleMapsLink').value = mapsLink;
+            document.getElementById('manualAddr').value = "Live Location Detected ✅";
+            alert("लोकेशन सेव हो गई!");
+        });
+    } else { alert("GPS सपोर्ट नहीं कर रहा"); }
+}
+
+// 3. फाइनल ऑर्डर व्हाट्सएप पर भेजना
+function sendOrderToWA() {
+    if(!selectedMode) return alert("Payment Method चुनें");
+    
+    let status = (selectedMode === "Online") ? "Online Paid (Verified)" : "Cash on Delivery";
+    let addr = document.getElementById('manualAddr').value;
+    let alt = document.getElementById('altMobile').value || "N/A";
+    let maps = document.getElementById('googleMapsLink').value;
+    let items = cart.map(i => `${i.n} (x${i.qty || 1})`).join(', ');
+    let total = document.getElementById('fTotal').innerText;
+    let date = document.getElementById('cartDate').value;
+    let time = document.getElementById('cartTime').value;
+
+    if(!addr) return alert("कृपया पता (Address) लिखें");
+
+    let msg = `*NEW ORDER - SEWAASTRA*%0A--------------------%0A*Status:* ${status}%0A*Items:* ${items}%0A*Total:* ${total}%0A*Address:* ${addr}%0A*Alt No:* ${alt}%0A*Maps:* ${maps}%0A*Date:* ${date} (${time})`;
+    
+    window.open(`https://wa.me/917869969190?text=${msg}`);
+    location.reload(); 
+}</script>
+<script>function getLiveLocation() {
+    const locBtn = document.querySelector('.loc-btn');
+    const mapBox = document.getElementById('mapPreview');
+    const statusTxt = document.getElementById('locStatus');
+    
+    locBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> डिटेक्ट कर रहे हैं...';
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            
+            // Google Maps Link बनाना
+            const mapsLink = `https://www.google.com/maps?q=${lat},${lon}`;
+            document.getElementById('googleMapsLink').value = mapsLink;
+            document.getElementById('manualAddr').value = "सटीक लोकेशन मिल गई ✅";
+
+            // Static Map Preview दिखाना (OpenStreetMap का उपयोग करके)
+            const mapUrl = `https://static-maps.yandex.ru/1.x/?lang=en_US&ll=${lon},${lat}&z=16&l=map&size=450,150&pt=${lon},${lat},pm2rdm`;
+            
+            mapBox.style.backgroundImage = `url('${mapUrl}')`;
+            mapBox.style.display = 'block';
+            statusTxt.style.display = 'block';
+            
+            locBtn.innerHTML = '<i class="fa fa-check"></i> लोकेशन सेव्ड';
+            locBtn.style.background = "#c8e6c9";
+        }, () => {
+            alert("लोकेशन नहीं मिल पाई, कृपया मैन्युअल लिखें।");
+            locBtn.innerHTML = '<i class="fa fa-crosshairs"></i> फिर से कोशिश करें';
+        });
+    }
+}</script>
+<script>function addToCart(name, price) {
+    // 1. चेक करें कि क्या यह आइटम पहले से कार्ट में है?
+    let existingItem = cart.find(item => item.n === name);
+
+    if (existingItem) {
+        // 2. अगर है, तो सिर्फ उसकी क्वांटिटी (संख्या) बढ़ाएं
+        existingItem.qty = (existingItem.qty || 1) + 1;
+        alert(name + " की संख्या बढ़ा दी गई है!");
+    } else {
+        // 3. अगर नहीं है, तो नया आइटम जोड़ें (qty: 1 के साथ)
+        cart.push({ n: name, p: price, qty: 1 });
+        alert(name + " कार्ट में जोड़ दिया गया!");
+    }
+
+    // कार्ट का बैज (लाल बिंदी वाला नंबर) अपडेट करें
+    updateBadge();
+    
+    // अगर कार्ट खुला है तो उसे तुरंत रिफ्रेश करें
+    if(document.getElementById('fullCartPanel').style.display === 'flex') {
+        renderCart();
+    }
+}
+
+function updateBadge() {
+    // टोटल आइटम्स की संख्या दिखाएं
+    let totalItems = cart.length; 
+    document.getElementById('bCount').innerText = totalItems;
+}</script>
+<script>// अपनी पुरानी रेंडरिंग में जहाँ ADD बटन है, वहां एक ID दे दें
+// उदाहरण: id="btn-${serviceName}"
+
+function addToCart(name, price) {
+    let existingItem = cart.find(item => item.n === name);
+    let btn = document.getElementById(`btn-${name.replace(/\s+/g, '')}`);
+
+    if (existingItem) {
+        existingItem.qty = (existingItem.qty || 1) + 1;
+    } else {
+        cart.push({ n: name, p: price, qty: 1 });
+        // बटन का टेक्स्ट और स्टाइल बदलें
+        if(btn) {
+            btn.innerText = "Added ✓";
+            btn.style.background = "#888"; // रंग ग्रे कर दें
+        }
+    }
+    updateBadge();
+}</script>
+<script>function addToCart(name, price) {
+    // चेक करें कि क्या आइटम पहले से कार्ट में है
+    let existingItem = cart.find(item => item.n === name);
+
+    if (existingItem) {
+        // अगर पहले से है, तो संख्या बढ़ाएं और अलर्ट दिखाएं
+        existingItem.qty = (existingItem.qty || 1) + 1;
+        
+        // सुंदर छोटा अलर्ट (Toast style)
+        showToast(`${name} की संख्या बढ़ाकर ${existingItem.qty} कर दी गई है! ➕`);
+    } else {
+        // अगर नया है, तो जोड़ें
+        cart.push({ n: name, p: price, qty: 1 });
+        showToast(`${name} कार्ट में जोड़ दिया गया! ✅`);
+    }
+
+    updateBadge(); // बैज अपडेट करें
+}
+
+// सुंदर नोटिफिकेशन (Toast) के लिए फंक्शन
+function showToast(message) {
+    let toast = document.getElementById('cartToast');
+    if(!toast) {
+        // अगर टोस्ट HTML नहीं है, तो बनाओ
+        toast = document.createElement('div');
+        toast.id = 'cartToast';
+        document.body.appendChild(toast);
+    }
+    
+    toast.innerText = message;
+    toast.className = "show-toast";
+    
+    // 3 सेकंड बाद हटा दो
+    setTimeout(() => { toast.className = toast.className.replace("show-toast", ""); }, 3000);
+}</script>
+<script>// ध्यान दें: इस बार हम 'event' को भी पास कर रहे हैं ताकि पता चले किस बटन को दबाया गया
+function addToCart(name, price, btnElement) {
+    let existingItem = cart.find(item => item.n === name);
+
+    if (existingItem) {
+        existingItem.qty = (existingItem.qty || 1) + 1;
+        showToast(`${name} की संख्या बढ़ाई गई (${existingItem.qty}) ➕`);
+    } else {
+        cart.push({ n: name, p: price, qty: 1 });
+        showToast(`${name} कार्ट में जोड़ा गया! ✅`);
+
+        // बटन को 'Fill' करें
+        if (btnElement) {
+            btnElement.classList.add('filled');
+            btnElement.innerText = "Added ✓";
+        }
+    }
+    
+    updateBadge();
+}</script>
+<script>// पेज स्विच करने का सही तरीका
+function showPage(pageId) {
+    // 1. ब्राउज़र के पुराने Alerts को रोकने के लिए console log
+    console.log("Navigating to: " + pageId);
+
+    // 2. सभी पेजों को छुपाएं
+    document.querySelectorAll('.page').forEach(page => {
+        page.style.display = 'none';
+    });
+
+    // 3. टारगेट पेज को दिखाएं
+    const activePage = document.getElementById(pageId);
+    if (activePage) {
+        activePage.style.display = 'block';
+        window.scrollTo(0,0); // पेज के टॉप पर जाएँ
+    }
+
+    // 4. अगर हिस्ट्री पर क्लिक किया है, तो डेटा रेंडर करें
+    if (pageId === 'history') {
+        renderHistoryUI(); 
+    }
+}
+
+// हिस्ट्री को सुंदर तरीके से दिखाने का फंक्शन
+function renderHistoryUI() {
+    const historyBox = document.getElementById('historyContent');
+    let orders = JSON.parse(localStorage.getItem('myOrders') || "[]");
+
+    // अगर कोई हिस्ट्री नहीं है - NO ALERT, ONLY UI
+    if (orders.length === 0) {
+        historyBox.innerHTML = `
+            <div class="empty-state" style="text-align:center; padding:100px 20px;">
+                <i class="fa fa-history" style="font-size:60px; color:#ddd;"></i>
+                <h2 style="color:#666; margin-top:20px;">कोई इतिहास नहीं</h2>
+                <p style="color:#999;">आपने अभी तक कुछ बुक नहीं किया है।</p>
+                <button onclick="showPage('home')" style="background:#15a04a; color:white; border:none; padding:12px 25px; border-radius:10px; margin-top:20px; font-weight:bold;">अभी बुकिंग शुरू करें</button>
+            </div>`;
+        return;
+    }
+
+    // अगर डेटा है तो उसे लिस्ट में दिखाएं
+    historyBox.innerHTML = `<h2 style="padding:20px 20px 0;">आपका इतिहास</h2>` + 
+    orders.map(order => `
+        <div class="history-card" style="background:white; margin:15px; padding:15px; border-radius:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05); border:1px solid #eee;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span style="font-weight:bold; color:#15a04a;">#ORD-${order.id.toString().slice(-4)}</span>
+                <span style="font-size:12px; font-weight:bold; color:${order.status === 'Paid' ? '#2e7d32' : '#ef6c00'};">
+                    ${order.status.toUpperCase()}
+                </span>
+            </div>
+            <div style="font-size:14px; color:#333; margin-bottom:8px;">${order.items}</div>
+            <div style="font-size:18px; font-weight:900;">${order.amount}</div>
+            <hr style="border:0; border-top:1px solid #eee; margin:12px 0;">
+            
+            ${order.status !== 'Paid' ? 
+                `<button onclick="paySpecificOrder('${order.amount}', ${order.id})" style="width:100%; background:#15a04a; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold;">अभी पेमेंट करें</button>` : 
+                `<div style="text-align:center;">
+                    <p style="font-size:12px; color:#888;">रेटिंग दें</p>
+                    <div style="color:#ffc107; font-size:20px;">★★★★★</div>
+                </div>`
+            }
+        </div>
+    `).join('');
+}</script>
+<script>function renderOrderCards(orders, container) {
+    container.innerHTML = `<h3 style="padding:20px 20px 5px;">आपकी बुकिंग्स</h3>` + 
+    orders.map(order => `
+        <div class="history-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <div style="font-size:12px; color:#999;">Order #${order.id.toString().slice(-5)}</div>
+                    <div style="font-weight:bold; margin:5px 0;">${order.items}</div>
+                </div>
+                <span class="pay-online-badge">${order.status.toUpperCase()}</span>
+            </div>
+            
+            <div style="font-size:18px; font-weight:900; margin-top:10px;">${order.amount}</div>
+
+            <div style="margin-top:15px; border-top:1px solid #eee; padding-top:12px;">
+                ${order.status !== 'Paid' ? 
+                    `<button onclick="paySpecificOrder('${order.amount}', ${order.id})" style="width:100%; background:#15a04a; color:white; border:none; padding:12px; border-radius:10px; font-weight:bold;">Pay Online Now</button>` : 
+                    `<div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:13px; color:#666;">रेटिंग दें:</span>
+                        <div style="color:#ffc107; font-size:18px;">★★★★★</div>
+                    </div>`
+                }
+            </div>
+        </div>
+    `).join('');
+}</script>
+<script>function handleHistoryClick() {
+    // 1. पहले चेक करें कि क्या होम पेज और हिस्ट्री पेज की IDs मौजूद हैं
+    const home = document.getElementById('home');
+    const history = document.getElementById('history');
+
+    if (home && history) {
+        // 2. पेजों को अदला-बदली करें
+        home.style.display = 'none';
+        history.style.display = 'block';
+        
+        // 3. डेटा लोड करें (बिना किसी अलर्ट के)
+        renderHistoryUI(); 
+    } else {
+        console.error("ID 'home' या 'history' नहीं मिली। कृपया अपने HTML की IDs चेक करें।");
+    }
+}
+
+// नया रेंडर फंक्शन (जो सिर्फ हिस्ट्री दिखाएगा)
+function renderHistoryUI() {
+    const historyBox = document.getElementById('historyContent');
+    let orders = JSON.parse(localStorage.getItem('myOrders') || "[]");
+
+    if (orders.length === 0) {
+        historyBox.innerHTML = `
+            <div style="text-align:center; padding:100px 20px;">
+                <i class="fa fa-history" style="font-size:50px; color:#ddd;"></i>
+                <h3 style="color:#666; margin-top:20px;">कोई इतिहास नहीं मिला</h3>
+                <button onclick="location.reload()" style="margin-top:15px; background:#15a04a; color:white; border:none; padding:10px 20px; border-radius:10px;">होम पर जाएं</button>
+            </div>`;
+        return;
+    }
+
+    historyBox.innerHTML = `<h2 style="padding:20px 15px 5px;">आपका इतिहास</h2>` + 
+    orders.map(order => `
+        <div class="history-card" style="background:white; margin:15px; padding:15px; border-radius:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05); border:1px solid #eee;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <b style="color:#15a04a;">#ORD-${order.id.toString().slice(-4)}</b>
+                <span style="font-size:12px; font-weight:bold; color:${order.status === 'Paid' ? '#2e7d32' : '#ef6c00'};">
+                    ${order.status.toUpperCase()}
+                </span>
+            </div>
+            <div style="font-size:14px; color:#333; margin-bottom:8px;">${order.items}</div>
+            <div style="font-size:18px; font-weight:900;">${order.amount}</div>
+            
+            <div style="margin-top:15px; border-top:1px solid #eee; padding-top:12px;">
+                ${order.status !== 'Paid' ? 
+                    `<button onclick="paySpecificOrder('${order.amount}', ${order.id})" style="width:100%; background:#15a04a; color:white; border:none; padding:12px; border-radius:10px; font-weight:bold;">Pay Online Now</button>` : 
+                    `<div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:13px; color:#888;">Rating:</span>
+                        <div style="color:#ffc107; font-size:18px;">★★★★★</div>
+                    </div>`
+                }
+            </div>
+        </div>
+    `).join('');
+}</script>
+<script>let currentIssue = "";
+
+// 1. सपोर्ट पेज खोलना और होम छुपाना
+function openSupportView() {
+    const home = document.getElementById('homePage'); // अपनी होम आईडी चेक करें
+    if(home) home.style.display = 'none';
+    
+    document.getElementById('supportPage').style.display = 'block';
+    resetSupportFlow();
+}
+
+// 2. वापस होम पर जाना
+function closeSupportView() {
+    document.getElementById('supportPage').style.display = 'none';
+    const home = document.getElementById('homePage');
+    if(home) home.style.display = 'block';
+}
+
+// 3. समस्या का चुनाव
+function selectSuppIssue(issue) {
+    currentIssue = issue;
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').style.display = 'block';
+    document.getElementById('issueLabel').innerText = "Selected: " + issue;
+}
+
+// 4. फ्लो रिसेट करना
+function resetSupportFlow() {
+    document.getElementById('step1').style.display = 'block';
+    document.getElementById('step2').style.display = 'none';
+}
+
+// 5. फाइनल कॉन्टैक्ट
+function talkToExpert(method) {
+    const myNumber = "7869969190";
+    if (method === 'wa') {
+        const text = encodeURIComponent("नमस्ते, मुझे " + currentIssue + " के बारे में मदद चाहिए।");
+        window.open(`https://wa.me/${myNumber}?text=${text}`);
+    } else {
+        window.open(`tel:${myNumber}`);
+    }
+}</script>
+ <div id="supportPage" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; overflow-y: auto;">
+    
+    <div class="support-header">
+        <div style="display: flex; align-items: center; max-width: 600px; margin: 0 auto;">
+            <button onclick="closeSupportView()" style="border:none; background:none; font-size:22px; color:#15a04a;"><i class="fa fa-arrow-left"></i></button>
+            <h3 style="flex-grow:1; margin:0; font-size:18px;">Customer Support</h3>
+        </div>
+    </div>
+
+    <div style="max-width: 600px; margin: 0 auto; padding-bottom: 40px;">
+        <div style="text-align: center; padding: 40px 20px;">
+            <div style="background: #e8f5e9; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <i class="fa fa-headset" style="font-size: 35px; color: #15a04a;"></i>
+            </div>
+            <h2 style="color: #222; margin: 0;">नमस्ते! हम यहाँ हैं।</h2>
+            <p style="color: #666; margin-top: 8px;">अपनी समस्या चुनें ताकि हम सही समाधान दे सकें।</p>
+        </div>
+
+        <div id="step1">
+            <div class="support-tile" onclick="selectSuppIssue('Payment Problem')">
+                <span>💰 पेमेंट की समस्या</span> <i class="fa fa-chevron-right"></i>
+            </div>
+            <div class="support-tile" onclick="selectSuppIssue('Order Tracking')">
+                <span>📦 ऑर्डर कहाँ पहुँचा?</span> <i class="fa fa-chevron-right"></i>
+            </div>
+            <div class="support-tile" onclick="selectSuppIssue('Cancellation')">
+                <span>❌ बुकिंग रद्द करना</span> <i class="fa fa-chevron-right"></i>
+            </div>
+            <div class="support-tile" onclick="selectSuppIssue('Technical Issue')">
+                <span>🛠️ ऐप में तकनीकी समस्या</span> <i class="fa fa-chevron-right"></i>
+            </div>
+        </div>
+
+        <div id="step2" style="display:none;">
+            <div class="contact-container text-center">
+                <p id="issueLabel" style="font-size: 14px; color: #15a04a; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;"></p>
+                <h3 style="margin-bottom: 25px; color: #333;">विशेषज्ञ से बात करें</h3>
+                
+                <button class="btn-wa" onclick="talkToExpert('wa')">
+                    <i class="fab fa-whatsapp" style="font-size: 20px;"></i> WhatsApp Chat
+                </button>
+                
+                <button class="btn-call" onclick="talkToExpert('call')">
+                    <i class="fa fa-phone-alt"></i> Call Now
+                </button>
+                
+                <span class="back-link" onclick="resetSupportFlow()">← दूसरी समस्या चुनें</span>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
+ 
