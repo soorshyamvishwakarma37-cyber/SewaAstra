@@ -370,6 +370,28 @@
     text-decoration: none;
     font-weight: 500;
 }</style>
+  <style>/* मोबाइल लॉगिन बटन: दबाने पर ग्रीन होगा */
+#login-btn:active {
+    background-color: #28a745 !important; /* दबाने पर हरा रंग */
+    transform: scale(0.94) !important;    /* बटन थोड़ा दबेगा */
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4) !important;
+    transition: 0.1s ease;
+}
+
+/* गूगल बटन: दबाने पर हल्का ग्रीन शेड */
+.google-btn:active {
+    background-color: #e8f5e9 !important; /* हल्का ग्रीन बैकग्राउंड */
+    border-color: #28a745 !important;     /* बॉर्डर हरा */
+    color: #28a745 !important;           /* टेक्स्ट हरा */
+    transform: scale(0.94) !important;
+    transition: 0.1s ease;
+}
+
+/* OTP Verify बटन भी दबाने पर गहरा ग्रीन होगा */
+#btn-verify-otp:active {
+    background-color: #1e7e34 !important; 
+    transform: scale(0.94) !important;
+}</style>
 </head>
 <body id="mainBody">
 
