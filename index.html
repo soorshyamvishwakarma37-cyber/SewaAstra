@@ -1067,7 +1067,7 @@ function googleLogin() {
     const provider = new firebase.auth.GoogleAuthProvider();
 
     // 2. पॉपअप खोलें
-    firebase.auth().signInWithRedirect(provider).then((result) => {
+    firebase.auth().signInWithPopup(provider).then((result) => {
         const user = result.user;
         
         // 3. डेटा लोकल स्टोरेज में सेव करें ताकि रिफ्रेश पर नाम न हटे
