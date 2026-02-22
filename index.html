@@ -1808,6 +1808,55 @@ if (navigator.geolocation) {
 } else {
     alert("Geolocation is not supported by this browser.");
 }</script>
+  <script>// Payment Function
+async function initiatePayment(amount) {
+    const upiId = "shoorshyam.vishwakarma@ybl"; // Aapki ID
+    
+    // Yahan PhonePe SDK ya Razorpay call karein
+    // Agar aap direct UPI deep link use kar rahe hain:
+    const upiLink = `upi://pay?pa=${upiId}&pn=SewaAstra&am=${amount}&cu=INR`;
+    
+    window.location.href = upiLink; // User ko UPI app par bhej dega
+    
+    // Note: Deep link se 'payment success' verify nahi hota. 
+    // Isliye Gateway (Razorpay/PhonePe PG) lagana secure hai.
+}</script>
+<script>async function handleBooking() {
+    // 1. Pehle Live Location lo
+    navigator.geolocation.getCurrentPosition(async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+
+        // 2. Payment Gateway Open karein (Example: Razorpay/PhonePe)
+        const paymentSuccess = await openPaymentGateway(totalAmount);
+
+        if (paymentSuccess) {
+            // 3. Firebase mein Entry karein
+            const orderRef = db.collection("bookings").doc();
+            await orderRef.set({
+                items: items,
+                total: total,
+                location: mapLink,
+                status: "active", // Isse Home screen par moving button dikhega
+                paymentMode: "online",
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // 4. WhatsApp par details bhejein
+            sendWhatsAppMessage(mapLink);
+        }
+    });
+}</script>
+<script>function confirmCashCollection(orderId) {
+    // Firebase mein status update karein
+    db.collection("bookings").doc(orderId).update({
+        status: "completed",
+        paymentConfirmedBy: "PartnerName"
+    }).then(() => {
+        alert("Payment Confirmed! User screen se popup hat jayega.");
+    });
+}</script>
 </body>
 </html>
  
