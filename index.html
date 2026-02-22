@@ -1780,6 +1780,34 @@ function talkToExpert(method) {
         </div>
     </div>
 </div>
+  <script>// 1. Pehle current location fetch karne ka function banayein
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition((position) => {
+        let lat = position.coords.latitude;
+        let lon = position.coords.longitude;
+        
+        // Google Maps ka link generate karein
+        let mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+
+        // 2. Ab 'msg' variable mein Maps ka link add karein
+        // Note: Aapne pehle hi `${maps}` likha hai, bas uski value update karni hai
+        let msg = `*NEW ORDER - SEWAASTRA*
+%0A--------------------
+%0A*Items:* ${items}
+%0A*Total:* ${total}
+%0A*Address:* ${addr}
+%0A*Maps Link:* ${mapLink} 
+%0A*Date:* ${date} (${time})`;
+
+        // 3. WhatsApp open karein
+        window.open(`https://wa.me/917869969190?text=${msg}`);
+        
+    }, (error) => {
+        alert("Location access denied. Please allow location to send map link.");
+    });
+} else {
+    alert("Geolocation is not supported by this browser.");
+}</script>
 </body>
 </html>
  
