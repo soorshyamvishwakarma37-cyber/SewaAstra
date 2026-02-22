@@ -392,28 +392,7 @@
     background-color: #1e7e34 !important; 
     transform: scale(0.94) !important;
 }</style>
-  <style>#sewa-universal-btn {
-    position: fixed; bottom: 100px; left: 20px; z-index: 999999;
-    background: #fff; border: 2px solid #4285F4; padding: 10px 18px;
-    border-radius: 50px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    display: flex; align-items: center; gap: 10px; cursor: move; touch-action: none;
-    font-weight: 900; color: #333; transition: transform 0.2s;
-}
-
-.lang-pulse { width: 10px; height: 10px; background: #4285F4; border-radius: 50%; box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.7); animation: pulse-blue 2s infinite; }
-@keyframes pulse-blue { 0% {box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.7);} 70% {box-shadow: 0 0 0 10px rgba(66, 133, 244, 0);} 100% {box-shadow: 0 0 0 0 rgba(66, 133, 244, 0);} }
-
-.sewa-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 1000000; }
-.sewa-card { background: white; width: 90%; max-width: 350px; padding: 25px; border-radius: 30px; text-align: center; }
-
-.grid-langs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.l-btn { padding: 12px; border: 1.5px solid #eee; border-radius: 15px; cursor: pointer; font-size: 14px; font-weight: bold; }
-.l-btn:active { background: #4285F4; color: white; transform: scale(0.95); }
-
-/* Google के फालतू हिस्से छुपाना */
-.goog-te-banner-frame, .goog-te-gadget-icon, .goog-te-gadget span { display: none !important; }
-body { top: 0px !important; }
-    </style>
+  
 </head>
 <body id="mainBody">
 
@@ -1801,82 +1780,6 @@ function talkToExpert(method) {
         </div>
     </div>
 </div>
-  <div id="google_translate_element" style="display:none;"></div>
-
-<div id="sewa-universal-btn">
-    <div class="lang-pulse"></div>
-    <img src="https://www.gstatic.com/images/branding/product/1x/translate_24dp.png" width="22">
-    <span id="lang-status">भाषा बदलें</span>
-</div>
-
-<div id="sewa-lang-ui" class="sewa-overlay" onclick="this.style.display='none'">
-    <div class="sewa-card" onclick="event.stopPropagation()">
-        <h3>Select Language / भाषा चुनें</h3>
-        <p style="font-size:12px; color:#666; margin-bottom:15px;">पूरी ऐप की भाषा बदलें</p>
-        
-        <div class="grid-langs">
-            <div class="l-btn" onclick="triggerGoogle('hi')">हिन्दी (Hindi)</div>
-            <div class="l-btn" onclick="triggerGoogle('en')">English</div>
-            <div class="l-btn" onclick="triggerGoogle('bn')">বাংলা (Bengali)</div>
-            <div class="l-btn" onclick="triggerGoogle('pa')">ਪੰਜਾਬੀ (Punjabi)</div>
-            <div class="l-btn" onclick="triggerGoogle('gu')">ગુજરાતી (Gujarati)</div>
-            <div class="l-btn" onclick="triggerGoogle('mr')">मराठी (Marathi)</div>
-            <div class="l-btn" onclick="triggerGoogle('ta')">தமிழ் (Tamil)</div>
-            <div class="l-btn" onclick="triggerGoogle('te')">తెలుగు (Telugu)</div>
-        </div>
-        
-        <button onclick="document.getElementById('sewa-lang-ui').style.display='none'" class="close-x">बंद करें</button>
-    </div>
-</div>
-  <script>// 1. Google Engine Load
-function googleTranslateElementInit() {
-    new google.translate.TranslateElement({
-        pageLanguage: 'hi', // आपकी साइट की मूल भाषा
-        autoDisplay: false
-    }, 'google_translate_element');
-}
-
-// 2. पक्का भाषा बदलने वाला फंक्शन
-function triggerGoogle(langCode) {
-    const combo = document.querySelector('.goog-te-combo');
-    if (combo) {
-        combo.value = langCode;
-        combo.dispatchEvent(new Event('change'));
-        document.getElementById('sewa-lang-ui').style.display = 'none';
-        document.getElementById('lang-status').innerText = "बदल रहा है...";
-        setTimeout(() => { document.getElementById('lang-status').innerText = "भाषा बदलें"; }, 2000);
-    } else {
-        // अगर गूगल लोड नहीं हुआ तो 0.5 सेकंड इंतज़ार करें
-        setTimeout(() => triggerGoogle(langCode), 500);
-    }
-}
-
-// 3. Draggable Logic (बटन को कहीं भी ले जाने के लिए)
-const mBtn = document.getElementById('sewa-universal-btn');
-let isMoving = false;
-
-mBtn.onpointerdown = (e) => {
-    isMoving = false;
-    let shiftX = e.clientX - mBtn.getBoundingClientRect().left;
-    let shiftY = e.clientY - mBtn.getBoundingClientRect().top;
-    
-    function onMove(e) {
-        isMoving = true;
-        mBtn.style.left = e.clientX - shiftX + 'px';
-        mBtn.style.top = e.clientY - shiftY + 'px';
-        mBtn.style.bottom = 'auto';
-    }
-    
-    document.addEventListener('pointermove', onMove);
-    mBtn.onpointerup = () => {
-        document.removeEventListener('pointermove', onMove);
-        if (!isMoving) document.getElementById('sewa-lang-ui').style.display = 'flex';
-    };
-};
-mBtn.ondragstart = () => false;
-</script>
-
-<script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script></script>
 </body>
 </html>
  
