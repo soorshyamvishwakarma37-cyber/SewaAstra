@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+   <!DOCTYPE html>
 <html lang="hi">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -398,13 +398,51 @@
 
 <div id="welcomeToast"></div>
 
+<div id="bookingPopup" class="full-overlay" style="display:none; background:rgba(0,0,0,0.8); z-index:999999;">
+    <div class="box" style="background:white; padding:20px; border-radius:20px;">
+        <h3 id="popTitle">Booking Details</h3>
+        <label style="font-size: 12px; color: #666; display: block; text-align: left;">Select Date & Time:</label>
+        <input type="date" id="bDate" style="text-align:left">
+        <input type="time" id="bTime" style="text-align:left">
+        <label style="font-size: 12px; color: #666; display: block; text-align: left; margin-top: 10px;">Payment Method:</label>
+        <div class="pay-options">
+            <div class="pay-btn active" id="btnOnline" onclick="setPayMethod('Online')">
+                <i class="fa fa-credit-card"></i> Online Pay
+            </div>
+            <div class="pay-btn" id="btnCash" onclick="setPayMethod('Cash')">
+                <i class="fa fa-money-bill-wave"></i> Cash (COD)
+            </div>
+        </div>
+        <button onclick="handleBooking()" id="confirmBtn">Continue to Book</button>
+        <button onclick="document.getElementById('bookingPopup').style.display='none'" style="background:#f0f0f0; color: #333; box-shadow: none;">Cancel</button>
+    </div>
+</div>
+
+<div id="payGateway" class="full-overlay" style="display:none; background:#fff; z-index:1000000;">
+    <div class="box">
+        <img src="https://cdn-icons-png.flaticon.com/512/10110/10110410.png" style="width:70px" />
+        <h2>Secure Payment</h2>
+        <p>Total Amount: <b id="payAmt" style="color:var(--primary); font-size: 24px;">₹0</b></p>
+        <div style="background:#f8f9fa; padding:15px; border-radius:15px; margin: 15px 0; border: 1px dashed #ccc;">
+            <p style="font-size:12px; margin-bottom:10px;">Supported UPI Apps</p>
+            <div style="display:flex; justify-content:space-around; font-size:30px; color:#555;">
+                <i class="fab fa-google-pay"></i>
+                <i class="fa fa-qrcode"></i>
+                <i class="fab fa-amazon-pay"></i>
+            </div>
+        </div>
+        <button onclick="finalCheckout('Online Paid')" style="background:var(--success)">Pay & Confirm Booking</button>
+        <button onclick="document.getElementById('payGateway').style.display='none'" style="background:none; color:#666; box-shadow:none;">Go Back</button>
+    </div>
+</div>
+
 <div id="loginScreen" class="full-overlay">
     <div class="box">
         <img src="sewaastra.png" alt="Sewaastra Logo" />
         <div class="tagline">भारत की सबसे भरोसेमंद होम सर्विस ऐप</div>
         <div class="welcome-note">नमस्ते!</div>
         <div class="sub-note">आगे बढ़ने के लिए लॉगिन करें</div>
-         
+      
         <button class="google-btn" onclick="googleLogin()">
             <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" style="width:20px; margin-bottom:0;" /> Google से लॉगिन करें
         </button>
@@ -718,7 +756,26 @@ const moreData = {
     ]
 };
 
- 
+function setPayMethod(m) {
+    selectedPayment = m;
+    document.getElementById('btnOnline').classList.toggle('active', m === 'Online');
+    document.getElementById('btnCash').classList.toggle('active', m === 'Cash');
+}
+
+function handleBooking() {
+    let date = document.getElementById('bDate').value;
+    let time = document.getElementById('bTime').value;
+    if(!date || !time) return alert("Please select date and time");
+
+    if(selectedPayment === "Online") {
+        let total = cart.reduce((s, i) => s + i.p, 0);
+        document.getElementById('payAmt').innerText = "₹" + total;
+        document.getElementById('payGateway').style.display = 'flex';
+    } else {
+        finalCheckout('Cash on Delivery');
+    }
+}
+
 function shareApp() {
     if (navigator.share) {
         navigator.share({ title: 'SewaAstra', text: 'भारत की सबसे भरोसेमंद होम सर्विस ऐप!', url: window.location.href });
@@ -1120,7 +1177,7 @@ function googleLogin() {
 </div>
 
         <button onclick="sendOrderToWA()" style="width:100%; padding:18px; background:#15a04a; color:white; border:none; border-radius:15px; font-weight:bold; font-size:18px; box-shadow: 0 5px 15px rgba(21,160,74,0.3);">
-            Book Service (WhatsApp)
+            Order Place करें (WhatsApp)
         </button>
     </div>
 </div>
@@ -1204,9 +1261,9 @@ function sendOrderToWA() {
     let remark = document.getElementById('cartRemark').value;
     let itemsTxt = cart.map(i => `${i.n} (x${i.qty || 1})`).join(', ');
     let total = document.getElementById('fTotal').innerText;
-  
     
-    let msg = `*SewaAstra - New Order*%0A--------------------%0A*Items:* ${itemsTxt}%0A*Total:* ${total}%0A*Date:* ${date}%0A*Time:*${time}%0A*Remark:*${remark || 'None'}%0A*Client:* ${localStorage.getItem('sw_name')}`;
+    
+    let msg = `*SewaAstra - New Order*%0A--------------------%0A*Items:* ${itemsTxt}%0A*Total:* ${total}%0A*Date:* ${date}%0A*Time:* ${time}%0A*Remark:* ${remark || 'None'}%0A*Client:* ${localStorage.getItem('sw_name')}`;
     
     window.open(`https://wa.me/917869969190?text=${msg}`);
 }</script>
@@ -1257,7 +1314,7 @@ function sendOrderToWA(status) {
     let itemsTxt = cart.map(i => `${i.n} (x${i.qty || 1})`).join(', ');
     let total = document.getElementById('fTotal').innerText;
     
-    let msg = `*SewaAstra - NEW ORDER*%0A--------------------%0A*Status:* ${status}%0A*Items:* ${itemsTxt}%0A*Total:* ${total}%0A*Date:* ${date}%0A*Time:* ${time}%0A*Map:*${map}%0A*Remark:* ${remark || 'None'}%0A*Client:* ${localStorage.getItem('sw_name')}`;
+    let msg = `*SewaAstra - NEW ORDER*%0A--------------------%0A*Status:* ${status}%0A*Items:* ${itemsTxt}%0A*Total:* ${total}%0A*Date:* ${date}%0A*Time:* ${time}%0A*Remark:* ${remark || 'None'}%0A*Client:* ${localStorage.getItem('sw_name')}`;
     
     window.open(`https://wa.me/917869969190?text=${msg}`);
     location.reload(); // ऑर्डर के बाद कार्ट साफ़
