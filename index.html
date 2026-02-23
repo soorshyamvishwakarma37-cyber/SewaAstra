@@ -718,26 +718,7 @@ const moreData = {
     ]
 };
 
-function setPayMethod(m) {
-    selectedPayment = m;
-    document.getElementById('btnOnline').classList.toggle('active', m === 'Online');
-    document.getElementById('btnCash').classList.toggle('active', m === 'Cash');
-}
-
-function handleBooking() {
-    let date = document.getElementById('bDate').value;
-    let time = document.getElementById('bTime').value;
-    if(!date || !time) return alert("Please select date and time");
-
-    if(selectedPayment === "Online") {
-        let total = cart.reduce((s, i) => s + i.p, 0);
-        document.getElementById('payAmt').innerText = "₹" + total;
-        document.getElementById('payGateway').style.display = 'flex';
-    } else {
-        finalCheckout('Cash on Delivery');
-    }
-}
-
+ 
 function shareApp() {
     if (navigator.share) {
         navigator.share({ title: 'SewaAstra', text: 'भारत की सबसे भरोसेमंद होम सर्विस ऐप!', url: window.location.href });
@@ -1139,7 +1120,7 @@ function googleLogin() {
 </div>
 
         <button onclick="sendOrderToWA()" style="width:100%; padding:18px; background:#15a04a; color:white; border:none; border-radius:15px; font-weight:bold; font-size:18px; box-shadow: 0 5px 15px rgba(21,160,74,0.3);">
-            Order Place करें (WhatsApp)
+            Book Service (WhatsApp)
         </button>
     </div>
 </div>
@@ -1223,7 +1204,7 @@ function sendOrderToWA() {
     let remark = document.getElementById('cartRemark').value;
     let itemsTxt = cart.map(i => `${i.n} (x${i.qty || 1})`).join(', ');
     let total = document.getElementById('fTotal').innerText;
-    
+  
     
     let msg = `*SewaAstra - New Order*%0A--------------------%0A*Items:* ${itemsTxt}%0A*Total:* ${total}%0A*Date:* ${date}%0A*Time:*${time}%0A*Remark:*${remark || 'None'}%0A*Client:* ${localStorage.getItem('sw_name')}`;
     
