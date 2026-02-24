@@ -1087,7 +1087,7 @@ function googleLogin() {
     const provider = new firebase.auth.GoogleAuthProvider();
 
     // 2. पॉपअप खोलें
-    firebase.auth().signInWithRedirect(provider).then((result) => {
+    firebase.auth().signInWithPopup(provider).then((result) => {
         const user = result.user;
         
         // 3. डेटा लोकल स्टोरेज में सेव करें ताकि रिफ्रेश पर नाम न हटे
@@ -1863,28 +1863,6 @@ async function initiatePayment(amount) {
      data-callback="onGoogleAuthSuccess"
      data-auto_prompt="true">
 </div>
-
-<script>
-  // 3. यह फंक्शन तब चलेगा जब यूजर अपनी ईमेल पर क्लिक करेगा
-  function onGoogleAuthSuccess(response) {
-    console.log("Success! Token received.");
-    
-    // यह टोकन Firebase को भेजने के लिए है
-    const idToken = response.credential;
-    
-    // अगर आप Firebase इस्तेमाल कर रहे हैं, तो यहाँ उसकी Credential logic आएगी
-    const credential = firebase.auth.GoogleAuthProvider.credential(idToken);
-    
-    firebase.auth().signInWithCredential(credential)
-      .then((result) => {
-        alert("SewaAstra में आपका स्वागत है!");
-        window.location.href = "/dashboard"; // लॉगिन के बाद यहाँ भेजें
-      })
-      .catch((error) => {
-        console.error("Login Error:", error.message);
-      });
-  }
-</script>
 
 </body>
 </html>
