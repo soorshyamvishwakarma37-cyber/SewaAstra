@@ -1855,12 +1855,11 @@ async function initiatePayment(amount) {
     });
 }</script>
    <script src="https://accounts.google.com/gsi/client" async defer></script>
-
+   
 <div id="g_id_onload"
      data-client_id="211091351218-s08jo336t0dieb050q02r4bqvdod891m.apps.googleusercontent.com"
      data-context="signin"
-     data-ux_mode="popup"
-     data-callback="onGoogleAuthSuccess"
+     data-ux_mode="redirect" data-login_uri="https://sewaastra.firebaseapp.com/__/auth/handler"
      data-auto_prompt="true">
 </div>
 
