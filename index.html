@@ -1087,7 +1087,7 @@ function googleLogin() {
     const provider = new firebase.auth.GoogleAuthProvider();
 
     // 2. पॉपअप खोलें
-    firebase.auth().signInWithredirect(provider).then((result) => {
+    firebase.auth().signInWithPopup(provider).then((result) => {
         const user = result.user;
         
         // 3. डेटा लोकल स्टोरेज में सेव करें ताकि रिफ्रेश पर नाम न हटे
@@ -1859,7 +1859,7 @@ async function initiatePayment(amount) {
 <div id="g_id_onload"
      data-client_id="211091351218-s08jo336t0dieb050q02r4bqvdod891m.apps.googleusercontent.com"
      data-context="signin"
-     data-ux_mode="redirect" data-login_uri="https://sewaastra.firebaseapp.com/__/auth/handler"
+     data-ux_mode="popup" data-login_uri="https://sewaastra.firebaseapp.com/__/auth/handler"
      data-auto_prompt="true">
 </div>
 
