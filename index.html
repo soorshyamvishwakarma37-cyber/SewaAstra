@@ -1,4 +1,4 @@
-   <!DOCTYPE html>
+     <!DOCTYPE html>
 <html lang="hi">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -1263,7 +1263,7 @@ function sendOrderToWA() {
     let total = document.getElementById('fTotal').innerText;
     
     
-    let msg = `*SewaAstra - New Order*%0A--------------------%0A*Items:* ${itemsTxt}%0A*Total:* ${total}%0A*Date:* ${date}%0A*Time:* ${time}%0A*Remark:* ${remark || 'None'}%0A*Client:* ${localStorage.getItem('sw_name')}`;
+    let msg = `*SewaAstra - New Order*%0A--------------------%0A*Items:* ${itemsTxt}%0A*Total:* ${total}%0A*Date:* ${date}%0A*Time:* ${time}%0A*Remark:* ${remark || 'None'}%0A*Client:* ${localStorage.getItem('sw_name')message += `*📍 लाइव लोकेशन:* ${mapLink}%0A}`;}
     
     window.open(`https://wa.me/917869969190?text=${msg}`);
 }</script>
