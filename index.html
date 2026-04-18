@@ -442,7 +442,10 @@
         <div class="tagline">भारत की सबसे भरोसेमंद होम सर्विस ऐप</div>
         <div class="welcome-note">नमस्ते!</div>
         <div class="sub-note">आगे बढ़ने के लिए लॉगिन करें</div>
-      
+        <input type="text" id="userName" placeholder="अपना नाम लिखें" /> 
+        <input type="tel" id="mobileNum" placeholder="10 अंकों का मोबाइल नंबर" maxlength="10" />
+        <button id="login-btn" onclick="sendOTP()">शुरू करें (Login)</button>
+        <div class="divider">अथवा</div>
         <button class="google-btn" onclick="googleLogin()">
             <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" style="width:20px; margin-bottom:0;" /> Google से लॉगिन करें
         </button>
@@ -1263,7 +1266,7 @@ function sendOrderToWA() {
     let total = document.getElementById('fTotal').innerText;
     
     
-    let msg = `*SewaAstra - New Order*%0A--------------------%0A*Items:* ${itemsTxt}%0A*Total:* ${total}%0A*Date:* ${date}%0A*Time:* ${time}%0A*Remark:* ${remark || 'None'}%0A*Client:* ${localStorage.getItem('sw_name')message += `*📍 लाइव लोकेशन:* ${mapLink}%0A}`;}
+    let msg = `*SewaAstra - New Order*%0A--------------------%0A*Items:* ${itemsTxt}%0A*Total:* ${total}%0A*Date:* ${date}%0A*Time:* ${time}%0A*Remark:* ${remark || 'None'}%0A*Client:* ${localStorage.getItem('sw_name')}`;
     
     window.open(`https://wa.me/917869969190?text=${msg}`);
 }</script>
@@ -1314,7 +1317,13 @@ function sendOrderToWA(status) {
     let itemsTxt = cart.map(i => `${i.n} (x${i.qty || 1})`).join(', ');
     let total = document.getElementById('fTotal').innerText;
     
-    let msg = `*SewaAstra - NEW ORDER*%0A--------------------%0A*Status:* ${status}%0A*Items:* ${itemsTxt}%0A*Total:* ${total}%0A*Date:* ${date}%0A*Time:* ${time}%0A*Remark:* ${remark || 'None'}%0A*Client:* ${localStorage.getItem('sw_name')}`;
+    let msg = `*SewaAstra - NEW ORDER*%0A--------------------%0A*Status:* ${status}
+    %0A*Items:* ${itemsTxt}
+    %0A*Total:* ${total}
+    %0A*Date:* ${date}
+    %0A*Time:* ${time}
+    %0A*Remark:* ${remark || 'None'}
+    %0A*Client:* ${localStorage.getItem('sw_name')message += `*📍 लाइव लोकेशन:* ${mapLink}%0A`;}
     
     window.open(`https://wa.me/917869969190?text=${msg}`);
     location.reload(); // ऑर्डर के बाद कार्ट साफ़
@@ -1794,8 +1803,9 @@ if (navigator.geolocation) {
 %0A*Total:* ${total}
 %0A*Address:* ${addr}
 %0A*Maps Link:* ${mapLink} 
+message += `*📍 लाइव लोकेशन:* ${mapLink}%0A
 %0A*Date:* ${date} (${time})`;
-
+ 
         // 3. WhatsApp open karein
         window.open(`https://wa.me/917869969190?text=${msg}`);
         
@@ -1854,15 +1864,6 @@ async function initiatePayment(amount) {
         alert("Payment Confirmed! User screen se popup hat jayega.");
     });
 }</script>
-   <script src="https://accounts.google.com/gsi/client" async defer></script>
-   
-<div id="g_id_onload"
-     data-client_id="211091351218-s08jo336t0dieb050q02r4bqvdod891m.apps.googleusercontent.com"
-     data-context="signin"
-     data-ux_mode="popup" data-login_uri="https://sewaastra.firebaseapp.com/__/auth/handler"
-     data-auto_prompt="true">
-</div>
-
 </body>
 </html>
  
