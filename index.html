@@ -489,6 +489,205 @@
                 <h2 id="profTitle" style="margin:0;">मेरी प्रोफाइल</h2>
                 <i class="fa fa-times" onclick="toggleProfile()" style="cursor:pointer; font-size: 20px;"></i>
             </div>
+             <style>
+    :root {
+        --primary-color: #3f51b5; /* SewaAstra Theme Blue */
+        --bg-color: #f4f7fe;
+        --card-bg: #ffffff;
+        --text-main: #2d3436;
+        --text-sub: #636e72;
+        --accent: #00b894;
+    }
+
+    .profile-page {
+        background-color: var(--bg-color);
+        font-family: 'Poppins', sans-serif;
+        max-width: 480px;
+        margin: 0 auto;
+        padding-bottom: 50px;
+    }
+
+    /* Auto-Sync Banner */
+    .sync-banner {
+        background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+        margin: 15px;
+        padding: 20px;
+        border-radius: 15px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 10px 20px rgba(108, 92, 231, 0.2);
+    }
+
+    .sync-info h4 { margin: 0; font-size: 16px; }
+    .sync-info p { margin: 5px 0 0; font-size: 12px; opacity: 0.9; }
+
+    .sync-btn {
+        background: white;
+        color: #6c5ce7;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    /* Settings Group */
+    .settings-group {
+        background: var(--card-bg);
+        margin: 15px;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .group-title {
+        padding: 15px 20px 5px;
+        font-size: 13px;
+        color: var(--primary-color);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .item {
+        display: flex;
+        align-items: center;
+        padding: 14px 20px;
+        border-bottom: 1px solid #f1f2f6;
+        transition: 0.3s;
+        text-decoration: none;
+        color: var(--text-main);
+    }
+
+    .item:last-child { border-bottom: none; }
+    .item:active { background: #f8f9fa; }
+
+    .icon {
+        font-size: 20px;
+        margin-right: 15px;
+        width: 30px;
+        text-align: center;
+    }
+
+    .label { flex: 1; font-size: 15px; font-weight: 500; }
+    
+    .status-tag {
+        font-size: 10px;
+        background: #e8f5e9;
+        color: #2e7d32;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-left: 10px;
+    }
+
+    .chevron { color: #b2bec3; font-size: 18px; }
+</style>
+
+<div class="profile-page">
+    
+    <div class="sync-banner">
+        <div class="sync-info">
+            <h4>Purane App ka Data?</h4>
+            <p>History aur Wallet balance auto-sync karein.</p>
+        </div>
+        <button class="sync-btn" onclick="autoConnect()">CONNECT NOW</button>
+    </div>
+
+    <div class="group-title">Personal</div>
+    <div class="settings-group">
+        <div class="item">
+            <span class="icon">👤</span>
+            <span class="label">My Profile</span>
+            <span class="chevron">›</span>
+        </div>
+        <div class="item">
+            <span class="icon">📍</span>
+            <span class="label">Manage Addresses</span>
+            <span class="chevron">›</span>
+        </div>
+        <div class="item">
+            <span class="icon">🛍️</span>
+            <span class="label">Booking History</span>
+            <span class="status-tag">Auto-Synced</span>
+            <span class="chevron">›</span>
+        </div>
+    </div>
+
+    <div class="group-title">Payments & Wallet</div>
+    <div class="settings-group">
+        <div class="item">
+            <span class="icon">💰</span>
+            <span class="label">SewaAstra Wallet</span>
+            <span class="chevron">›</span>
+        </div>
+        <div class="item">
+            <span class="icon">💳</span>
+            <span class="label">Saved Cards & UPI</span>
+            <span class="chevron">›</span>
+        </div>
+        <div class="item">
+            <span class="icon">📊</span>
+            <span class="label">Refers & Earnings</span>
+            <span class="chevron">›</span>
+        </div>
+    </div>
+
+    <div class="group-title">Data & Privacy</div>
+    <div class="settings-group">
+        <div class="item">
+            <span class="icon">🔄</span>
+            <span class="label">Migrate Old Account</span>
+            <span class="chevron">›</span>
+        </div>
+        <div class="item">
+            <span class="icon">☁️</span>
+            <span class="label">Cloud Backup</span>
+            <span class="chevron">›</span>
+        </div>
+        <div class="item">
+            <span class="icon">🔏</span>
+            <span class="label">Security & Permissions</span>
+            <span class="chevron">›</span>
+        </div>
+    </div>
+
+    <div class="group-title">Help & Info</div>
+    <div class="settings-group">
+        <div class="item">
+            <span class="icon">📞</span>
+            <span class="label">Contact Support</span>
+            <span class="chevron">›</span>
+        </div>
+        <div class="item">
+            <span class="icon">📜</span>
+            <span class="label">Terms & Policy</span>
+            <span class="chevron">›</span>
+        </div>
+        <div class="item">
+            <span class="icon">⭐</span>
+            <span class="label">Rate SewaAstra</span>
+            <span class="chevron">›</span>
+        </div>
+        <div class="item" style="color: #d63031;">
+            <span class="icon">🚪</span>
+            <span class="label">Logout</span>
+            <span class="chevron">›</span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function autoConnect() {
+    alert("Searching for old account associated with your number...");
+    // Yahan aap Firebase function trigger kar sakte hain 
+    // jo purane database se data fetch karke naye user profile me merge karde.
+}
+</script>
+
             <div style="text-align: center; margin-bottom: 20px;">
                 <center>
                     <img id="largePic" class="large-profile-pic" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" onclick="triggerUpload()" />
