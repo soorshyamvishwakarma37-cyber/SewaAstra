@@ -1,6 +1,6 @@
 {
-  "name": "SmartBhopal SuperApp",
-  "short_name": "SmartBhopal",
+  "name": "SewaAstra Premium Home Service",
+  "short_name": "SewaAstra",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#0b0e14",
@@ -9,7 +9,7 @@
     {
       "src": "https://cdn-icons-png.flaticon.com/512/25/25231.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "sewaastra.png"
     }
   ]
 }
