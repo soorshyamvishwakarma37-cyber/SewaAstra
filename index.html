@@ -1866,6 +1866,78 @@ async function initiatePayment(amount) {
         alert("Payment Confirmed! User screen se popup hat jayega.");
     });
 }</script>
+      <script>// --- 1. HOME SCREEN INSTALL POPUP LOGIC ---
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Chrome/Android par automatic pop-up ko rokta hai
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // Aap ek custom button dikha sakte hain ya 
+    // profile section me "Install App" ka option de sakte hain
+    console.log("App install karne ke liye taiyar hai.");
+});
+
+function triggerInstall() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('User ne app install kar li');
+            }
+            deferredPrompt = null;
+        });
+    }
+}
+
+// --- 2. PREVENT EXIT (BACK BUTTON CONTROL) ---
+// Isse jab user back dabayega, toh app band hone ki jagah 
+// confirmation mangega ya home screen par hi rahega.
+
+window.addEventListener('load', () => {
+    // Browser history me ek dummy state add karta hai
+    window.history.pushState({ noBackExitsApp: true }, '');
+
+    window.onpopstate = function (event) {
+        // Agar user back button dabata hai
+        let confirmExit = confirm("Kya aap SewaAstra App band karna chahte hain?");
+        
+        if (confirmExit) {
+            // Agar user 'OK' karta hai toh home screen par bhej dega (exit)
+            window.location.href = "about:blank"; 
+        } else {
+            // Agar user 'Cancel' karta hai toh wapas dummy state push kar dega
+            window.history.pushState({ noBackExitsApp: true }, '');
+        }
+    };
+});
+</script>
+      <div class="card-group">
+    <div class="menu-item" onclick="triggerInstall()" id="installBtn">
+        <span class="menu-icon">📲</span>
+        <span class="menu-text">App Install Karein (Home Screen)</span>
+        <span class="menu-arrow">›</span>
+    </div>
+
+    <div class="menu-item" onclick="handleAppExit()" style="border-top: 2px solid #eee;">
+        <span class="menu-icon">❌</span>
+        <span class="menu-text">App se Bahar Jayein</span>
+        <span class="menu-arrow">›</span>
+    </div>
+</div>
+
+<script>
+function handleAppExit() {
+    let exit = confirm("Confirm Exit SewaAstra?");
+    if(exit) {
+        // Mobile browser exit behavior
+        window.close(); 
+        window.location.href = "google.com"; // Backup agar close na ho
+    }
+}
+</script>
+
 </body>
 </html>
  
