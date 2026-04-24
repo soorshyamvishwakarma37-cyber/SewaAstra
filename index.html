@@ -1294,7 +1294,7 @@ function startUPIPayment() {
     let name = localStorage.getItem('sw_name') || "SewaAstraUser";
     
     // UPI URL: इसमें 7869969190@ybl पर पेमेंट जाएगा
-    let upiUrl = `upi://pay?pa=7869969190@ybl&pn=SewaAstra&am=${amount}&cu=INR&tn=OrderFor-${name}`;
+    let upiUrl = `upi://pay?pa=917869969190@wahdfcbank=SewaAstra&am=${amount}&cu=INR&tn=OrderFor-${name}`;
 
     // मोबाइल ऐप्स खोलना
     window.location.href = upiUrl;
@@ -1349,7 +1349,7 @@ function openPaymentApps() {
     
     // यह है जादुई UPI लिंक जो सभी ऐप्स को खोलता है
     // pa = आपकी UPI ID, pn = नाम, am = अमाउंट, cu = करेंसी
-    let upiUrl = `upi://pay?pa=shoorshyam.vishwakarma@ybl&pn=SewaAstra&am=${amount}&cu=INR&tn=ServiceBooking-${name}`;
+    let upiUrl = `upi://pay?pa=917869969190@wahdfcbank=SewaAstra&am=${amount}&cu=INR&tn=ServiceBooking-${name}`;
 
     // मोबाइल के सभी पेमेंट ऐप्स को सिग्नल भेजना
     window.location.href = upiUrl;
@@ -1377,7 +1377,7 @@ function setPayMode(mode) {
     if(mode === 'Online') {
         let amt = document.getElementById('fTotal').innerText.replace('₹', '');
         if(amt == "0") return alert("Cart खाली है");
-        window.location.href = `upi://pay?pa=shoorshyam.vishwakarma@ybl&pn=SewaAstra&am=${amt}&cu=INR`;
+        window.location.href = `upi://pay?pa=917869969190@wahdfcbank=SewaAstra&am=${amt}&cu=INR`;
     }
 }
 
@@ -1817,11 +1817,11 @@ message += `*📍 लाइव लोकेशन:* ${mapLink}%0A
 }</script>
   <script>// Payment Function
 async function initiatePayment(amount) {
-    const upiId = "shoorshyam.vishwakarma@ybl"; // Aapki ID
+    const upiId = "917869969190@wahdfcbank"; // Aapki ID
     
     // Yahan PhonePe SDK ya Razorpay call karein
     // Agar aap direct UPI deep link use kar rahe hain:
-    const upiLink = `upi://pay?pa=${upiId}&pn=SewaAstra&am=${amount}&cu=INR`;
+    const upiLink = `upi://pay?pa=${917869969190@wahdfcbank}&pn=SewaAstra&am=${amount}&cu=INR`;
     
     window.location.href = upiLink; // User ko UPI app par bhej dega
     
