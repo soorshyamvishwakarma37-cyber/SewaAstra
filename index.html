@@ -394,11 +394,90 @@
     background-color: #1e7e34 !important; 
     transform: scale(0.94) !important;
 }</style>
-  
+<style>.install-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85); /* Dark Blur Background */
+    backdrop-filter: blur(8px);
+    display: none; /* Login ke baad show hoga */
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.install-card {
+    background: white;
+    width: 85%;
+    max-width: 350px;
+    padding: 30px;
+    border-radius: 30px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.app-logo img {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 10px 20px rgba(63, 81, 181, 0.2);
+}
+
+.install-card h2 { color: #333; font-size: 20px; margin-bottom: 10px; }
+.install-card p { color: #666; font-size: 13px; line-height: 1.6; }
+
+.feature-list {
+    text-align: left;
+    background: #f8f9ff;
+    padding: 15px;
+    border-radius: 15px;
+    margin: 20px 0;
+}
+
+.f-item { font-size: 12px; color: #3f51b5; margin-bottom: 5px; font-weight: 600; }
+
+.main-install-btn {
+    background: linear-gradient(135deg, #3f51b5, #5c6bc0);
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(63, 81, 181, 0.3);
+}
+</style>
 </head>
 <body id="mainBody">
 
 <div id="welcomeToast"></div>
+<div id="installOverlay" class="install-overlay">
+    <div class="install-card">
+        <div class="app-logo">
+            <img src="your-logo-url.png" alt="SewaAstra Logo">
+        </div>
+        <h2>SewaAstra App Install Karein</h2>
+        <p>Behtar anubhav aur purane data ko auto-sync karne ke liye app ko home screen par jodein.</p>
+        
+        <div class="feature-list">
+            <div class="f-item">✅ Auto-Sync Old Data</div>
+            <div class="f-item">✅ Faster Service Booking</div>
+            <div class="f-item">✅ Offline Access</div>
+        </div>
+
+        <button id="installBtn" class="main-install-btn">INSTALL NOW</button>
+        <p class="footer-note">SewaAstra Security Verified 🛡️</p>
+    </div>
+</div>
 
 <div id="bookingPopup" class="full-overlay" style="display:none; background:rgba(0,0,0,0.8); z-index:999999;">
     <div class="box" style="background:white; padding:20px; border-radius:20px;">
@@ -590,6 +669,7 @@ function showHistory() {
 }
 </script>
 
+      
 <script>
 let cart = [];
 let mapsLink = "Not provided";
@@ -1866,78 +1946,46 @@ async function initiatePayment(amount) {
         alert("Payment Confirmed! User screen se popup hat jayega.");
     });
 }</script>
-      <script>// --- 1. HOME SCREEN INSTALL POPUP LOGIC ---
-let deferredPrompt;
+      <script>let deferredPrompt;
 
+// 1. Install Prompt ko capture karna
 window.addEventListener('beforeinstallprompt', (e) => {
-    // Chrome/Android par automatic pop-up ko rokta hai
     e.preventDefault();
     deferredPrompt = e;
-    
-    // Aap ek custom button dikha sakte hain ya 
-    // profile section me "Install App" ka option de sakte hain
-    console.log("App install karne ke liye taiyar hai.");
 });
 
-function triggerInstall() {
+// 2. Login ke baad popup dikhane wala function
+function showInstallPopup() {
+    const overlay = document.getElementById('installOverlay');
+    overlay.style.display = 'flex';
+
+    // Back button block karna (Locked state)
+    window.history.pushState(null, null, window.location.href);
+    window.onpopstate = function() {
+        window.history.pushState(null, null, window.location.href);
+        alert("Kripya pehle app install karein ya Setup pura karein!");
+    };
+}
+
+// 3. Install Button Click Action
+document.getElementById('installBtn').addEventListener('click', async () => {
     if (deferredPrompt) {
         deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === 'accepted') {
-                console.log('User ne app install kar li');
-            }
-            deferredPrompt = null;
-        });
-    }
-}
-
-// --- 2. PREVENT EXIT (BACK BUTTON CONTROL) ---
-// Isse jab user back dabayega, toh app band hone ki jagah 
-// confirmation mangega ya home screen par hi rahega.
-
-window.addEventListener('load', () => {
-    // Browser history me ek dummy state add karta hai
-    window.history.pushState({ noBackExitsApp: true }, '');
-
-    window.onpopstate = function (event) {
-        // Agar user back button dabata hai
-        let confirmExit = confirm("Kya aap SewaAstra App band karna chahte hain?");
-        
-        if (confirmExit) {
-            // Agar user 'OK' karta hai toh home screen par bhej dega (exit)
-            window.location.href = "about:blank"; 
-        } else {
-            // Agar user 'Cancel' karta hai toh wapas dummy state push kar dega
-            window.history.pushState({ noBackExitsApp: true }, '');
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            document.getElementById('installOverlay').style.display = 'none';
         }
-    };
-});
-</script>
-      <div class="card-group">
-    <div class="menu-item" onclick="triggerInstall()" id="installBtn">
-        <span class="menu-icon">📲</span>
-        <span class="menu-text">App Install Karein (Home Screen)</span>
-        <span class="menu-arrow">›</span>
-    </div>
-
-    <div class="menu-item" onclick="handleAppExit()" style="border-top: 2px solid #eee;">
-        <span class="menu-icon">❌</span>
-        <span class="menu-text">App se Bahar Jayein</span>
-        <span class="menu-arrow">›</span>
-    </div>
-</div>
-
-<script>
-function handleAppExit() {
-    let exit = confirm("Confirm Exit SewaAstra?");
-    if(exit) {
-        // Mobile browser exit behavior
-        window.close(); 
-        window.location.href = "google.com"; // Backup agar close na ho
+    } else {
+        // Agar pehle se installed hai ya desktop par hai
+        alert("SewaAstra is ready!");
+        document.getElementById('installOverlay').style.display = 'none';
     }
-}
-</script>
+});
 
+// TEST: Login success hone par ise call karein
+// Example: onLoginSuccess() { showInstallPopup(); }
+</script>
+  
 </body>
 </html>
  
