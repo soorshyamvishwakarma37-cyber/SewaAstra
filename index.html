@@ -17,7 +17,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics-compat.js"></script>
 
-<!-- Leaflet CSS & JS for Interactive Map Selection -->
+<!-- Leaflet CSS & JS for Interactive Map Selection & Live Tracking -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -63,7 +63,7 @@
     * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { margin: 0; background: var(--bg); padding-bottom: 90px; overflow-x: hidden; color: var(--text); transition: background 0.3s ease, color 0.3s ease; }
 
-    /* GLOBAL LOADER SPINNER (ROUTE / ACTION SPINNER) */
+    /* GLOBAL LOADER SPINNER */
     #globalLoaderOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px); flex-direction: column; color: white; gap: 12px; font-weight: bold; }
     .spinner-ring { width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.3); border-top: 5px solid var(--primary); border-radius: 50%; animation: spinRoute 0.8s linear infinite; }
     @keyframes spinRoute { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -95,6 +95,10 @@
     .box input, .box select, .box textarea { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; font-size: 14px; outline: none; transition: 0.3s; }
     .box input:focus, .box select:focus { border-color: var(--primary); background: #fffcf9; }
     .box button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 14px; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(255,107,0,0.3); margin-top: 8px; }
+
+    /* STUNNING REDESIGNED AUTH LOGIN OVERLAY */
+    #authOverlay { background: linear-gradient(135deg, rgba(255,107,0,0.9), rgba(20,20,20,0.95)); backdrop-filter: blur(10px); }
+    #authOverlay .box { background: rgba(255,255,255,0.98); border-top: 5px solid var(--primary); animation: zoomIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
     /* CUSTOM BEAUTIFUL ALERT MODAL */
     #customAlertOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 999999; backdrop-filter: blur(3px); }
@@ -193,6 +197,18 @@
     #leafletMapModal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300000; display: none; flex-direction: column; padding: 20px; }
     #mapContainer { width: 100%; height: 70vh; border-radius: 15px; margin-bottom: 15px; }
 
+    /* LIVE TRACKING MODAL */
+    #liveTrackingModal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300000; display: none; flex-direction: column; padding: 20px; }
+    #trackingMapContainer { width: 100%; height: 60vh; border-radius: 15px; margin-bottom: 15px; }
+
+    /* MASK CALL & IN-APP CHAT MODAL */
+    #chatCallModal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300000; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .chat-box { width: 100%; max-width: 400px; background: white; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; height: 80vh; }
+    .chat-messages { flex-grow: 1; overflow-y: auto; border: 1px solid #eee; border-radius: 10px; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+    .chat-bubble { padding: 10px 14px; border-radius: 12px; max-width: 75%; font-size: 13px; line-height: 1.4; }
+    .chat-bubble.user { background: var(--primary); color: white; align-self: flex-end; }
+    .chat-bubble.partner { background: #eee; color: #333; align-self: flex-start; }
+
     #cartToast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 10px; padding: 16px; position: fixed; z-index: 999999; left: 50%; bottom: 100px; transform: translateX(-50%); font-size: 14px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
     #cartToast.show-toast { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
 
@@ -209,7 +225,7 @@
 </head>
 <body id="mainBody">
 
-<!-- GLOBAL LOADING SPINNER (ROUTE / ACTION SPINNER) -->
+<!-- GLOBAL LOADING SPINNER -->
 <div id="globalLoaderOverlay">
     <div class="spinner-ring"></div>
     <div id="loaderText">कृपया प्रतीक्षा करें... (Loading...)</div>
@@ -226,16 +242,16 @@
     </div>
 </div>
 
-<!-- FIRST-TIME APP INSTALL POPUP MODAL -->
+<!-- CONDITIONAL APP INSTALL POPUP MODAL (SHOWS ONLY AFTER LOGIN IF NOT INSTALLED) -->
 <div id="installAppModal" class="full-overlay" style="display:none; z-index: 9999999;">
     <div class="box" style="text-align: center; max-width: 360px;">
         <img src="https://cdn-icons-png.flaticon.com/512/3067/3067403.png" alt="SewaAstra Logo" style="width: 80px; height: 80px;" />
         <div class="welcome-note" style="font-size: 22px;">SewaAstra App</div>
-        <div class="tagline" style="margin-bottom: 15px;">बेहतर और तेज़ अनुभव के लिए ऐप इंस्टॉल करें या होम स्क्रीन पर जोड़ें</div>
+        <div class="tagline" style="margin-bottom: 15px;">बेहतर और तेज़ अनुभव के लिए ऐप इनस्टॉल करें या होम स्क्रीन पर जोड़ें</div>
         <div style="background: var(--primary-light); padding: 12px; border-radius: 12px; font-size: 13px; color: var(--primary); font-weight: 600; margin-bottom: 20px; text-align: left;">
             ✨ फायदे:<br>
             • वन-क्लिक होम सर्विस बुकिंग<br>
-            • लाइव ऑर्डर ट्रैकिंग और WhatsApp अपडेट<br>
+            • लाइव पार्टनर ट्रैकिंग और WhatsApp अपडेट<br>
             • विशेष कूपन और कैशबैक
         </div>
         <button onclick="triggerAppInstall()" style="background: var(--success); margin-bottom: 10px;">
@@ -247,10 +263,10 @@
     </div>
 </div>
 
-<!-- MANDATORY AUTHENTICATION OVERLAY (STRICT REAL FIREBASE PHONE & GOOGLE LOGIN WITH SEWAASTRA LOGO) -->
-<div id="authOverlay" class="full-overlay" style="display:none;">
+<!-- MANDATORY STUNNING AUTHENTICATION OVERLAY -->
+<div id="authOverlay" class="full-overlay" style="display:flex;">
     <div class="box">
-        <img src="https://cdn-icons-png.flaticon.com/512/3067/3067403.png" alt="SewaAstra Logo" />
+        <img src="sewaastra.png" alt="SewaAstra Logo" />
         <div class="welcome-note">Welcome to SewaAstra</div>
         <div class="tagline">भारत की सबसे भरोसेमंद होम सर्विस ऐप</div>
         
@@ -275,7 +291,6 @@
             <span style="font-size:12px; color:var(--primary); cursor:pointer; display:block; margin-top:10px;" onclick="resetAuth()">← दूसरा नंबर बदलें</span>
         </div>
         
-        <!-- Invisible reCAPTCHA Container for Firebase Auth -->
         <div id="recaptcha-container"></div>
     </div>
 </div>
@@ -283,7 +298,7 @@
 <!-- POST-GOOGLE LOGIN MOBILE NUMBER PROMPT OVERLAY -->
 <div id="googlePhonePromptOverlay" class="full-overlay" style="display:none;">
     <div class="box">
-        <img src="https://cdn-icons-png.flaticon.com/512/3067/3067403.png" alt="SewaAstra Logo" />
+        <img src="sewaastra.png" alt="SewaAstra Logo" />
         <div class="welcome-note">मोबाइल नंबर दर्ज करें</div>
         <div class="tagline">सुरक्षा और बुकिंग कन्फर्मेशन के लिए</div>
         
@@ -302,6 +317,40 @@
     <button onclick="confirmMapLocation()" style="background:var(--success); border:none; padding:12px; border-radius:10px; color:white; font-weight:bold; cursor:pointer;">लोकेशन कन्फर्म करें</button>
 </div>
 
+<!-- LIVE TRACKING MODAL -->
+<div id="liveTrackingModal">
+    <div style="display: flex; justify-content: space-between; align-items: center; color: white; margin-bottom: 10px;">
+        <h3 style="margin:0;">🛵 लाइव पार्टनर ट्रैकिंग (Live Tracking)</h3>
+        <i class="fa fa-times" onclick="closeLiveTracking()" style="font-size:24px; cursor:pointer;"></i>
+    </div>
+    <div id="trackingMapContainer"></div>
+    <div style="background:white; padding:15px; border-radius:15px; margin-top:10px; text-align:center;">
+        <b>पार्टनर: राहुल कुमार (4.9 ⭐)</b><br>
+        <span style="font-size:13px; color:#666;">आपकी लोकेशन की ओर आ रहे हैं (ETA: 12 mins)</span>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button onclick="openMaskCall()" style="flex:1; background:var(--success); color:white; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer;"><i class="fa fa-phone-alt"></i> Mask Call</button>
+            <button onclick="openInAppChat()" style="flex:1; background:var(--primary); color:white; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer;"><i class="fa fa-comment-dots"></i> Chat</button>
+        </div>
+    </div>
+</div>
+
+<!-- MASK CALL & IN-APP CHAT MODAL -->
+<div id="chatCallModal" onclick="closeChatCallModal(event)">
+    <div class="chat-box" onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;">
+            <h3 style="margin:0; font-size:16px;">💬 पार्टनर से चैट (Masked Secure Chat)</h3>
+            <i class="fa fa-times" onclick="closeChatCallModal()" style="cursor:pointer; font-size:20px;"></i>
+        </div>
+        <div class="chat-messages" id="chatMsgContainer">
+            <div class="chat-bubble partner">नमस्ते जी! मैं रास्ते में हूँ, कुछ ही देर में पहुँच रहा हूँ।</div>
+        </div>
+        <div style="display:flex; gap:8px;">
+            <input type="text" id="chatInputMsg" class="input-field" placeholder="संदेश लिखें..." style="margin:0;">
+            <button onclick="sendChatMessage()" style="padding:10px 15px; background:var(--primary); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin:0;"><i class="fa fa-paper-plane"></i></button>
+        </div>
+    </div>
+</div>
+
 <!-- MORE CATEGORIES SHEET MODAL -->
 <div id="moreOverlay" class="more-overlay" onclick="closeMoreSheet(event)">
     <div class="more-sheet" onclick="event.stopPropagation()">
@@ -313,7 +362,7 @@
     </div>
 </div>
 
-<!-- MODERN APP LIKE PROFILE & SETTINGS SHEET WITH 10+ CUSTOMER REQUIREMENTS -->
+<!-- PROFILE & SETTINGS SHEET WITH 10+ ACTIVE CUSTOMER REQUIREMENTS -->
 <div id="profileOverlay" class="profile-overlay" onclick="closeProfile(event)">
     <div class="profile-sheet" onclick="event.stopPropagation()">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -333,9 +382,8 @@
             <input type="file" id="photoInput" accept="image/*" onchange="previewPhoto(this)" />
         </div>
 
-        <!-- ADMIN PANEL BUTTON (Visible only for admin) -->
         <div id="adminPanelMenuBtn" class="setting-item-row" onclick="openAdminPanel()" style="display:none; background:var(--primary-light); border-color:var(--primary);">
-            <div><i class="fa fa-tools" style="color:var(--primary);"></i> <b>Admin Panel (नई कैटेगरी, सर्विस और बैनर जोड़ें/हटाएं)</b></div> <i class="fa fa-chevron-right" style="font-size: 12px; color:var(--primary);"></i>
+            <div><i class="fa fa-tools" style="color:var(--primary);"></i> <b>Admin Panel (मैनेजमेंट)</b></div> <i class="fa fa-chevron-right" style="font-size: 12px; color:var(--primary);"></i>
         </div>
 
         <div style="margin-bottom: 15px;">
@@ -359,12 +407,10 @@
             <div><i class="fa fa-share-alt"></i> Share App with Friends</div> <i class="fa fa-chevron-right" style="font-size: 12px; color:#aaa;"></i>
         </div>
         <div class="setting-item-row" onclick="showHistory(); toggleProfile();">
-            <div><i class="fa fa-history"></i> Order History & OTP Verify</div> <i class="fa fa-chevron-right" style="font-size: 12px; color:#aaa;"></i>
+            <div><i class="fa fa-history"></i> Order History & Live Tracking</div> <i class="fa fa-chevron-right" style="font-size: 12px; color:#aaa;"></i>
         </div>
 
-        <!-- 10+ ADDITIONAL CUSTOMER REQUIREMENTS SETTINGS -->
         <div class="settings-section-title">Customer Requirements & Tools (10+)</div>
-        
         <div class="setting-item-row" onclick="custReqAction('Wallet')">
             <div><i class="fa fa-wallet"></i> SewaAstra Wallet & Rewards</div> <i class="fa fa-chevron-right" style="font-size: 12px; color:#aaa;"></i>
         </div>
@@ -425,10 +471,7 @@
         </div>
     </header>
 
-    <!-- DYNAMIC BANNER CAROUSEL CONTAINER -->
     <div class="banner-carousel" id="bannerCarouselArea"></div>
-
-    <!-- Dynamic Categories Grid (Includes default items + 'More' button) -->
     <div class="cat-grid" id="catGridArea"></div>
 
     <div id="subTabsArea" class="sub-tabs"></div>
@@ -493,7 +536,7 @@
     <div class="nav-item" onclick="showHistory()" id="navHis"><i class="fa fa-history"></i>History</div>
 </footer>
 
-<!-- BLINKIT STYLE MODERN CART OVERLAY -->
+<!-- BLINKIT STYLE CART OVERLAY -->
 <div id="fullCartPanel" class="cart-overlay" onclick="closeCart(event)">
     <div class="cart-panel" onclick="event.stopPropagation()">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -503,7 +546,6 @@
 
         <div class="cart-card" id="cartItemsList"></div>
 
-        <!-- DISCOUNT COUPON SECTION WITH DYNAMIC SELECT OPTIONS -->
         <div class="cart-card" style="background:#fff9f5; border:1px dashed var(--primary);">
             <label style="font-size:12px; font-weight:bold; color:var(--primary)"><i class="fa fa-tag"></i> उपलब्ध कूपन चुनें या कोड दर्ज करें</label>
             <div id="availableCouponsContainer" style="display: flex; gap: 6px; overflow-x: auto; margin-top: 8px; padding-bottom: 5px;"></div>
@@ -559,12 +601,12 @@
         </div>
 
         <button onclick="handleFinalOrder()" style="width:100%; padding:18px; background:#15a04a; color:white; border:none; border-radius:15px; font-weight:bold; font-size:18px; box-shadow: 0 5px 15px rgba(21,160,74,0.3); cursor:pointer;">
-            ऑर्डर प्लेस करें (WhatsApp & Auto-Assign)
+             (Order Place )
         </button>
     </div>
 </div>
 
-<!-- ADVANCED ADMIN PANEL MODAL (CATEGORY, SERVICE, BANNER & COUPON MANAGEMENT) -->
+<!-- ADVANCED ADMIN PANEL MODAL -->
 <div id="adminModal" class="full-overlay" style="display:none;">
     <div class="box" style="max-width: 460px; text-align: left; max-height:90vh; overflow-y:auto;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -579,7 +621,6 @@
             <button id="admTabCouponBtn" onclick="switchAdminTab('coupons')" style="flex:1; padding:8px; border:none; border-radius:8px; font-weight:bold; background:transparent; color:#555; font-size:11px; cursor:pointer;">Coupons</button>
         </div>
 
-        <!-- SECTION 1: SERVICES EDIT -->
         <div id="adminSecServices">
             <label style="font-size:11px; font-weight:bold;">1. कैटेगरी चुनें</label>
             <select id="adminCatSelect" class="input-field" onchange="populateAdminServiceDropdown()"></select>
@@ -605,7 +646,6 @@
             <button onclick="saveAdminServiceChanges()" style="width:100%; background:var(--success); margin-top:10px;">सर्विस सेव करें (Save Service)</button>
         </div>
 
-        <!-- SECTION 2: NEW CATEGORIES ADDITION & DELETION -->
         <div id="adminSecCategories" style="display:none;">
             <label style="font-size:11px; font-weight:bold;">नई कैटेगरी की कुंजी (Key / ID, उदा. 'salon')</label>
             <input type="text" id="adminNewCatKey" class="input-field" placeholder="salon">
@@ -620,7 +660,6 @@
             <div id="adminCategoriesList" style="margin-top:15px; font-size:12px; color:#555;"></div>
         </div>
 
-        <!-- SECTION 3: BANNERS EDIT -->
         <div id="adminSecBanners" style="display:none;">
             <label style="font-size:11px; font-weight:bold;">बैनर चुनें (या नया जोड़ें)</label>
             <select id="adminBannerSelect" class="input-field" onchange="loadBannerDataIntoForm()">
@@ -640,7 +679,6 @@
             <button onclick="saveAdminBannerChanges()" style="width:100%; background:var(--success); margin-top:10px;">बैनर सेव करें (Save Banner)</button>
         </div>
 
-        <!-- SECTION 4: COUPONS EDIT -->
         <div id="adminSecCoupons" style="display:none;">
             <label style="font-size:11px; font-weight:bold;">कूपन कोड (Coupon Code)</label>
             <input type="text" id="adminCouponCode" class="input-field" placeholder="उदा. SEWA50" style="text-transform:uppercase;">
@@ -689,10 +727,12 @@
   let currentLang = 'hi';
   let mapInstance = null;
   let markerInstance = null;
+  let trackingMapInstance = null;
+  let trackingMarkerInstance = null;
   let userCoords = { lat: 23.2599, lon: 77.4126 };
   let appliedDiscount = 0;
-  let windowConfirmationResult = null; // Real Firebase OTP Confirmation Object
-  let deferredPrompt = null; // PWA Install Prompt
+  let windowConfirmationResult = null;
+  let deferredPrompt = null;
 
   function showLoader(text = "कृपया प्रतीक्षा करें...") {
       document.getElementById('loaderText').innerText = text;
@@ -788,23 +828,24 @@
       document.getElementById('customAlertOverlay').style.display = 'none';
   }
 
-  // --- FIRST-TIME APP INSTALL LOGIC ---
+  // --- CONDITIONAL APP INSTALL MODAL ---
   window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
   });
 
-  function checkFirstTimeVisitor() {
-      let isFirstTime = localStorage.getItem('sw_installed_prompt_shown');
-      if (!isFirstTime) {
-          // Show Install App Modal on first visit
-          document.getElementById('installAppModal').style.display = 'flex';
+  function checkAndShowInstallModalAfterLogin() {
+      let isInstalledDismissed = localStorage.getItem('sw_install_dismissed');
+      if (!isInstalledDismissed) {
+          setTimeout(() => {
+              document.getElementById('installAppModal').style.display = 'flex';
+          }, 1000);
       }
   }
 
   function triggerAppInstall() {
       document.getElementById('installAppModal').style.display = 'none';
-      localStorage.setItem('sw_installed_prompt_shown', 'true');
+      localStorage.setItem('sw_install_dismissed', 'true');
       if (deferredPrompt) {
           deferredPrompt.prompt();
           deferredPrompt.userChoice.then((choiceResult) => {
@@ -820,7 +861,7 @@
 
   function closeInstallModal() {
       document.getElementById('installAppModal').style.display = 'none';
-      localStorage.setItem('sw_installed_prompt_shown', 'true');
+      localStorage.setItem('sw_install_dismissed', 'true');
   }
 
   function checkAdminAccess(identifier) {
@@ -1127,7 +1168,7 @@
       listDiv.innerHTML = html;
   }
 
-  // --- MANDATORY GOOGLE & REAL FIREBASE PHONE OTP LOGIN ---
+  // --- GOOGLE & PHONE LOGIN ---
   function loginWithGoogle() {
       showLoader("Google से लॉगिन हो रहा है...");
       const provider = new firebase.auth.GoogleAuthProvider();
@@ -1144,8 +1185,8 @@
               document.getElementById('sheetPic').src = user.photoURL;
           }
           document.getElementById('authOverlay').style.display = 'none';
-          
           document.getElementById('googlePhonePromptOverlay').style.display = 'flex';
+          checkAndShowInstallModalAfterLogin();
           showToast("Google से लॉगिन सफल! अब मोबाइल नंबर दर्ज करें।");
       }).catch((error) => {
           hideLoader();
@@ -1220,6 +1261,7 @@
               checkAdminAccess(phone);
               document.getElementById('authOverlay').style.display = 'none';
               fetchCityNameByGPS();
+              checkAndShowInstallModalAfterLogin();
               showToast("फोन नंबर सत्यापित और लॉगिन सफल! 🎉");
           }).catch((error) => {
               hideLoader();
@@ -1381,6 +1423,55 @@
       showToast("मैप लोकेशन कन्फर्म हो गई!");
   }
 
+  // --- LIVE TRACKING MODAL & INTERACTION ---
+  function openLiveTracking(orderId) {
+      document.getElementById('liveTrackingModal').style.display = 'flex';
+      setTimeout(() => {
+          if (!trackingMapInstance) {
+              trackingMapInstance = L.map('trackingMapContainer').setView([userCoords.lat, userCoords.lon], 15);
+              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(trackingMapInstance);
+              trackingMarkerInstance = L.marker([userCoords.lat + 0.005, userCoords.lon + 0.005]).addTo(trackingMapInstance)
+                  .bindPopup("<b>राहुल कुमार (Service Partner)</b><br>आपकी ओर आ रहे हैं").openPopup();
+          } else {
+              trackingMapInstance.invalidateSize();
+          }
+      }, 300);
+  }
+
+  function closeLiveTracking() {
+      document.getElementById('liveTrackingModal').style.display = 'none';
+  }
+
+  function openMaskCall() {
+      showAlert("Mask Calling", "सुरक्षित कॉलिंग कनेक्ट हो रही है... (आपका असली नंबर पार्टनर को नहीं दिखेगा)");
+      setTimeout(() => { window.location.href = "tel:7869969190"; }, 1500);
+  }
+
+  function openInAppChat() {
+      document.getElementById('chatCallModal').style.display = 'flex';
+  }
+
+  function closeChatCallModal(e) {
+      if(!e || e.target.id === 'chatCallModal') {
+          document.getElementById('chatCallModal').style.display = 'none';
+      }
+  }
+
+  function sendChatMessage() {
+      let input = document.getElementById('chatInputMsg');
+      let text = input.value.trim();
+      if(!text) return;
+      let container = document.getElementById('chatMsgContainer');
+      container.innerHTML += `<div class="chat-bubble user">${text}</div>`;
+      input.value = "";
+      container.scrollTop = container.scrollHeight;
+
+      setTimeout(() => {
+          container.innerHTML += `<div class="chat-bubble partner">ठीक है जी, नोट कर लिया है। जल्द पहुँचते हैं!</div>`;
+          container.scrollTop = container.scrollHeight;
+      }, 1200);
+  }
+
   function setLang(lang, event) {
       currentLang = lang;
       localStorage.setItem("sw_lang", lang);
@@ -1523,27 +1614,71 @@
       }
   }
 
+  // --- ORDER HISTORY WITH DELETE, LIVE TRACKING & POST-COMPLETION RATINGS ---
   function showHistory() {
       let history = JSON.parse(localStorage.getItem('sw_history') || "[]");
       if(history.length === 0) {
           showAlert("इतिहास", LANG_DATA[currentLang].noHistory);
       } else {
-          let historyHtml = history.map((ord) => `
-              <div style="background:#fff; padding:15px; border-radius:12px; margin-bottom:12px; border:1px solid #ddd; text-align:left;">
-                  <b>Order ID: ${ord.orderId}</b><br>
+          let historyHtml = history.map((ord, idx) => `
+              <div id="hist_item_${idx}" style="background:#fff; padding:15px; border-radius:12px; margin-bottom:12px; border:1px solid #ddd; text-align:left;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                      <b>Order ID: ${ord.orderId}</b>
+                      <button onclick="deleteHistoryOrder(${idx})" style="background:#ff3b30; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer; width:auto; margin:0;"><i class="fa fa-trash"></i></button>
+                  </div>
                   <span style="font-size:13px; color:#555;">${ord.items}</span><br>
                   <span style="color:var(--primary); font-weight:bold;">Total: ${ord.total}</span> | Status: ${ord.status}<br>
+                  
+                  <div style="display:flex; gap:8px; margin-top:8px;">
+                      <button onclick="openLiveTracking('${ord.orderId}')" style="flex:1; background:#007bff; color:white; border:none; padding:8px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px;"><i class="fa fa-map-marked-alt"></i> Live Track</button>
+                  </div>
+
                   <div style="background:#e8f5e9; padding:8px; border-radius:8px; margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
-                      <div><b>काम पूरा करने का OTP:</b> <span style="color:green; font-size:16px;">${ord.completionOTP || '4829'}</span></div>
-                      <button onclick="verifyPartnerCompletionOTP('${ord.orderId}')" style="background:var(--success); color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">OTP Verify</button>
+                      <div><b>OTP:</b> <span style="color:green; font-size:16px;">${ord.completionOTP || '4829'}</span></div>
+                      <button onclick="verifyPartnerCompletionOTP('${ord.orderId}', ${idx})" style="background:var(--success); color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">OTP Verify</button>
                   </div>
               </div>`).join('');
-          showAlert("ऑर्डर इतिहास & OTP", historyHtml);
+          showAlert("ऑर्डर इतिहास & लाइव ट्रैकिंग", historyHtml);
       }
   }
 
-  function verifyPartnerCompletionOTP(orderId) {
-      showAlert("सफलता ✅", `ऑर्डर ${orderId} का OTP वेरीफाई हो गया! पार्टनर का काम पूरा माना गया।`);
+  function deleteHistoryOrder(idx) {
+      let history = JSON.parse(localStorage.getItem('sw_history') || "[]");
+      history.splice(idx, 1);
+      localStorage.setItem('sw_history', JSON.stringify(history));
+      showToast("इतिहास से आर्डर हटा दिया गया!");
+      showHistory();
+  }
+
+  function verifyPartnerCompletionOTP(orderId, idx) {
+      let ratingModalHtml = `
+          <div style="text-align:center;">
+              <h3 style="color:var(--primary);">🎉 काम पूरा हुआ!</h3>
+              <p style="font-size:13px;">कृपया पार्टनर के काम की रेटिंग और फीडबैक दें:</p>
+              <div style="font-size:24px; color:#ffc107; margin-bottom:10px;">
+                  <i class="fa fa-star" onclick="setStarRating(1)" style="cursor:pointer;" id="st1"></i>
+                  <i class="fa fa-star" onclick="setStarRating(2)" style="cursor:pointer;" id="st2"></i>
+                  <i class="fa fa-star" onclick="setStarRating(3)" style="cursor:pointer;" id="st3"></i>
+                  <i class="fa fa-star" onclick="setStarRating(4)" style="cursor:pointer;" id="st4"></i>
+                  <i class="fa fa-star" onclick="setStarRating(5)" style="cursor:pointer;" id="st5"></i>
+              </div>
+              <textarea id="partnerRemarkInput" class="input-field" placeholder="पार्टनर के लिए रिमार्क (उदा. बहुत अच्छा काम किया)" rows="3"></textarea>
+              <button onclick="submitPartnerRating('${orderId}')" style="background:var(--success); margin-top:10px;">फीडबैक सबमिट करें</button>
+          </div>
+      `;
+      showAlert("रेटिंग और रिमार्क", ratingModalHtml);
+  }
+
+  let currentSelectedStars = 5;
+  function setStarRating(stars) {
+      currentSelectedStars = stars;
+      showToast(`${stars} स्टार चुने गए! ⭐`);
+  }
+
+  function submitPartnerRating(orderId) {
+      let remark = document.getElementById('partnerRemarkInput').value || "Good service";
+      showToast(`सफलता! ${currentSelectedStars}⭐ रेटिंग और रिमार्क पार्टनर को भेज दिया गया।`);
+      closeCustomAlert();
   }
 
   function load(id, element) {
@@ -1595,164 +1730,181 @@
           <div class="card-top">
               <img src="${s.i}" onerror="this.src='https://via.placeholder.com/150'" onclick="toggleServiceSubOptions('${uniqueId}')" title="विकल्प देखने के लिए फोटो पर क्लिक करें" />
               <div class="card-info">
-                  <h4>${s.n} <span style="font-size:10px; color:var(--primary); background:var(--primary-light); padding:2px 6px; border-radius:4px; cursor:pointer;" onclick="toggleServiceSubOptions('${uniqueId}')">विकल्प देखें 🔽</span></h4>
-                  <div class="rating-row"><i class="fa fa-star"></i><span class="rating-val">${rating}</span><span class="review-count">(${reviews})</span></div>
-                  <div class="price-row"><b>₹${s.p}</b><button class="add-btn" onclick="addToCart('${s.n}', ${s.p}, this)">ADD</button></div>
+                  <h4>${s.n} <span style="font-size:10px; color:var(--primary); background:var(--primary-light); padding:2px 6px; border-radius:6px; cursor:pointer;" onclick="toggleServiceSubOptions('${uniqueId}')">विकल्प ⚙️</span></h4>
+                  <div class="rating-row">
+                      <i class="fa fa-star"></i>
+                      <span class="rating-val">${rating}</span>
+                      <span class="review-count">(${reviews} reviews)</span>
+                  </div>
+                  <div class="price-row">
+                      <b>₹${s.p}</b>
+                      <button id="btn_${s.n.replace(/\s+/g, '_')}" class="add-btn" onclick="addToCart('${s.n}', ${s.p}, '${s.i}')">Add +</button>
+                  </div>
               </div>
           </div>
-          <div id="subOpts_${uniqueId}" class="service-sub-options">
-              <span style="font-size:11px; font-weight:bold; color:var(--primary);">तय करें (Select Option):</span>
-              ${subOptionsHtml}
-          </div>
+          ${s.subOptions ? `<div class="service-sub-options" id="subOpts_${uniqueId}">${subOptionsHtml}</div>` : ''}
       </div>`;
   }
 
-  let tempSelectedSubOption = {};
   function selectSubOption(serviceName, optionText) {
-      tempSelectedSubOption[serviceName] = optionText;
-      showToast(`चुना गया विकल्प: ${optionText}`);
-  }
-
-  function addToCart(name, price, btnElement) {
-      let chosenSub = tempSelectedSubOption[name] || "Standard Service";
-      let existingItem = cart.find(item => item.n === name && item.selectedSub === chosenSub);
-      
-      if (existingItem) {
-          existingItem.qty = (existingItem.qty || 1) + 1;
-          showToast(`${name} की मात्रा बढ़ाई गई ➕`);
-      } else {
-          cart.push({ n: name, p: price, selectedSub: chosenSub, qty: 1 });
-          showToast(`${name} (${chosenSub}) कार्ट में जोड़ा गया! ✅`);
-          if (btnElement) {
-              btnElement.classList.add('filled');
-              btnElement.innerText = "Added ✓";
-          }
+      let item = cart.find(i => i.n === serviceName);
+      if(item) {
+          item.selectedSub = optionText;
+          showToast(`विकल्प चुना गया: ${optionText}`);
       }
-      document.getElementById('bCount').innerText = cart.length;
   }
 
-  function showToast(message) {
-      let toast = document.getElementById('cartToast');
-      if(!toast) return;
-      toast.innerText = message;
-      toast.className = "show-toast";
-      setTimeout(() => { toast.className = ""; }, 3000);
+  function addToCart(name, price, img) {
+      let existing = cart.find(i => i.n === name);
+      if(existing) {
+          existing.qty = (existing.qty || 1) + 1;
+      } else {
+          cart.push({ n: name, p: price, i: img, qty: 1, selectedSub: '' });
+      }
+      
+      let btn = document.getElementById('btn_' + name.replace(/\s+/g, '_'));
+      if(btn) {
+          btn.innerText = "Added ✓";
+          btn.classList.add('filled');
+          setTimeout(() => {
+              btn.innerText = "Add +";
+              btn.classList.remove('filled');
+          }, 1000);
+      }
+      
+      document.getElementById('bCount').innerText = cart.length;
+      showToast(`${name} कार्ट में जोड़ दिया गया! 🛒`);
   }
 
   function setPayMode(mode) {
       selectedMode = mode;
-      document.getElementById('payCash').style.borderColor = mode === 'Cash' ? '#15a04a' : '#ddd';
-      document.getElementById('payOnline').style.borderColor = mode === 'Online' ? '#15a04a' : '#ddd';
-      if(mode === 'Online') {
-          let amt = document.getElementById('fTotal').innerText.replace('₹', '');
-          window.location.href = `upi://pay?pa=78699691901@ybl&pn=SewaAstra&am=${amt}&cu=INR`;
-      }
+      document.getElementById('payCash').style.borderColor = (mode === 'Cash') ? 'var(--primary)' : '#ddd';
+      document.getElementById('payCash').style.background = (mode === 'Cash') ? 'var(--primary-light)' : 'var(--card-bg)';
+      document.getElementById('payOnline').style.borderColor = (mode === 'Online') ? 'var(--primary)' : '#ddd';
+      document.getElementById('payOnline').style.background = (mode === 'Online') ? 'var(--primary-light)' : 'var(--card-bg)';
   }
 
   function handleFinalOrder() {
-      if (!selectedMode) return showAlert("भुगतान तरीका", "कृपया भुगतान का तरीका चुनें");
-      if(!document.getElementById('manualAddr').value) return showAlert("पता आवश्यक है", "कृपया डिलीवरी का पता (Address) लिखें");
-      showLoader("ऑर्डर प्रोसेस हो रहा है...");
-      if (selectedMode === 'Online') {
-          setTimeout(() => { saveOrderToFirebaseAndWhatsApp("Online Paid"); }, 3000);
-      } else { saveOrderToFirebaseAndWhatsApp("Cash on Delivery"); }
-  }
-
-  function saveOrderToFirebaseAndWhatsApp(status) {
+      let addr = document.getElementById('manualAddr').value.trim();
+      let mobile = document.getElementById('altMobile').value.trim();
       let date = document.getElementById('cartDate').value;
       let time = document.getElementById('cartTime').value;
-      let itemsTxt = cart.map(i => `${i.n} [${i.selectedSub}] (x${i.qty || 1})`).join(', ');
-      let total = document.getElementById('fTotal').innerText;
-      let address = document.getElementById('manualAddr').value;
-      let altMob = document.getElementById('altMobile').value || localStorage.getItem('sw_user') || "N/A";
-      let mapsLink = document.getElementById('googleMapsLink').value;
-      let orderId = 'SA_' + Math.floor(100000 + Math.random() * 900000);
-      let completionOTP = Math.floor(1000 + Math.random() * 9000);
+      let remark = document.getElementById('cartRemark').value.trim();
 
-      const orderData = {
-          orderId: orderId, items: itemsTxt, totalAmount: total, customerPhone: altMob,
-          address: address, lat: userCoords.lat, lon: userCoords.lon, mapsLink: mapsLink,
-          paymentStatus: status, date: date, time: time, completionOTP: completionOTP,
-          assignedPartner: "Auto-Assigning to Nearby Partner...", timestamp: Date.now()
-      };
+      if(!addr) return showAlert("पता आवश्यक है", "कृपया डिलीवरी का पता दर्ज करें");
+      if(!selectedMode) return showAlert("भुगतान मोड", "कृपया भुगतान का तरीका चुनें (Cash या Online)");
 
-      db.ref('orders/' + orderId).set(orderData).catch(err => console.error(err));
-      firestore.collection("orders").doc(orderId).set(orderData).catch(err => console.error(err));
+      showLoader("ऑर्डर बुक हो रहा है...");
 
-      let history = JSON.parse(localStorage.getItem('sw_history') || "[]");
-      history.push({ orderId: orderId, items: itemsTxt, total: total, date: date, status: status, completionOTP: completionOTP });
-      localStorage.setItem('sw_history', JSON.stringify(history));
+      setTimeout(() => {
+          hideLoader();
+          let subtotal = cart.reduce((acc, item) => acc + (item.p * (item.qty || 1)), 0);
+          let finalAmt = (subtotal - appliedDiscount) + 10;
+          if(finalAmt < 10) finalAmt = 10;
 
-      let waMessage = `*🔔 NEW ORDER AUTO-ASSIGNED*%0A` +
-                      `*Order ID:* ${orderId}%0A` +
-                      `*Status:* ${status}%0A` +
-                      `*Items:* ${itemsTxt}%0A` +
-                      `*Total:* ${total}%0A` +
-                      `*Completion OTP:* ${completionOTP}%0A` +
-                      `*Customer Phone:* ${altMob}%0A` +
-                      `*Address:* ${address}%0A` +
-                      `*Live Location Map:* ${mapsLink}%0A` +
-                      `*Date/Time:* ${date} (${time})`;
+          let orderId = "SW" + Math.floor(100000 + Math.random() * 900000);
+          let orderDetails = {
+              orderId: orderId,
+              items: cart.map(i => `${i.n} (x${i.qty || 1}) ${i.selectedSub ? '['+i.selectedSub+']' : ''}`).join(', '),
+              total: "₹" + finalAmt,
+              address: addr,
+              mobile: mobile || localStorage.getItem('sw_user') || "N/A",
+              date: date,
+              time: time,
+              remark: remark,
+              mode: selectedMode,
+              status: "Confirmed",
+              completionOTP: String(Math.floor(1000 + Math.random() * 9000))
+          };
 
-      hideLoader();
-      window.open(`https://wa.me/917869969190?text=${waMessage}`);
-      setTimeout(() => { location.reload(); }, 1500);
+          let history = JSON.parse(localStorage.getItem('sw_history') || "[]");
+          history.unshift(orderDetails);
+          localStorage.setItem('sw_history', JSON.stringify(history));
+
+          try {
+              databaseRef = db.ref('orders/' + orderId);
+              databaseRef.set(orderDetails);
+          } catch(e) { console.log(e); }
+
+          document.getElementById('fullCartPanel').style.display = 'none';
+          cart = [];
+          document.getElementById('bCount').innerText = "0";
+
+          showAlert("सफलता! ऑर्डर बुक हो गया 🎉", `आपका ऑर्डर <b>#${orderId}</b> सफलतापूर्वक कन्फर्म हो गया है!<br><br><b>पार्टनर OTP:</b> <span style="color:green; font-size:18px;">${orderDetails.completionOTP}</span><br>समय पर सर्विस पार्टनर आपके पते पर पहुँच जाएगा।`);
+      }, 1500);
+  }
+
+  function showToast(msg) {
+      let toast = document.getElementById('welcomeToast');
+      toast.innerText = msg;
+      toast.className = "show-toast";
+      setTimeout(() => { toast.className = ""; }, 3000);
   }
 
   function openSupportView() {
-      showLoader("सपोर्ट लोड हो रहा है...");
-      setTimeout(() => {
-          hideLoader();
-          document.getElementById('homePage').style.display = 'none';
-          document.getElementById('supportPage').style.display = 'block';
-      }, 200);
+      document.getElementById('homePage').style.display = 'none';
+      document.getElementById('supportPage').style.display = 'block';
   }
+
   function closeSupportView() {
       document.getElementById('supportPage').style.display = 'none';
       document.getElementById('homePage').style.display = 'block';
   }
+
   function selectSuppIssue(issue) {
       currentIssue = issue;
       document.getElementById('step1').style.display = 'none';
       document.getElementById('step2').style.display = 'block';
-      document.getElementById('issueLabel').innerText = "Selected: " + issue;
+      document.getElementById('issueLabel').innerText = `समस्या: ${issue}`;
   }
+
   function resetSupportFlow() {
       document.getElementById('step1').style.display = 'block';
       document.getElementById('step2').style.display = 'none';
   }
-  function talkToExpert(method) {
-      if (method === 'wa') { window.open(`https://wa.me/917869969190?text=Help regarding ${currentIssue}`); }
-      else { window.open(`tel:7869969190`); }
+
+  function talkToExpert(type) {
+      let phone = "917869969190";
+      let text = encodeURIComponent(`नमस्ते SewaAstra सपोर्ट! मेरी समस्या '${currentIssue}' के संबंध में है। कृपया सहायता करें।`);
+      if(type === 'wa') {
+          window.open(`https://wa.me/${phone}?text=${text}`);
+      } else {
+          window.location.href = `tel:${phone}`;
+      }
   }
 
-  window.onload = () => {
-      // Check first-time visitor for app installation popup
-      checkFirstTimeVisitor();
-
-      if(localStorage.getItem('sw_logged') === 'true') { 
-          document.getElementById('authOverlay').style.display = 'none'; 
-          fetchCityNameByGPS();
-      } else {
-          document.getElementById('authOverlay').style.display = 'flex';
-      }
-      if(localStorage.getItem('sw_dark') === 'true'){ toggleDark(); }
-      
-      const savedUser = localStorage.getItem('sw_user');
-      if(savedUser) { 
-          document.getElementById('profilePhoneDisplay').innerText = "+91 " + savedUser; 
-          checkAdminAccess(savedUser);
-      }
-
-      const savedPhoto = localStorage.getItem('sw_user_photo');
-      if(savedPhoto) {
-          document.getElementById('headerPic').src = savedPhoto;
-          document.getElementById('sheetPic').src = savedPhoto;
-      }
+  window.onload = function() {
       renderCategoriesGrid();
       renderBanners();
       load(categoriesData[0].key);
-      setLang(localStorage.getItem('sw_lang') || 'hi');
+
+      let savedLang = localStorage.getItem('sw_lang');
+      if(savedLang) { setLang(savedLang); }
+
+      let savedDark = localStorage.getItem('sw_dark');
+      if(savedDark === 'true') {
+          document.body.classList.add('dark-mode');
+          let darkBtn = document.getElementById('darkBtn');
+          if(darkBtn) darkBtn.checked = true;
+      }
+
+      let userPhoneOrEmail = localStorage.getItem('sw_user');
+      if(userPhoneOrEmail) {
+          document.getElementById('profilePhoneDisplay').innerText = userPhoneOrEmail;
+          checkAdminAccess(userPhoneOrEmail);
+      }
+
+      let userPhoto = localStorage.getItem('sw_user_photo');
+      if(userPhoto) {
+          document.getElementById('headerPic').src = userPhoto;
+          document.getElementById('sheetPic').src = userPhoto;
+      }
+
+      let isLogged = localStorage.getItem('sw_logged');
+      if(isLogged === 'true') {
+          document.getElementById('authOverlay').style.display = 'none';
+          fetchCityNameByGPS();
+      }
   };
 </script>
 </body>
