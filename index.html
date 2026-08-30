@@ -1853,5 +1853,243 @@
       }
   };
 </script>
+  <script>
+let orderMsg = `*🚀 New SewaAstra Booking!* %0A` +
+                     `🆔 Order ID: ${orderDetails.id}%0A` +
+                     `👤 User: ${orderDetails.mobile}%0A` +
+                     `📦 Items: ${cart.map(i => i.n + ' (x' + (i.qty||1) + ')').join(', ')}%0A` +
+                     `💰 Total Amount: ₹${finalAmt} (${selectedMode})%0A` +
+                     `📍 Address: ${address}%0A` +
+                     `📅 Schedule: ${date} at ${time}%0A` +
+                     `🗺️ Maps: ${mapsLink}`;
+
+      // Save to Firestore if available
+      try {
+          firestore.collection("orders").add(orderDetails).catch(e => console.log(e));
+      } catch(e) {}
+
+      cart = [];
+      appliedDiscount = 0;
+      document.getElementById('bCount').innerText = "0";
+      closeCart();
+      
+      showAlert("बुकिंग सफल! 🎉", `आपका ऑर्डर आईडी <b>${orderDetails.id}</b> सफलतापूर्वक दर्ज कर लिया गया है!<br><br>पार्टनर जल्द ही आपसे संपर्क करेगा।`);
+      
+      // Open WhatsApp to notify admin/partner
+      window.open(`https://wa.me/917869969190?text=${orderMsg}`, '_blank');
+  }
+
+  function showHistory() {
+      let history = JSON.parse(localStorage.getItem('sw_order_history')) || [];
+      let display = document.getElementById('display');
+      document.getElementById('catTitle').innerText = "Order History & Live Tracking";
+      display.innerHTML = "";
+
+      if(history.length === 0) {
+          display.innerHTML = `<div style="text-align:center; padding:40px; color:#888;">${LANG_DATA[currentLang].noHistory}</div>`;
+          return;
+      }
+
+      history.forEach(o => {
+          display.innerHTML += `
+              <div class="card">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                      <b>Order ID: ${o.id}</b>
+                      <span style="font-size:11px; background:var(--primary-light); color:var(--primary); padding:3px 8px; border-radius:6px; font-weight:bold;">${o.status}</span>
+                  </div>
+                  <div style="font-size:13px; color:#555; margin-top:4px;">
+                      <b>डिटेल्स:</b> ${o.items.map(i => i.n + ' (x' + (i.qty||1) + ')').join(', ')}<br>
+                      <b>कुल राशि:</b> ₹${o.total} (${o.mode})<br>
+                      <b>पता:</b> ${o.address}<br>
+                      <b>समय:</b> ${o.date} | ${o.time}
+                  </div>
+                  <div style="display:flex; gap:10px; margin-top:10px;">
+                      <button onclick="openLiveTracking('${o.id}')" style="flex:1; background:var(--primary); color:white; border:none; padding:8px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:12px;"><i class="fa fa-map-marked-alt"></i> लाइव ट्रैकिंग देखें</button>
+                      <button onclick="window.open('https://wa.me/917869969190?text=Query regarding Order ID ${o.id}', '_blank')" style="flex:1; background:#25d366; color:white; border:none; padding:8px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:12px;"><i class="fab fa-whatsapp"></i> सहायता</button>
+                  </div>
+              </div>`;
+      });
+  }
+
+  function toggleProfile() {
+      let overlay = document.getElementById('profileOverlay');
+      overlay.style.display = (overlay.style.display === 'flex') ? 'none' : 'flex';
+      let savedPhoto = localStorage.getItem('sw_user_photo');
+      if(savedPhoto) {
+          document.getElementById('headerPic').src = savedPhoto;
+          document.getElementById('sheetPic').src = savedPhoto;
+      }
+      let phone = localStorage.getItem('sw_user') || '7869969190';
+      document.getElementById('profilePhoneDisplay').innerText = "+91 " + phone;
+      checkAdminAccess(phone);
+  }
+
+  function closeProfile(e) {
+      if(!e || e.target.id === 'profileOverlay') {
+          document.getElementById('profileOverlay').style.display = 'none';
+      }
+  }
+
+  function openSupportView() {
+      document.getElementById('homePage').style.display = 'none';
+      document.getElementById('supportPage').style.display = 'block';
+      resetSupportFlow();
+  }
+
+  function closeSupportView() {
+      document.getElementById('supportPage').style.display = 'none';
+      document.getElementById('homePage').style.display = 'block';
+  }
+
+  function selectSuppIssue(issue) {
+      currentIssue = issue;
+      document.getElementById('step1').style.display = 'none';
+      document.getElementById('step2').style.display = 'block';
+      document.getElementById('issueLabel').innerText = "चयनित समस्या: " + issue;
+  }
+
+  function resetSupportFlow() {
+      document.getElementById('step1').style.display = 'block';
+      document.getElementById('step2').style.display = 'none';
+  }
+
+  function talkToExpert(type) {
+      let msg = `नमस्ते SewaAstra टीम, मुझे इस समस्या में सहायता चाहिए: ${currentIssue}`;
+      if(type === 'wa') {
+          window.open(`https://wa.me/917869969190?text=${encodeURIComponent(msg)}`, '_blank');
+      } else {
+          window.location.href = "tel:7869969190";
+      }
+  }
+
+  function showToast(msg) {
+      let t = document.getElementById('welcomeToast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 3000);
+  }
+
+  function load(catKey, elem) {
+      let display = document.getElementById('display');
+      display.innerHTML = "";
+      document.getElementById('catTitle').innerText = (categoriesData.find(c => c.key === catKey)?.name || catKey) + " Services";
+      
+      if(elem) {
+          document.querySelectorAll('.cat-item').forEach(i => i.style.opacity = '0.7');
+          elem.style.opacity = '1';
+          elem.querySelector('.cat-icon').classList.add('animate-icon');
+          setTimeout(() => elem.querySelector('.cat-icon').classList.remove('animate-icon'), 300);
+      }
+
+      if(mainData[catKey]) {
+          mainData[catKey].forEach((s, idx) => {
+              display.innerHTML += createCard(s, catKey + '_' + idx);
+          });
+      }
+  }
+
+  function createCard(s, idKey) {
+      let subOptionsHtml = "";
+      if (s.subOptions && s.subOptions.length > 0) {
+          subOptionsHtml = `<div class="service-sub-options" id="subopts_${idKey}" style="display:flex;">`;
+          s.subOptions.forEach((opt, oIdx) => {
+              let checked = oIdx === 0 ? "checked" : "";
+              subOptionsHtml += `<label><input type="radio" name="subopt_${idKey}" value="${opt}" ${checked} onchange="updateSubOptionPrice('${idKey}', ${s.p}, '${opt}')"> ${opt}</label>`;
+          });
+          subOptionsHtml += `</div>`;
+      }
+
+      return `
+          <div class="card">
+              <div class="card-top">
+                  <img src="${s.i}" alt="${s.n}" />
+                  <div class="card-info">
+                      <h4>${s.n}</h4>
+                      <div class="rating-row">
+                          <i class="fa fa-star"></i>
+                          <i class="fa fa-star"></i>
+                          <i class="fa fa-star"></i>
+                          <i class="fa fa-star"></i>
+                          <i class="fa fa-star-half-alt"></i>
+                          <span class="rating-val">4.8</span>
+                          <span class="review-count">(1.2k+ reviews)</span>
+                      </div>
+                      <div class="price-row">
+                          <b id="price_${idKey}">₹${s.p}</b>
+                          <button class="add-btn" id="btn_${idKey}" onclick="addToCart('${s.n}', ${s.p}, '${s.i}', '${idKey}')">जोड़ें (Add)</button>
+                      </div>
+                  </div>
+              </div>
+              ${subOptionsHtml}
+          </div>`;
+  }
+
+  function updateSubOptionPrice(idKey, basePrice, selectedOpt) {
+      let match = selectedOpt.match(/\(+₹(\d+)\)/);
+      let extra = match ? parseInt(match[1]) : 0;
+      let total = basePrice + extra;
+      document.getElementById(`price_${idKey}`).innerText = "₹" + total;
+  }
+
+  function addToCart(name, basePrice, img, idKey) {
+      let selectedSub = "";
+      let finalPrice = basePrice;
+      let radioElem = document.querySelector(`input[name="subopt_${idKey}"]:checked`);
+      if(radioElem) {
+          selectedSub = radioElem.value;
+          let match = selectedSub.match(/\(+₹(\d+)\)/);
+          let extra = match ? parseInt(match[1]) : 0;
+          finalPrice += extra;
+      }
+
+      let existing = cart.find(i => i.n === name && i.selectedSub === selectedSub);
+      if (existing) {
+          existing.qty = (existing.qty || 1) + 1;
+      } else {
+          cart.push({ n: name, p: finalPrice, i: img, selectedSub: selectedSub, qty: 1 });
+      }
+
+      document.getElementById('bCount').innerText = cart.reduce((acc, curr) => acc + (curr.qty || 1), 0);
+      showToast(`${name} कार्ट में जोड़ दिया गया! 🛒`);
+      
+      let btn = document.getElementById(`btn_${idKey}`);
+      if(btn) {
+          btn.innerText = "जोड़ दिया (Added)";
+          btn.classList.add("filled");
+          setTimeout(() => {
+              btn.innerText = "जोड़ें (Add)";
+              btn.classList.remove("filled");
+          }, 1500);
+      }
+  }
+
+  window.onload = function() {
+      renderCategoriesGrid();
+      renderBanners();
+      load(categoriesData[0].key);
+      
+      let isDark = localStorage.getItem('sw_dark') === 'true';
+      if(isDark) {
+          document.body.classList.add('dark-mode');
+          document.getElementById('darkBtn').checked = true;
+      }
+
+      let savedLang = localStorage.getItem('sw_lang') || 'hi';
+      setLang(savedLang);
+
+      if(localStorage.getItem('sw_logged') === 'true') {
+          document.getElementById('authOverlay').style.display = 'none';
+          let user = localStorage.getItem('sw_user');
+          if(user) checkAdminAccess(user);
+          let savedPhoto = localStorage.getItem('sw_user_photo');
+          if(savedPhoto) {
+              document.getElementById('headerPic').src = savedPhoto;
+              document.getElementById('sheetPic').src = savedPhoto;
+          }
+          fetchCityNameByGPS();
+      }
+  };
+</script>
+ 
 </body>
 </html>
