@@ -1590,64 +1590,15 @@
 
   function updateQty(name, change) {
       let item = cart.find(i => i.n === name);
-      if(item) {
+      if (item) {
           item.qty = (item.qty || 1) + change;
-          if(item.qty <= 0) { cart = cart.filter(i => i.n !== name); }
-      }
-      if (cart.length === 0) {
-          document.getElementById('fullCartPanel').style.display = 'none';
-          document.getElementById('bCount').innerText = "0";
-          return;
+          if (item.qty <= 0) {
+              cart = cart.filter(i => i.n !== name);
+          }
       }
       renderCart();
-      document.getElementById('bCount').innerText = cart.length;
-  }
-
-  function toggleProfile() {
-      const overlay = document.getElementById('profileOverlay');
-      overlay.style.display = (overlay.style.display === 'flex') ? 'none' : 'flex';
-  }
-
-  function closeProfile(e) {
-      if(!e || e.target.id === 'profileOverlay') {
-          document.getElementById('profileOverlay').style.display = 'none';
-      }
-  }
-
-  function showToast(msg) {
-      let t = document.getElementById('welcomeToast');
-      t.innerText = msg;
-      t.style.display = 'block';
-      setTimeout(() => { t.style.display = 'none'; }, 3000);
-  }
-
-  function selectSuppIssue(issue) {
-      currentIssue = issue;
-      document.getElementById('step1').style.display = 'none';
-      document.getElementById('step2').style.display = 'block';
-      document.getElementById('issueLabel').innerText = issue;
-  }
-
-  function resetSupportFlow() {
-      document.getElementById('step1').style.display = 'block';
-      document.getElementById('step2').style.display = 'none';
-  }
-
-  function openSupportView() {
-      document.getElementById('supportPage').style.display = 'block';
-  }
-
-  function closeSupportView() {
-      document.getElementById('supportPage').style.display = 'none';
-  }
-
-  function talkToExpert(type) {
-      let text = `Hello SewaAstra Support, I need help regarding: ${currentIssue}`;
-      if(type === 'wa') {
-          window.open(`https://wa.me/917869969190?text=${encodeURIComponent(text)}`);
-      } else {
-          window.location.href = "tel:7869969190";
-      }
+      document.getElementById('bCount').innerText = cart.reduce((acc, curr) => acc + (curr.qty || 1), 0);
+      if(cart.length === 0) closeCart();
   }
 
   function setPayMode(mode) {
@@ -1659,143 +1610,248 @@
   }
 
   function handleFinalOrder() {
-      if(!selectedMode) return showAlert("भुगतान मोड चुनें", "कृपया Cash या Online में से कोई एक विकल्प चुनें");
       let address = document.getElementById('manualAddr').value.trim();
-      if(!address) return showAlert("पता आवश्यक है", "कृपया अपनी डिलीवरी लोकेशन या पता दर्ज करें");
-
-      let orderId = 'SW' + Math.floor(100000 + Math.random() * 900000);
-      let itemsSummary = cart.map(i => `${i.n} (${i.selectedSub || 'Standard'} x ${i.qty || 1})`).join(', ');
-      let totalAmt = document.getElementById('fTotal').innerText;
+      let mobile = document.getElementById('altMobile').value.trim();
       let date = document.getElementById('cartDate').value;
       let time = document.getElementById('cartTime').value;
-
-      let history = JSON.parse(localStorage.getItem('sw_history') || "[]");
-      history.unshift({
-          orderId, items: itemsSummary, total: totalAmt, status: 'Confirmed 🚀', date, time, address, payMode: selectedMode
-      });
-      localStorage.setItem('sw_history', JSON.stringify(history));
-
-      let userPhone = localStorage.getItem('sw_user') || "7869969190";
+      let remark = document.getElementById('cartRemark').value.trim();
       let mapsLink = document.getElementById('googleMapsLink').value;
-      let remark = document.getElementById('cartRemark').value;
 
-      // Send to Firebase RTDB
-      db.ref('orders/' + orderId).set({
-          orderId, userPhone, items: itemsSummary, total: totalAmt, date, time, address, mapsLink, remark, payMode: selectedMode, status: 'Confirmed'
-      });
+      if(!address) return showAlert("पता आवश्यक है", "कृपया अपनी डिलीवरी लोकेशन या पता दर्ज करें");
+      if(!selectedMode) return showAlert("भुगतान मोड चुनें", "कृपया Cash या Online भुगतान का तरीका चुनें");
 
-      // Send to Firestore
-      firestore.collection('orders').doc(orderId).set({
-          orderId, userPhone, items: itemsSummary, total: totalAmt, date, time, address, mapsLink, remark, payMode: selectedMode, status: 'Confirmed', timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      let subtotal = cart.reduce((acc, curr) => acc + (curr.p * (curr.qty || 1)), 0);
+      let finalAmt = (subtotal - appliedDiscount) + 10;
+      if(finalAmt < 10) finalAmt = 10;
 
+      let orderDetails = {
+          id: 'SW' + Math.floor(100000 + Math.random() * 900000),
+          items: cart,
+          total: finalAmt,
+          address: address,
+          mobile: mobile || localStorage.getItem('sw_user') || '7869969190',
+          date: date,
+          time: time,
+          remark: remark,
+          mode: selectedMode,
+          maps: mapsLink,
+          status: 'Order Placed',
+          timestamp: new Date().toLocaleString()
+      };
+
+      let history = JSON.parse(localStorage.getItem('sw_order_history')) || [];
+      history.unshift(orderDetails);
+      localStorage.setItem('sw_order_history', JSON.stringify(history));
+
+      let orderMsg = `*🚀 New SewaAstra Booking!* %0A` +
+                     `🆔 Order ID: ${orderDetails.id}%0A` +
+                     `👤 User: ${orderDetails.mobile}%0A` +
+                     `📦 Items: ${cart.map(i => i.n + ' (x' + (i.qty||1) + ')').join(', ')}%0A` +
+                     `💰 Total Amount: ₹${finalAmt} (${selectedMode})%0A` +
+                     `📍 Address: ${address}%0A` +
+                     `🗺️ Map: ${mapsLink}%0A` +
+                     `📅 Schedule: ${date} at ${time}%0A` +
+                     `📝 Remark: ${remark || 'None'}`;
+
+      closeCart();
       cart = [];
       document.getElementById('bCount').innerText = "0";
-      document.getElementById('fullCartPanel').style.display = 'none';
 
-      showAlert("बुकिंग सफल! 🎉", `आपका ऑर्डर <b>#${orderId}</b> सफलतापूर्वक बुक हो गया है!<br><br>पार्टनर जल्द ही आपसे संपर्क करेगा।`);
+      showAlert("बुकिंग सफल! 🎉", `आपका ऑर्डर <b>${orderDetails.id}</b> सफलतापूर्वक दर्ज कर लिया गया है!<br><br>WhatsApp पर बुकिंग विवरण भेजा जा रहा है...`);
+      
+      setTimeout(() => {
+          window.open(`https://wa.me/917869969190?text=${orderMsg}`, '_blank');
+      }, 1500);
   }
 
-  function createCard(s, idKey) {
+  function showHistory() {
+      let history = JSON.parse(localStorage.getItem('sw_order_history')) || [];
+      if(history.length === 0) {
+          return showAlert("ऑर्डर इतिहास", LANG_DATA[currentLang].noHistory);
+      }
+
+      let html = `<div style="text-align:left; max-height:70vh; overflow-y:auto;">`;
+      history.forEach(o => {
+          html += `
+              <div style="background:var(--card-bg); border:1px solid #eee; padding:15px; border-radius:12px; margin-bottom:12px;">
+                  <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px; color:var(--primary);">
+                      <span>${o.id}</span>
+                      <span>₹${o.total} (${o.mode})</span>
+                  </div>
+                  <div style="font-size:12px; color:#666; margin:4px 0;">📅 ${o.date} | ⏰ ${o.time}</div>
+                  <div style="font-size:12px; margin:4px 0;">📍 ${o.address}</div>
+                  <div style="font-size:12px; color:#444; font-weight:600; margin-top:6px;">Items: ${o.items.map(i => i.n + ' (x' + (i.qty||1) + ')').join(', ')}</div>
+                  <div style="display:flex; gap:8px; margin-top:10px;">
+                      <button onclick="openLiveTracking('${o.id}')" style="flex:1; background:var(--primary); color:white; border:none; padding:8px; border-radius:8px; font-size:12px; font-weight:bold; cursor:pointer;"><i class="fa fa-map-marked-alt"></i> Live Tracking</button>
+                  </div>
+              </div>`;
+      });
+      html += `</div>`;
+      showAlert("📦 आपका ऑर्डर इतिहास (Order History)", html);
+  }
+
+  function toggleProfile() {
+      let overlay = document.getElementById('profileOverlay');
+      overlay.style.display = (overlay.style.display === 'flex') ? 'none' : 'flex';
+  }
+
+  function closeProfile(e) {
+      if(!e || e.target.id === 'profileOverlay') {
+          document.getElementById('profileOverlay').style.display = 'none';
+      }
+  }
+
+  function openSupportView() {
+      document.getElementById('supportPage').style.display = 'block';
+  }
+
+  function closeSupportView() {
+      document.getElementById('supportPage').style.display = 'none';
+  }
+
+  function selectSuppIssue(issue) {
+      currentIssue = issue;
+      document.getElementById('issueLabel').innerText = issue;
+      document.getElementById('step1').style.display = 'none';
+      document.getElementById('step2').style.display = 'block';
+  }
+
+  function resetSupportFlow() {
+      document.getElementById('step1').style.display = 'block';
+      document.getElementById('step2').style.display = 'none';
+  }
+
+  function talkToExpert(type) {
+      let text = `Hello SewaAstra Support, I need help regarding: ${currentIssue}`;
+      if (type === 'wa') {
+          window.open(`https://wa.me/917869969190?text=${encodeURIComponent(text)}`, '_blank');
+      } else {
+          window.location.href = "tel:7869969190";
+      }
+  }
+
+  function showToast(msg) {
+      let t = document.getElementById('welcomeToast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 3000);
+  }
+
+  function createCard(item, uniqueId) {
+      let subOptionsHtml = "";
+      if (item.subOptions && item.subOptions.length > 0) {
+          subOptionsHtml = `<div class="service-sub-options" id="subOpt_${uniqueId}" style="display:flex;">
+              <div style="font-size:11px; font-weight:bold; color:var(--primary); margin-bottom:4px;">विकल्प चुनें (Select Option):</div>`;
+          item.subOptions.forEach((opt, idx) => {
+              let checkedAttr = (idx === 0) ? 'checked' : '';
+              subOptionsHtml += `<label><input type="radio" name="sub_${uniqueId}" value="${opt}" ${checkedAttr} onchange="updateCardPrice('${uniqueId}', ${item.p})"> ${opt}</label>`;
+          });
+          subOptionsHtml += `</div>`;
+      }
+
       return `
           <div class="card">
               <div class="card-top">
-                  <img src="${s.i}" onclick="showAlert('${s.n}', '<img src=\'${s.i}\' style=\'width:100%; border-radius:10px;\'>')" />
+                  <img src="${item.i}" onclick="showAlert('${item.n}', 'बेहतरीन गुणवत्ता वाली होम सर्विस।')" />
                   <div class="card-info">
-                      <h4>${s.n}</h4>
+                      <h4>${item.n}</h4>
                       <div class="rating-row">
                           <i class="fa fa-star"></i>
                           <span class="rating-val">4.8</span>
-                          <span class="review-count">(1.2k+ reviews)</span>
+                          <span class="review-count">(320+ reviews)</span>
                       </div>
                       <div class="price-row">
-                          <b>₹${s.p}</b>
-                          <button class="add-btn" id="btn_${idKey}" onclick="toggleServiceAdd('${s.n}', ${s.p}, '${s.i}', '${idKey}')">Add</button>
+                          <b id="priceDisplay_${uniqueId}">₹${item.p}</b>
+                          <button class="add-btn" id="btn_${uniqueId}" onclick="addToCart('${item.n}', ${item.p}, '${uniqueId}')">ADD</button>
                       </div>
                   </div>
               </div>
-              ${s.subOptions ? `
-                  <div class="service-sub-options" id="sub_${idKey}" style="display:flex;">
-                      <span style="font-size:11px; font-weight:bold; color:var(--primary); margin-bottom:4px;">विकल्प चुनें (Select Option):</span>
-                      ${s.subOptions.map((opt, oIdx) => `
-                          <label><input type="radio" name="radio_${idKey}" value="${opt}" ${oIdx === 0 ? 'checked' : ''} onchange="updateSubOption('${s.n}', '${opt}')"> ${opt}</label>
-                      `).join('')}
-                  </div>
-              ` : ''}
+              ${subOptionsHtml}
           </div>`;
   }
 
-  function toggleServiceAdd(name, price, img, idKey) {
-      let btn = document.getElementById(`btn_${idKey}`);
-      let subRadio = document.querySelector(`input[name="radio_${idKey}"]:checked`);
-      let selectedSub = subRadio ? subRadio.value : '';
-
-      let existing = cart.find(i => i.n === name);
-      if(existing) {
-          cart = cart.filter(i => i.n !== name);
-          btn.classList.remove('filled');
-          btn.innerText = "Add";
-          showToast("कार्ट से हटाया गया");
-      } else {
-          cart.push({ n: name, p: price, i: img, qty: 1, selectedSub });
-          btn.classList.add('filled');
-          btn.innerText = "Added ✓";
-          showToast("कार्ट में जोड़ा गया! 🛒");
+  function updateCardPrice(uniqueId, basePrice) {
+      let radios = document.getElementsByName(`sub_${uniqueId}`);
+      let extra = 0;
+      for (let r of radios) {
+          if (r.checked) {
+              let match = r.value.match(/\+₹(\d+)/);
+              if (match) extra = parseInt(match[1]);
+          }
       }
-      document.getElementById('bCount').innerText = cart.length;
+      document.getElementById(`priceDisplay_${uniqueId}`).innerText = "₹" + (basePrice + extra);
   }
 
-  function updateSubOption(name, subVal) {
-      let item = cart.find(i => i.n === name);
-      if(item) {
-          item.selectedSub = subVal;
+  function addToCart(name, basePrice, uniqueId) {
+      let radios = document.getElementsByName(`sub_${uniqueId}`);
+      let selectedSub = "";
+      let extra = 0;
+      for (let r of radios) {
+          if (r.checked) {
+              selectedSub = r.value;
+              let match = r.value.match(/\+₹(\d+)/);
+              if (match) extra = parseInt(match[1]);
+          }
       }
+
+      let finalPrice = basePrice + extra;
+      let existing = cart.find(i => i.n === name && i.selectedSub === selectedSub);
+      if (existing) {
+          existing.qty = (existing.qty || 1) + 1;
+      } else {
+          cart.push({ n: name, p: finalPrice, selectedSub: selectedSub, qty: 1 });
+      }
+
+      let btn = document.getElementById(`btn_${uniqueId}`);
+      btn.classList.add('filled');
+      btn.innerText = "ADDED ✓";
+      setTimeout(() => { btn.classList.remove('filled'); btn.innerText = "ADD"; }, 1200);
+
+      let totalCount = cart.reduce((acc, curr) => acc + (curr.qty || 1), 0);
+      document.getElementById('bCount').innerText = totalCount;
+      showToast(`${name} कार्ट में जोड़ दिया गया! 🛒`);
   }
 
   function load(catKey) {
       let display = document.getElementById('display');
       display.innerHTML = "";
       let catObj = categoriesData.find(c => c.key === catKey);
-      document.getElementById('catTitle').innerText = catObj ? catObj.name + " Services" : "Services";
+      document.getElementById('catTitle').innerText = catObj ? catObj.name + " Services" : "Recommended Services";
 
       if(mainData[catKey]) {
           mainData[catKey].forEach((s, idx) => {
               display.innerHTML += createCard(s, catKey + '_' + idx);
           });
-      } else {
-          display.innerHTML = `<div style="text-align:center; padding:30px; color:#888;">इस कैटेगरी में अभी कोई सर्विस उपलब्ध नहीं है।</div>`;
       }
   }
 
-  // Initial load
-  renderCategoriesGrid();
-  renderBanners();
-  load(categoriesData[0].key);
+  // Initial App Startup
+  window.onload = function() {
+      renderCategoriesGrid();
+      renderBanners();
+      load(categoriesData[0].key);
 
-  let savedDark = localStorage.getItem('sw_dark');
-  if(savedDark === 'true') {
-      document.body.classList.add('dark-mode');
-      document.getElementById('darkBtn').checked = true;
-  }
+      let isDark = localStorage.getItem('sw_dark') === 'true';
+      if (isDark) {
+          document.body.classList.add('dark-mode');
+          document.getElementById('darkBtn').checked = true;
+      }
 
-  let savedLang = localStorage.getItem('sw_lang');
-  if(savedLang) {
-      setLang(savedLang);
-  }
+      let savedPhoto = localStorage.getItem('sw_user_photo');
+      if (savedPhoto) {
+          document.getElementById('headerPic').src = savedPhoto;
+          document.getElementById('sheetPic').src = savedPhoto;
+      }
 
-  let savedUser = localStorage.getItem('sw_user');
-  if(savedUser) {
-      document.getElementById('authOverlay').style.display = 'none';
-      document.getElementById('profilePhoneDisplay').innerText = "+91 " + savedUser;
-      checkAdminAccess(savedUser);
-      fetchCityNameByGPS();
-  }
-
-  let savedPhoto = localStorage.getItem('sw_user_photo');
-  if(savedPhoto) {
-      document.getElementById('headerPic').src = savedPhoto;
-      document.getElementById('sheetPic').src = savedPhoto;
-  }
+      let logged = localStorage.getItem('sw_logged');
+      let user = localStorage.getItem('sw_user');
+      if (logged && user) {
+          document.getElementById('authOverlay').style.display = 'none';
+          document.getElementById('profilePhoneDisplay').innerText = user.includes('@') ? user : "+91 " + user;
+          checkAdminAccess(user);
+          fetchCityNameByGPS();
+      }
+  };
 </script>
 </body>
 </html>
