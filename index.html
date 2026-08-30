@@ -1614,248 +1614,18 @@
       }
   }
 
-  // --- ORDER HISTORY WITH DELETE, LIVE TRACKING & POST-COMPLETION RATINGS ---
-  function showHistory() {
-      let history = JSON.parse(localStorage.getItem('sw_history') || "[]");
-      if(history.length === 0) {
-          showAlert("इतिहास", LANG_DATA[currentLang].noHistory);
-      } else {
-          let historyHtml = history.map((ord, idx) => `
-              <div id="hist_item_${idx}" style="background:#fff; padding:15px; border-radius:12px; margin-bottom:12px; border:1px solid #ddd; text-align:left;">
-                  <div style="display:flex; justify-content:space-between; align-items:center;">
-                      <b>Order ID: ${ord.orderId}</b>
-                      <button onclick="deleteHistoryOrder(${idx})" style="background:#ff3b30; color:white; border:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer; width:auto; margin:0;"><i class="fa fa-trash"></i></button>
-                  </div>
-                  <span style="font-size:13px; color:#555;">${ord.items}</span><br>
-                  <span style="color:var(--primary); font-weight:bold;">Total: ${ord.total}</span> | Status: ${ord.status}<br>
-                  
-                  <div style="display:flex; gap:8px; margin-top:8px;">
-                      <button onclick="openLiveTracking('${ord.orderId}')" style="flex:1; background:#007bff; color:white; border:none; padding:8px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px;"><i class="fa fa-map-marked-alt"></i> Live Track</button>
-                  </div>
-
-                  <div style="background:#e8f5e9; padding:8px; border-radius:8px; margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
-                      <div><b>OTP:</b> <span style="color:green; font-size:16px;">${ord.completionOTP || '4829'}</span></div>
-                      <button onclick="verifyPartnerCompletionOTP('${ord.orderId}', ${idx})" style="background:var(--success); color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">OTP Verify</button>
-                  </div>
-              </div>`).join('');
-          showAlert("ऑर्डर इतिहास & लाइव ट्रैकिंग", historyHtml);
-      }
-  }
-
-  function deleteHistoryOrder(idx) {
-      let history = JSON.parse(localStorage.getItem('sw_history') || "[]");
-      history.splice(idx, 1);
-      localStorage.setItem('sw_history', JSON.stringify(history));
-      showToast("इतिहास से आर्डर हटा दिया गया!");
-      showHistory();
-  }
-
-  function verifyPartnerCompletionOTP(orderId, idx) {
-      let ratingModalHtml = `
-          <div style="text-align:center;">
-              <h3 style="color:var(--primary);">🎉 काम पूरा हुआ!</h3>
-              <p style="font-size:13px;">कृपया पार्टनर के काम की रेटिंग और फीडबैक दें:</p>
-              <div style="font-size:24px; color:#ffc107; margin-bottom:10px;">
-                  <i class="fa fa-star" onclick="setStarRating(1)" style="cursor:pointer;" id="st1"></i>
-                  <i class="fa fa-star" onclick="setStarRating(2)" style="cursor:pointer;" id="st2"></i>
-                  <i class="fa fa-star" onclick="setStarRating(3)" style="cursor:pointer;" id="st3"></i>
-                  <i class="fa fa-star" onclick="setStarRating(4)" style="cursor:pointer;" id="st4"></i>
-                  <i class="fa fa-star" onclick="setStarRating(5)" style="cursor:pointer;" id="st5"></i>
-              </div>
-              <textarea id="partnerRemarkInput" class="input-field" placeholder="पार्टनर के लिए रिमार्क (उदा. बहुत अच्छा काम किया)" rows="3"></textarea>
-              <button onclick="submitPartnerRating('${orderId}')" style="background:var(--success); margin-top:10px;">फीडबैक सबमिट करें</button>
-          </div>
-      `;
-      showAlert("रेटिंग और रिमार्क", ratingModalHtml);
-  }
-
-  let currentSelectedStars = 5;
-  function setStarRating(stars) {
-      currentSelectedStars = stars;
-      showToast(`${stars} स्टार चुने गए! ⭐`);
-  }
-
-  function submitPartnerRating(orderId) {
-      let remark = document.getElementById('partnerRemarkInput').value || "Good service";
-      showToast(`सफलता! ${currentSelectedStars}⭐ रेटिंग और रिमार्क पार्टनर को भेज दिया गया।`);
-      closeCustomAlert();
-  }
-
-  function load(id, element) {
-      showLoader("डेटा लोड हो रहा है...");
-      setTimeout(() => {
-          hideLoader();
-          if(element) {
-              const iconBox = element.querySelector('.cat-icon');
-              if(iconBox) {
-                  iconBox.classList.remove('animate-icon');
-                  void iconBox.offsetWidth;
-                  iconBox.classList.add('animate-icon');
-              }
-          }
-          const display = document.getElementById('display');
-          const tabs = document.getElementById('subTabsArea');
-          display.innerHTML = ''; 
-          tabs.style.display = 'none';
-          
-          let foundCat = categoriesData.find(c => c.key === id);
-          let catName = foundCat ? foundCat.name : id.toUpperCase();
-          document.getElementById('catTitle').innerText = catName + " Services";
-          
-          let list = mainData[id] || [];
-          if(list.length === 0) {
-              display.innerHTML = `<div style="text-align:center; padding:40px; color:#888;">इस कैटेगरी में अभी कोई सर्विस नहीं है। एडमिन पैनल से जोड़ें।</div>`;
-          } else {
-              list.forEach((s, idx) => display.innerHTML += createCard(s, id + '_' + idx));
-          }
-      }, 300);
-  }
-
-  function toggleServiceSubOptions(uniqueId) {
-      const subOptsDiv = document.getElementById('subOpts_' + uniqueId);
-      if (subOptsDiv) {
-          subOptsDiv.style.display = (subOptsDiv.style.display === 'flex') ? 'none' : 'flex';
-      }
-  }
-
-  function createCard(s, uniqueId) {
-      const rating = (Math.random() * (4.9 - 4.4) + 4.4).toFixed(1);
-      const reviews = Math.floor(Math.random() * 400) + 100;
-      let subOptionsHtml = '';
-      if(s.subOptions && s.subOptions.length > 0) {
-          subOptionsHtml = s.subOptions.map(opt => `<label><input type="radio" name="opt_${uniqueId}" value="${opt}" onchange="selectSubOption('${s.n}', '${opt}')"> ${opt}</label>`).join('');
-      }
-
-      return `<div class="card">
-          <div class="card-top">
-              <img src="${s.i}" onerror="this.src='https://via.placeholder.com/150'" onclick="toggleServiceSubOptions('${uniqueId}')" title="विकल्प देखने के लिए फोटो पर क्लिक करें" />
-              <div class="card-info">
-                  <h4>${s.n} <span style="font-size:10px; color:var(--primary); background:var(--primary-light); padding:2px 6px; border-radius:6px; cursor:pointer;" onclick="toggleServiceSubOptions('${uniqueId}')">विकल्प ⚙️</span></h4>
-                  <div class="rating-row">
-                      <i class="fa fa-star"></i>
-                      <span class="rating-val">${rating}</span>
-                      <span class="review-count">(${reviews} reviews)</span>
-                  </div>
-                  <div class="price-row">
-                      <b>₹${s.p}</b>
-                      <button id="btn_${s.n.replace(/\s+/g, '_')}" class="add-btn" onclick="addToCart('${s.n}', ${s.p}, '${s.i}')">Add +</button>
-                  </div>
-              </div>
-          </div>
-          ${s.subOptions ? `<div class="service-sub-options" id="subOpts_${uniqueId}">${subOptionsHtml}</div>` : ''}
-      </div>`;
-  }
-
-  function selectSubOption(serviceName, optionText) {
-      let item = cart.find(i => i.n === serviceName);
-      if(item) {
-          item.selectedSub = optionText;
-          showToast(`विकल्प चुना गया: ${optionText}`);
-      }
-  }
-
-  function addToCart(name, price, img) {
-      let existing = cart.find(i => i.n === name);
-      if(existing) {
-          existing.qty = (existing.qty || 1) + 1;
-      } else {
-          cart.push({ n: name, p: price, i: img, qty: 1, selectedSub: '' });
-      }
-      
-      let btn = document.getElementById('btn_' + name.replace(/\s+/g, '_'));
-      if(btn) {
-          btn.innerText = "Added ✓";
-          btn.classList.add('filled');
-          setTimeout(() => {
-              btn.innerText = "Add +";
-              btn.classList.remove('filled');
-          }, 1000);
-      }
-      
-      document.getElementById('bCount').innerText = cart.length;
-      showToast(`${name} कार्ट में जोड़ दिया गया! 🛒`);
-  }
-
-  function setPayMode(mode) {
-      selectedMode = mode;
-      document.getElementById('payCash').style.borderColor = (mode === 'Cash') ? 'var(--primary)' : '#ddd';
-      document.getElementById('payCash').style.background = (mode === 'Cash') ? 'var(--primary-light)' : 'var(--card-bg)';
-      document.getElementById('payOnline').style.borderColor = (mode === 'Online') ? 'var(--primary)' : '#ddd';
-      document.getElementById('payOnline').style.background = (mode === 'Online') ? 'var(--primary-light)' : 'var(--card-bg)';
-  }
-
-  function handleFinalOrder() {
-      let addr = document.getElementById('manualAddr').value.trim();
-      let mobile = document.getElementById('altMobile').value.trim();
-      let date = document.getElementById('cartDate').value;
-      let time = document.getElementById('cartTime').value;
-      let remark = document.getElementById('cartRemark').value.trim();
-
-      if(!addr) return showAlert("पता आवश्यक है", "कृपया डिलीवरी का पता दर्ज करें");
-      if(!selectedMode) return showAlert("भुगतान मोड", "कृपया भुगतान का तरीका चुनें (Cash या Online)");
-
-      showLoader("ऑर्डर बुक हो रहा है...");
-
-      setTimeout(() => {
-          hideLoader();
-          let subtotal = cart.reduce((acc, item) => acc + (item.p * (item.qty || 1)), 0);
-          let finalAmt = (subtotal - appliedDiscount) + 10;
-          if(finalAmt < 10) finalAmt = 10;
-
-          let orderId = "SW" + Math.floor(100000 + Math.random() * 900000);
-          let orderDetails = {
-              orderId: orderId,
-              items: cart.map(i => `${i.n} (x${i.qty || 1}) ${i.selectedSub ? '['+i.selectedSub+']' : ''}`).join(', '),
-              total: "₹" + finalAmt,
-              address: addr,
-              mobile: mobile || localStorage.getItem('sw_user') || "N/A",
-              date: date,
-              time: time,
-              remark: remark,
-              mode: selectedMode,
-              status: "Confirmed",
-              completionOTP: String(Math.floor(1000 + Math.random() * 9000))
-          };
-
-          let history = JSON.parse(localStorage.getItem('sw_history') || "[]");
-          history.unshift(orderDetails);
-          localStorage.setItem('sw_history', JSON.stringify(history));
-
-          try {
-              databaseRef = db.ref('orders/' + orderId);
-              databaseRef.set(orderDetails);
-          } catch(e) { console.log(e); }
-
-          document.getElementById('fullCartPanel').style.display = 'none';
-          cart = [];
-          document.getElementById('bCount').innerText = "0";
-
-          showAlert("सफलता! ऑर्डर बुक हो गया 🎉", `आपका ऑर्डर <b>#${orderId}</b> सफलतापूर्वक कन्फर्म हो गया है!<br><br><b>पार्टनर OTP:</b> <span style="color:green; font-size:18px;">${orderDetails.completionOTP}</span><br>समय पर सर्विस पार्टनर आपके पते पर पहुँच जाएगा।`);
-      }, 1500);
-  }
-
   function showToast(msg) {
-      let toast = document.getElementById('welcomeToast');
-      toast.innerText = msg;
-      toast.className = "show-toast";
-      setTimeout(() => { toast.className = ""; }, 3000);
-  }
-
-  function openSupportView() {
-      document.getElementById('homePage').style.display = 'none';
-      document.getElementById('supportPage').style.display = 'block';
-  }
-
-  function closeSupportView() {
-      document.getElementById('supportPage').style.display = 'none';
-      document.getElementById('homePage').style.display = 'block';
+      let t = document.getElementById('welcomeToast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 3000);
   }
 
   function selectSuppIssue(issue) {
       currentIssue = issue;
       document.getElementById('step1').style.display = 'none';
       document.getElementById('step2').style.display = 'block';
-      document.getElementById('issueLabel').innerText = `समस्या: ${issue}`;
+      document.getElementById('issueLabel').innerText = issue;
   }
 
   function resetSupportFlow() {
@@ -1863,49 +1633,169 @@
       document.getElementById('step2').style.display = 'none';
   }
 
+  function openSupportView() {
+      document.getElementById('supportPage').style.display = 'block';
+  }
+
+  function closeSupportView() {
+      document.getElementById('supportPage').style.display = 'none';
+  }
+
   function talkToExpert(type) {
-      let phone = "917869969190";
-      let text = encodeURIComponent(`नमस्ते SewaAstra सपोर्ट! मेरी समस्या '${currentIssue}' के संबंध में है। कृपया सहायता करें।`);
+      let text = `Hello SewaAstra Support, I need help regarding: ${currentIssue}`;
       if(type === 'wa') {
-          window.open(`https://wa.me/${phone}?text=${text}`);
+          window.open(`https://wa.me/917869969190?text=${encodeURIComponent(text)}`);
       } else {
-          window.location.href = `tel:${phone}`;
+          window.location.href = "tel:7869969190";
       }
   }
 
-  window.onload = function() {
-      renderCategoriesGrid();
-      renderBanners();
-      load(categoriesData[0].key);
+  function setPayMode(mode) {
+      selectedMode = mode;
+      document.getElementById('payCash').style.borderColor = mode === 'Cash' ? 'var(--primary)' : '#ddd';
+      document.getElementById('payCash').style.background = mode === 'Cash' ? 'var(--primary-light)' : 'var(--card-bg)';
+      document.getElementById('payOnline').style.borderColor = mode === 'Online' ? 'var(--primary)' : '#ddd';
+      document.getElementById('payOnline').style.background = mode === 'Online' ? 'var(--primary-light)' : 'var(--card-bg)';
+  }
 
-      let savedLang = localStorage.getItem('sw_lang');
-      if(savedLang) { setLang(savedLang); }
+  function handleFinalOrder() {
+      if(!selectedMode) return showAlert("भुगतान मोड चुनें", "कृपया Cash या Online में से कोई एक विकल्प चुनें");
+      let address = document.getElementById('manualAddr').value.trim();
+      if(!address) return showAlert("पता आवश्यक है", "कृपया अपनी डिलीवरी लोकेशन या पता दर्ज करें");
 
-      let savedDark = localStorage.getItem('sw_dark');
-      if(savedDark === 'true') {
-          document.body.classList.add('dark-mode');
-          let darkBtn = document.getElementById('darkBtn');
-          if(darkBtn) darkBtn.checked = true;
+      let orderId = 'SW' + Math.floor(100000 + Math.random() * 900000);
+      let itemsSummary = cart.map(i => `${i.n} (${i.selectedSub || 'Standard'} x ${i.qty || 1})`).join(', ');
+      let totalAmt = document.getElementById('fTotal').innerText;
+      let date = document.getElementById('cartDate').value;
+      let time = document.getElementById('cartTime').value;
+
+      let history = JSON.parse(localStorage.getItem('sw_history') || "[]");
+      history.unshift({
+          orderId, items: itemsSummary, total: totalAmt, status: 'Confirmed 🚀', date, time, address, payMode: selectedMode
+      });
+      localStorage.setItem('sw_history', JSON.stringify(history));
+
+      let userPhone = localStorage.getItem('sw_user') || "7869969190";
+      let mapsLink = document.getElementById('googleMapsLink').value;
+      let remark = document.getElementById('cartRemark').value;
+
+      // Send to Firebase RTDB
+      db.ref('orders/' + orderId).set({
+          orderId, userPhone, items: itemsSummary, total: totalAmt, date, time, address, mapsLink, remark, payMode: selectedMode, status: 'Confirmed'
+      });
+
+      // Send to Firestore
+      firestore.collection('orders').doc(orderId).set({
+          orderId, userPhone, items: itemsSummary, total: totalAmt, date, time, address, mapsLink, remark, payMode: selectedMode, status: 'Confirmed', timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      cart = [];
+      document.getElementById('bCount').innerText = "0";
+      document.getElementById('fullCartPanel').style.display = 'none';
+
+      showAlert("बुकिंग सफल! 🎉", `आपका ऑर्डर <b>#${orderId}</b> सफलतापूर्वक बुक हो गया है!<br><br>पार्टनर जल्द ही आपसे संपर्क करेगा।`);
+  }
+
+  function createCard(s, idKey) {
+      return `
+          <div class="card">
+              <div class="card-top">
+                  <img src="${s.i}" onclick="showAlert('${s.n}', '<img src=\'${s.i}\' style=\'width:100%; border-radius:10px;\'>')" />
+                  <div class="card-info">
+                      <h4>${s.n}</h4>
+                      <div class="rating-row">
+                          <i class="fa fa-star"></i>
+                          <span class="rating-val">4.8</span>
+                          <span class="review-count">(1.2k+ reviews)</span>
+                      </div>
+                      <div class="price-row">
+                          <b>₹${s.p}</b>
+                          <button class="add-btn" id="btn_${idKey}" onclick="toggleServiceAdd('${s.n}', ${s.p}, '${s.i}', '${idKey}')">Add</button>
+                      </div>
+                  </div>
+              </div>
+              ${s.subOptions ? `
+                  <div class="service-sub-options" id="sub_${idKey}" style="display:flex;">
+                      <span style="font-size:11px; font-weight:bold; color:var(--primary); margin-bottom:4px;">विकल्प चुनें (Select Option):</span>
+                      ${s.subOptions.map((opt, oIdx) => `
+                          <label><input type="radio" name="radio_${idKey}" value="${opt}" ${oIdx === 0 ? 'checked' : ''} onchange="updateSubOption('${s.n}', '${opt}')"> ${opt}</label>
+                      `).join('')}
+                  </div>
+              ` : ''}
+          </div>`;
+  }
+
+  function toggleServiceAdd(name, price, img, idKey) {
+      let btn = document.getElementById(`btn_${idKey}`);
+      let subRadio = document.querySelector(`input[name="radio_${idKey}"]:checked`);
+      let selectedSub = subRadio ? subRadio.value : '';
+
+      let existing = cart.find(i => i.n === name);
+      if(existing) {
+          cart = cart.filter(i => i.n !== name);
+          btn.classList.remove('filled');
+          btn.innerText = "Add";
+          showToast("कार्ट से हटाया गया");
+      } else {
+          cart.push({ n: name, p: price, i: img, qty: 1, selectedSub });
+          btn.classList.add('filled');
+          btn.innerText = "Added ✓";
+          showToast("कार्ट में जोड़ा गया! 🛒");
       }
+      document.getElementById('bCount').innerText = cart.length;
+  }
 
-      let userPhoneOrEmail = localStorage.getItem('sw_user');
-      if(userPhoneOrEmail) {
-          document.getElementById('profilePhoneDisplay').innerText = userPhoneOrEmail;
-          checkAdminAccess(userPhoneOrEmail);
+  function updateSubOption(name, subVal) {
+      let item = cart.find(i => i.n === name);
+      if(item) {
+          item.selectedSub = subVal;
       }
+  }
 
-      let userPhoto = localStorage.getItem('sw_user_photo');
-      if(userPhoto) {
-          document.getElementById('headerPic').src = userPhoto;
-          document.getElementById('sheetPic').src = userPhoto;
-      }
+  function load(catKey) {
+      let display = document.getElementById('display');
+      display.innerHTML = "";
+      let catObj = categoriesData.find(c => c.key === catKey);
+      document.getElementById('catTitle').innerText = catObj ? catObj.name + " Services" : "Services";
 
-      let isLogged = localStorage.getItem('sw_logged');
-      if(isLogged === 'true') {
-          document.getElementById('authOverlay').style.display = 'none';
-          fetchCityNameByGPS();
+      if(mainData[catKey]) {
+          mainData[catKey].forEach((s, idx) => {
+              display.innerHTML += createCard(s, catKey + '_' + idx);
+          });
+      } else {
+          display.innerHTML = `<div style="text-align:center; padding:30px; color:#888;">इस कैटेगरी में अभी कोई सर्विस उपलब्ध नहीं है।</div>`;
       }
-  };
+  }
+
+  // Initial load
+  renderCategoriesGrid();
+  renderBanners();
+  load(categoriesData[0].key);
+
+  let savedDark = localStorage.getItem('sw_dark');
+  if(savedDark === 'true') {
+      document.body.classList.add('dark-mode');
+      document.getElementById('darkBtn').checked = true;
+  }
+
+  let savedLang = localStorage.getItem('sw_lang');
+  if(savedLang) {
+      setLang(savedLang);
+  }
+
+  let savedUser = localStorage.getItem('sw_user');
+  if(savedUser) {
+      document.getElementById('authOverlay').style.display = 'none';
+      document.getElementById('profilePhoneDisplay').innerText = "+91 " + savedUser;
+      checkAdminAccess(savedUser);
+      fetchCityNameByGPS();
+  }
+
+  let savedPhoto = localStorage.getItem('sw_user_photo');
+  if(savedPhoto) {
+      document.getElementById('headerPic').src = savedPhoto;
+      document.getElementById('sheetPic').src = savedPhoto;
+  }
 </script>
 </body>
 </html>
