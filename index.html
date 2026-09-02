@@ -1279,7 +1279,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
 <footer style="text-align: center; padding: 20px; margin-top: 50px; border-top: 1px solid var(--border-color); font-size: 13px;">
     <p>&copy; 2026 SewaAstra. All rights reserved.</p>
     <div style="margin-top: 8px; display: flex; justify-content: center; gap: 15px;">
-        <a href="privacy.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">Privacy Policy</a>
+        <a href="policy.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">Privacy Policy</a>
         <span style="color: #ccc;">|</span>
         <a href="about.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">About Us</a>
     </div>
@@ -3934,14 +3934,15 @@ window.proShowBill = function(oid, thenRate){
   FS.collection('orders').doc(oid).get().then(function(d){
     if (!d.exists) return showAlert('त्रुटि', 'ऑर्डर नहीं मिला');
     var o = d.data();
-    var paid = (o.payment && /paid/i.test(o.payment.status || '')) ;
+    var paid = !!(o.payment && (o.payment.verified || /^paid/i.test(o.payment.status || '')));
+    var verifying = !!(o.payment && !paid && /verifying/i.test(o.payment.status || ''));
     var rows = (o.items || []).map(function(it){
       return '<tr><td>' + proEsc(it.n) + ' × ' + (it.qty||1) + '</td><td class="tr">₹' + (it.p*(it.qty||1)) + '</td></tr>';
     }).join('');
     window.__proBillTxt = '🧾 *SewaAstra Bill*%0A🆔 ' + oid + '%0A' + (o.items||[]).map(function(i){ return '• ' + i.n + ' x' + (i.qty||1) + ' = ₹' + (i.p*(i.qty||1)); }).join('%0A') + '%0A💰 Total: ₹' + o.total + '%0A' + (paid ? '✅ PAID' : '⏳ Payment Due — UPI: ' + proUpiId());
     document.getElementById('proBillInner').innerHTML =
       '<div class="pro-bill-head">' +
-        '<span class="st" style="background:' + (paid?'#1fc25e':'#f5a623') + ';color:#fff;">' + (paid?'✅ PAID':'⏳ DUE') + '</span>' +
+        '<span class="st" style="background:' + (paid?'#1fc25e':(verifying?'#b07800':'#f5a623')) + ';color:#fff;">' + (paid?'✅ PAID':(verifying?'⏳ VERIFYING':'⏳ DUE')) + '</span>' +
         '<div style="font-size:19px;font-weight:900;">🛠️ SewaAstra</div>' +
         '<div style="font-size:11px;opacity:.85;">TAX INVOICE / BILL</div>' +
         '<div style="font-size:11px;margin-top:6px;">🆔 <b>' + proEsc(oid) + '</b> &nbsp;•&nbsp; 📅 ' + proEsc(o.timestamp||'') + '</div>' +
@@ -3956,13 +3957,15 @@ window.proShowBill = function(oid, thenRate){
         '</table>' +
         (paid
           ? '<div style="text-align:center;background:#e6f7ed;border:1px solid #a8e6c2;border-radius:12px;padding:11px;margin-top:10px;font-weight:900;color:#0f7a37;font-size:13px;">✅ भुगतान हो चुका है' + (o.payment && o.payment.ref ? '<br><span style="font-size:10px;font-weight:700;">Ref: ' + proEsc(o.payment.ref) + '</span>' : '') + '</div>'
+          : (verifying
+          ? '<div style="text-align:center;background:#fff8e6;border:1px solid #ffe1a0;border-radius:12px;padding:13px;margin-top:10px;font-weight:900;color:#b07800;font-size:12.5px;">⏳ Payment Verification में है' + (o.payment && o.payment.ref ? '<br><span style="font-size:10px;font-weight:700;">UTR: ' + proEsc(o.payment.ref) + '</span>' : '') + '<br><span style="font-size:10px;font-weight:700;">Admin जल्द confirm करेंगे ✅</span></div>'
           : '<div style="text-align:center;margin-top:8px;">' +
               '<div style="font-size:12px;font-weight:900;color:#ff6b00;">📲 UPI से भुगतान करें — Scan QR</div>' +
               '<div id="proQrBox"></div>' +
               '<div style="font-size:11px;color:#888;">UPI ID: <b>' + proEsc(proUpiId()) + '</b></div>' +
               '<a href="' + proUpiLink(o.total, oid, 'phonepe') + '" style="display:inline-block;margin:8px 3px 0;background:linear-gradient(90deg,#5f259f,#7b3fc4);color:#fff;padding:11px 18px;border-radius:12px;text-decoration:none;font-weight:900;font-size:12.5px;">💜 PhonePe ₹' + o.total + '</a>' +
               '<a href="' + proUpiLink(o.total, oid) + '" style="display:inline-block;margin:8px 3px 0;background:linear-gradient(90deg,#15a04a,#1fc25e);color:#fff;padding:11px 18px;border-radius:12px;text-decoration:none;font-weight:900;font-size:12.5px;">💳 अन्य UPI</a>' +
-            '</div>') +
+            '</div>')) +
         '<div style="display:flex;gap:8px;margin-top:14px;">' +
           '<button class="pro-bill-btn" style="background:#0d6efd;color:#fff;" onclick="proPrintBill(\'' + oid + '\')">🖨️ Print / PDF</button>' +
           '<button class="pro-bill-btn" style="background:#25d366;color:#fff;" onclick="window.open(\'https://wa.me/?text=\'+window.__proBillTxt,\'_blank\')">📤 Share</button>' +
@@ -4031,8 +4034,8 @@ function proOpenPayment(amt, onDone){
     '<a href="' + proUpiLink(amt, 'SewaAstra Order', 'phonepe') + '" class="pro-pay-link" style="display:inline-block;margin:10px 4px 4px;background:linear-gradient(90deg,#5f259f,#7b3fc4);color:#fff;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:900;font-size:13.5px;box-shadow:0 8px 20px rgba(95,37,159,.4);">💜 PhonePe से Pay करें</a>' +
     '<a href="' + proUpiLink(amt, 'SewaAstra Order') + '" class="pro-pay-link" style="display:inline-block;margin:10px 4px 4px;background:linear-gradient(90deg,#15a04a,#1fc25e);color:#fff;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:900;font-size:13.5px;box-shadow:0 8px 20px rgba(21,160,74,.35);">📲 अन्य UPI App</a>' +
     '<div class="pro-pay-step"><b>1.</b> QR scan करें या ऊपर के button से PhonePe/GPay/Paytm में pay करें</div>' +
-    '<div class="pro-pay-step"><b>2.</b> Payment के बाद UTR/Ref no. (optional) डालें</div>' +
-    '<input id="proPayRef" placeholder="UTR / Transaction ID (optional)" style="width:calc(100% - 32px);margin:6px 16px;border:1.5px solid var(--border-color,#ddd);border-radius:10px;padding:11px;font-size:13px;background:var(--card-bg);color:var(--text);">' +
+    '<div class="pro-pay-step"><b>2.</b> Payment के बाद <b>UTR / Transaction ID डालना ज़रूरी है</b> — तभी order खुलेगा</div>' +
+    '<input id="proPayRef" placeholder="UTR / Transaction ID (ज़रूरी) *" style="width:calc(100% - 32px);margin:6px 16px;border:1.5px solid var(--border-color,#ddd);border-radius:10px;padding:11px;font-size:13px;background:var(--card-bg);color:var(--text);">' +
     '<div id="proPayLock" style="margin:10px 16px 0;background:#f4f0ec;border:1.5px dashed #d9cfc4;border-radius:12px;padding:12px;font-size:12px;font-weight:800;color:#998;display:flex;align-items:center;justify-content:center;gap:7px;">🔒 पहले ऊपर से Payment पूरा करें — फिर Order button यहाँ खुलेगा</div>' +
     '<div id="proPayWait" style="display:none;margin:10px 16px 0;background:#fff5ed;border:1.5px dashed #ffb066;border-radius:12px;padding:12px;font-size:12px;font-weight:800;color:#e85a0c;">⏳ Payment check हो रहा है... UPI app से वापस आइए</div>' +
     '<div id="proPayBtnRow" style="display:none;gap:8px;margin:10px 16px 0;">' +
@@ -4055,31 +4058,49 @@ function proOpenPayment(amt, onDone){
     try{ if (navigator.vibrate) navigator.vibrate([80,50,80]); }catch(e){}
     showToast('✅ अब Order Place कर सकते हैं!');
   }
+  function proAskUTR(){
+    var w = document.getElementById('proPayWait');
+    w.style.display = 'block';
+    w.innerHTML = '🧾 Payment हो गया? अब नीचे <b>UTR / Transaction ID</b> डालें — उसके बाद ही Order button खुलेगा';
+    var inp = document.getElementById('proPayRef');
+    inp.style.borderColor = '#ff6b00';
+    inp.style.boxShadow = '0 0 0 3px rgba(255,107,0,.18)';
+    inp.focus();
+  }
   document.querySelectorAll('#proPayInner .pro-pay-link').forEach(function(a){
     a.addEventListener('click', function(){
       payAttempted = true;
       document.getElementById('proPayLock').style.display = 'none';
       document.getElementById('proPayWait').style.display = 'block';
-      /* agar UPI app nahi khula (desktop), 12s baad unlock */
-      setTimeout(function(){ if (payAttempted && !unlocked) proUnlockOrder(); }, 12000);
+      setTimeout(function(){ if (payAttempted && !unlocked) proAskUTR(); }, 12000);
     });
   });
-  /* UPI app se wapas aate hi Order button POPUP */
+  /* UPI app se wapas → UTR required (auto-unlock NAHI) */
   function proVisBack(){
     if (document.visibilityState === 'visible' && payAttempted && !unlocked){
-      setTimeout(proUnlockOrder, 700);
+      setTimeout(proAskUTR, 600);
     }
   }
   document.addEventListener('visibilitychange', proVisBack);
-  /* QR scan wale doosre phone se pay karte hain — unke liye UTR daalte hi unlock */
+  /* UTR verify: 10+ chars → verifying → tab Order button popup */
+  var verTimer = null;
   document.getElementById('proPayRef').addEventListener('input', function(){
-    if (this.value.trim().length >= 6) proUnlockOrder();
+    var v = this.value.trim().replace(/\s/g, '');
+    clearTimeout(verTimer);
+    if (v.length >= 10 && !unlocked){
+      var w = document.getElementById('proPayWait');
+      w.style.display = 'block';
+      w.innerHTML = '⏳ UTR <b>' + v.slice(0,4) + '…' + v.slice(-4) + '</b> verify हो रहा है...';
+      verTimer = setTimeout(proUnlockOrder, 1600);
+    }
   });
 
   document.getElementById('proPayDoneBtn').onclick = function(){
+    var ref = (document.getElementById('proPayRef').value || '').trim();
+    if (ref.replace(/\s/g, '').length < 10) return showAlert('UTR ज़रूरी है', 'कृपया UPI app से 12-अंकों का UTR / Transaction ID copy करके डालें — तभी order place होगा।');
     document.removeEventListener('visibilitychange', proVisBack);
     m.classList.remove('open');
-    onDone((document.getElementById('proPayRef').value || '').trim());
+    onDone(ref);
   };
   document.getElementById('proPayCancelBtn').onclick = function(){
     document.removeEventListener('visibilitychange', proVisBack);
@@ -4123,14 +4144,16 @@ window.handleFinalOrder = function(){
       localStorage.setItem('sw_order_history', JSON.stringify(hist.slice(0, 50)));
       var waMsg = '*🚀 New SewaAstra Booking!*%0A🆔 Order ID: ' + oid + '%0A👤 User: ' + userMobile +
         '%0A📦 Items: ' + cart.map(function(i){ return i.n + ' (x' + (i.qty||1) + ')'; }).join(', ') +
-        '%0A💰 Total: ₹' + finalAmt + ' (' + selectedMode + (payment && /paid/i.test(payment.status) ? ' — PAID ✅' + (payment.ref ? ' Ref:' + payment.ref : '') : '') + ')' +
+        '%0A💰 Total: ₹' + finalAmt + ' (' + selectedMode + (payment && /verifying/i.test(payment.status||'') ? ' — 💳 UTR: ' + payment.ref + ' ⚠️VERIFY करें' : (payment && /paid/i.test(payment.status||'') ? ' — PAID ✅' : '')) + ')' +
         '%0A📍 Address: ' + address + '%0A🗺️ Map: ' + mapsLink + '%0A📅 ' + date + ' at ' + time + '%0A📝 ' + (remark || 'None');
       closeCart(); cart = [];
       try{ renderCart(); }catch(e){}
       document.getElementById('bCount').innerText = '0';
       appliedDiscount = 0;
-      var payLine = (payment && /paid/i.test(payment.status))
-        ? '<br><span style="color:#15a04a;font-weight:800;">✅ भुगतान सफल — ₹' + finalAmt + (payment.ref ? ' (Ref: ' + proEsc(payment.ref) + ')' : '') + '</span>'
+      var payLine = (payment && payment.verified)
+        ? '<br><span style="color:#15a04a;font-weight:800;">✅ भुगतान सफल — ₹' + finalAmt + '</span>'
+        : (payment && /verifying/i.test(payment.status||''))
+        ? '<br><span style="color:#b07800;font-weight:800;">⏳ Payment verification में — UTR: ' + proEsc(payment.ref||'') + '<br>Admin जल्द confirm करेंगे</span>'
         : '';
       showAlert('बुकिंग सफल! 🎉', 'आपका ऑर्डर <b>' + oid + '</b> ☁️ cloud में सेव हो गया है!' + payLine + '<br>स्टेटस अपडेट 📋 History में मिलेंगे।<br><br>WhatsApp पर विवरण भेजा जा रहा है...');
       setTimeout(function(){ window.open('https://wa.me/917869969190?text=' + waMsg, '_blank'); }, 1800);
@@ -4141,7 +4164,7 @@ window.handleFinalOrder = function(){
 
   if (selectedMode === 'Online'){
     proOpenPayment(finalAmt, function(ref){
-      placeOrder({ method:'UPI', status:'Paid (customer confirmed)', ref: ref || '', paidAt: Date.now(), upi: proUpiId(), gateway:'PhonePe', mid: PRO_PHONEPE_MID });
+      placeOrder({ method:'UPI', status:'Payment Verifying', verified:false, ref: ref || '', paidAt: Date.now(), upi: proUpiId(), gateway:'PhonePe', mid: PRO_PHONEPE_MID });
     });
   } else {
     placeOrder({ method:'Cash', status:'Pay after service' });
@@ -4163,12 +4186,13 @@ window.showHistory = function(){
       var canCancel = ['Order Placed','Accepted'].indexOf(o.status) > -1;
       var canRate = o.status === 'Completed' && !o.rated;
       var canDel = ['Completed','Cancelled'].indexOf(o.status) > -1;
-      var paid = o.payment && /paid/i.test(o.payment.status || '');
+      var paid = o.payment && (o.payment.verified || /^paid/i.test(o.payment.status || ''));
+      var verifying = o.payment && !paid && /verifying/i.test(o.payment.status || '');
       html += '<div style="background:var(--card-bg); border:1px solid var(--border-color); padding:14px; border-radius:14px; margin-bottom:12px; box-shadow:0 4px 12px rgba(13,30,60,.06);">' +
         '<div style="display:flex; justify-content:space-between; align-items:center; font-weight:800; font-size:14px;">' +
           '<span style="color:var(--primary);">' + o.id + '</span>' +
           '<span style="background:' + clr + '22;color:' + clr + ';padding:3px 10px;border-radius:12px;font-size:11px;">' + (STATUS_HI[o.status] || o.status) + '</span></div>' +
-        '<div style="font-size:12px; color:#888; margin:4px 0;">📅 ' + proEsc(o.date) + ' | ⏰ ' + proEsc(o.time) + ' | <b style="color:#15a04a;">₹' + o.total + '</b> (' + o.mode + (paid ? ' ✅PAID' : '') + ')</div>' +
+        '<div style="font-size:12px; color:#888; margin:4px 0;">📅 ' + proEsc(o.date) + ' | ⏰ ' + proEsc(o.time) + ' | <b style="color:#15a04a;">₹' + o.total + '</b> (' + o.mode + (paid ? ' ✅PAID' : (verifying ? ' ⏳Verifying' : '')) + ')</div>' +
         '<div style="font-size:12px; margin:4px 0;">📍 ' + proEsc(o.address) + '</div>' +
         '<div style="font-size:12px; font-weight:700; margin-top:4px;">🛠️ ' + (o.items||[]).map(function(i){ return proEsc(i.n) + ' (x' + (i.qty||1) + ')'; }).join(', ') + '</div>' +
         (o.rated ? '<div style="font-size:12px;color:#f5a623;font-weight:800;margin-top:4px;">⭐ आपने रेटिंग दे दी है</div>' : '') +
@@ -4189,5 +4213,168 @@ window.showHistory = function(){
 console.log('%c SewaAstra v2.9 🚀 skeleton | i18n | celebration | bill+QR | pay-first ', 'background:#e91e63;color:#fff;font-weight:bold;padding:4px;');
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a34dac45ea6f4936',t:'MTc4ODM2NDI1Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<style id="premiumV32">
+/* ═══ REVIEWS VIEWER ═══ */
+.pro-rev-top{display:flex;gap:16px;align-items:center;background:linear-gradient(120deg,#fff7f0,#ffefe0);border:1px solid #ffd9bb;border-radius:16px;padding:14px;margin-bottom:12px;}
+body.dark-mode .pro-rev-top{background:linear-gradient(120deg,#2b2016,#241a10);border-color:#3a2d20;}
+.pro-rev-avg{font-size:38px;font-weight:900;color:#ff6b00;line-height:1;}
+.pro-rev-bar{height:7px;border-radius:4px;background:#eee;overflow:hidden;flex:1;}
+.pro-rev-bar span{display:block;height:100%;background:linear-gradient(90deg,#f5a623,#ffc107);border-radius:4px;}
+.pro-rev-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:14px;padding:11px 13px;margin-bottom:9px;text-align:left;}
+.pro-rev-stars{color:#f5a623;font-size:13px;letter-spacing:1px;}
+.rating-row{cursor:pointer;}
+.pro-verify-btn{
+  width:100%;margin-top:8px;background:linear-gradient(90deg,#b07800,#d99c1a)!important;color:#fff!important;
+  border:none!important;border-radius:10px!important;padding:10px!important;
+  font-size:11.5px!important;font-weight:900!important;cursor:pointer;
+  animation:instGlow 1.8s ease-in-out infinite;
+}
+.pro-paystat{font-size:11px;font-weight:800;margin-top:6px;padding:6px 10px;border-radius:8px;display:inline-block;}
+</style>
+<script>
+/* ═══════════ SEWAASTRA v32 ═══════════
+   1. Admin: Payment Verify button (UTR ke saath)
+   2. Rating par click → saare reviews dekho
+*/
+
+/* ---------- 1. ADMIN PAYMENT VERIFY ---------- */
+window.adminVerifyPayment = function(oid, ref){
+  if(!confirm('PhonePe Business app me check kiya?\nUTR: ' + (ref||'—') + '\n\nPayment VERIFY karein?')) return;
+  FS.collection('orders').doc(oid).update({
+    'payment.verified': true,
+    'payment.status': 'PAID (Admin Verified)',
+    'payment.verifiedAt': Date.now()
+  }).then(function(){ showToast('✅ Payment verified — ' + oid); })
+    .catch(function(e){ showAlert('त्रुटि', e.message); });
+};
+(function(){
+  var _rao = window.renderAdminOrders;
+  window.renderAdminOrders = function(orders){
+    _rao(orders);
+    try{
+      var list = document.getElementById('admOrdersList');
+      if(!list) return;
+      var cards = list.children;
+      for(var i = 0; i < cards.length && i < orders.length; i++){
+        var o = orders[i];
+        if(!o.payment || cards[i].querySelector('.pro-paystat')) continue;
+        var p = o.payment;
+        var verified = p.verified || /^paid/i.test(p.status||'');
+        var verifying = !verified && /verifying/i.test(p.status||'');
+        var tag = verified
+          ? '<span class="pro-paystat" style="background:#e6f7ed;color:#0f7a37;">✅ PAID' + (p.ref ? ' • UTR: ' + proEsc(p.ref) : '') + '</span>'
+          : verifying
+          ? '<span class="pro-paystat" style="background:#fff8e6;color:#b07800;">⏳ Verify करना बाकी • UTR: ' + proEsc(p.ref||'—') + '</span>'
+          : '<span class="pro-paystat" style="background:#f4f0ec;color:#888;">💵 ' + proEsc(p.status||'Cash') + '</span>';
+        var del = cards[i].querySelector('.pro-adm-del');
+        var host = document.createElement('div');
+        host.innerHTML = tag + (verifying ? '<button class="pro-verify-btn" onclick="adminVerifyPayment(\'' + o.id + '\',\'' + proEsc(p.ref||'') + '\')">💜 PhonePe में UTR check करके Payment VERIFY करें</button>' : '');
+        if(del) cards[i].insertBefore(host, del); else cards[i].appendChild(host);
+      }
+    }catch(e){}
+  };
+})();
+
+/* customer ko verify hone par turant khabar */
+var proPayVerNotified = {};
+function proStartPayVerWatcher(){
+  try{
+    if (typeof isAdminUser === 'function' && isAdminUser()) return;
+    if (!getUID() && !getIdent()) return;
+    if (window.__proPayVerUnsub) window.__proPayVerUnsub();
+    window.__proPayVerUnsub = myOrdersQuery().onSnapshot(function(snap){
+      snap.docChanges().forEach(function(ch){
+        var o = ch.doc.data();
+        if (ch.type === 'modified' && o.payment && o.payment.verified && !proPayVerNotified[o.id]){
+          proPayVerNotified[o.id] = true;
+          showToast('✅ आपका Payment VERIFY हो गया — Order ' + o.id + ' 🎉');
+          try{ if (navigator.vibrate) navigator.vibrate([70,40,70]); }catch(e){}
+        }
+        if (o.payment && o.payment.verified) proPayVerNotified[o.id] = true;
+      });
+    }, function(e){});
+  }catch(e){}
+}
+firebase.auth().onAuthStateChanged(function(u){ if(u) setTimeout(proStartPayVerWatcher, 2200); });
+window.addEventListener('load', function(){
+  if (localStorage.getItem('sw_logged') === 'true') setTimeout(proStartPayVerWatcher, 3500);
+});
+
+/* ---------- 2. RATING CLICK → REVIEWS VIEWER ---------- */
+function proMaskUser(s){
+  s = String(s || '');
+  if (s.indexOf('@') > -1) return s.slice(0,3) + '***@' + s.split('@')[1];
+  if (s.length >= 10) return s.slice(0,2) + '******' + s.slice(-2);
+  return s || 'ग्राहक';
+}
+window.proShowReviews = function(){
+  showAlert('⭐ Ratings & Reviews', proSkList(3));
+  Promise.all([
+    FS.collection('partners').doc(PRO_PARTNER_PHONE).get(),
+    FS.collection('reviews').orderBy('ts', 'desc').limit(30).get()
+  ]).then(function(res){
+    var pd = res[0].exists ? res[0].data() : {};
+    var revs = res[1].docs.map(function(d){ return d.data(); });
+    var cnt = pd.ratingCount || revs.length;
+    var avg = pd.avgRating || (revs.length ? Math.round(revs.reduce(function(a,r){ return a + (r.rating||0); }, 0) / revs.length * 10) / 10 : 0);
+    if (!cnt && !revs.length)
+      return showAlert('⭐ Ratings & Reviews', '<div style="text-align:center;padding:20px;"><div style="font-size:44px;">🌟</div><div style="font-weight:900;margin-top:8px;">अभी कोई review नहीं</div><div style="font-size:12px;color:#888;margin-top:4px;">पहली service के बाद यहाँ reviews दिखेंगे</div></div>');
+    var dist = {1:0,2:0,3:0,4:0,5:0};
+    revs.forEach(function(r){ if(dist[r.rating] !== undefined) dist[r.rating]++; });
+    var bars = '';
+    for (var s = 5; s >= 1; s--){
+      var pc = revs.length ? Math.round(dist[s] / revs.length * 100) : 0;
+      bars += '<div style="display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:800;color:#888;margin-top:3px;"><span style="width:22px;">' + s + '★</span><div class="pro-rev-bar"><span style="width:' + pc + '%;"></span></div><span style="width:30px;">' + dist[s] + '</span></div>';
+    }
+    var html = '<div style="text-align:left;max-height:65vh;overflow-y:auto;">' +
+      '<div class="pro-rev-top">' +
+        '<div style="text-align:center;"><div class="pro-rev-avg">' + avg + '</div>' +
+        '<div class="pro-rev-stars">' + '★'.repeat(Math.round(avg)) + '<span style="color:#ddd;">' + '★'.repeat(5-Math.round(avg)) + '</span></div>' +
+        '<div style="font-size:10px;color:#888;font-weight:800;">' + cnt + ' reviews</div></div>' +
+        '<div style="flex:1;">' + bars + '</div>' +
+      '</div>';
+    revs.forEach(function(r){
+      var d = r.at || (r.ts ? new Date(r.ts).toLocaleDateString('hi-IN') : '');
+      html += '<div class="pro-rev-card">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+          '<span class="pro-rev-stars">' + '★'.repeat(r.rating||0) + '<span style="color:#ddd;">' + '★'.repeat(5-(r.rating||0)) + '</span></span>' +
+          '<span style="font-size:10px;color:#999;">' + proEsc(d) + '</span></div>' +
+        (r.comment ? '<div style="font-size:12.5px;margin-top:5px;line-height:1.5;">' + proEsc(r.comment) + '</div>' : '') +
+        '<div style="font-size:10.5px;color:#999;margin-top:5px;font-weight:700;">👤 ' + proEsc(proMaskUser(r.by)) + (r.orderId ? ' • ' + proEsc(r.orderId) : '') + '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+    showAlert('⭐ Ratings & Reviews', html);
+  }).catch(function(e){ showAlert('त्रुटि', e.message); });
+};
+/* har rating par click → reviews */
+document.body.addEventListener('click', function(e){
+  if (e.target.closest('.rating-row') || e.target.closest('.svc-hero .sub')) proShowReviews();
+});
+
+/* cards par REAL avg rating dikhana (Firebase se) */
+function proPaintAvg(){
+  if (!window.__proAvgTxt) return;
+  document.querySelectorAll('.rating-val').forEach(function(el){ el.innerText = window.__proAvgTxt; });
+  document.querySelectorAll('.review-count').forEach(function(el){ el.innerText = '(' + window.__proAvgCnt + ' reviews)'; });
+}
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    FS.collection('partners').doc(PRO_PARTNER_PHONE).get().then(function(d){
+      if (d.exists && d.data().avgRating){
+        window.__proAvgTxt = d.data().avgRating;
+        window.__proAvgCnt = d.data().ratingCount || 0;
+        proPaintAvg();
+        var t = null;
+        new MutationObserver(function(){ clearTimeout(t); t = setTimeout(proPaintAvg, 300); })
+          .observe(document.getElementById('display') || document.body, { childList:true, subtree:true });
+      }
+    }).catch(function(){});
+  }, 2500);
+});
+
+console.log('%c SewaAstra v3.2 ✅ pay-verify | reviews-viewer ', 'background:#b07800;color:#fff;font-weight:bold;padding:4px;');
+</script>
+
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a34dcac3297a7629',t:'MTc4ODM2NTUwMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
