@@ -1156,7 +1156,8 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
                 <button class="map-btn" onclick="openMapModal()">
                     <i class="fa fa-map"></i> मैप पर लोकेशन चुनें
                 </button>
-                <input type="text" id="manualAddr" class="addr-input" placeholder="मकान नं, गली या लैंडमार्क">
+                <input type="text" id="manualAddr" class="addr-input" placeholder="📍 एरिया / जगह का नाम + PIN (GPS से auto भरेगा)">
+                <input type="text" id="proAddrExtra" class="addr-input" placeholder="🏠 मकान नं / फ्लैट / गली / लैंडमार्क (Additional Address)">
                 <input type="tel" id="altMobile" class="addr-input" placeholder="वैकल्पिक मोबाइल नंबर">
                 <input type="hidden" id="googleMapsLink" value="Not Provided">
             </div>
@@ -1279,7 +1280,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
 <footer style="text-align: center; padding: 20px; margin-top: 50px; border-top: 1px solid var(--border-color); font-size: 13px;">
     <p>&copy; 2026 SewaAstra. All rights reserved.</p>
     <div style="margin-top: 8px; display: flex; justify-content: center; gap: 15px;">
-        <a href="policy.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">Privacy Policy</a>
+        <a href="privacy.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">Privacy Policy</a>
         <span style="color: #ccc;">|</span>
         <a href="about.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">About Us</a>
     </div>
@@ -4110,7 +4111,11 @@ function proOpenPayment(amt, onDone){
 }
 
 window.handleFinalOrder = function(){
-  var address = document.getElementById('manualAddr').value.trim();
+  var _extraEl = document.getElementById('proAddrExtra');
+  var _extra = _extraEl ? _extraEl.value.trim() : '';
+  var _area = document.getElementById('manualAddr').value.trim();
+  var address = (_extra ? _extra + ', ' : '') + _area;
+  try{ localStorage.setItem('sw_addr_line', _area); localStorage.setItem('sw_addr_extra', _extra); }catch(e){}
   var mobile = document.getElementById('altMobile').value.trim();
   var date = document.getElementById('cartDate').value;
   var time = document.getElementById('cartTime').value;
@@ -4376,5 +4381,125 @@ window.addEventListener('load', function(){
 console.log('%c SewaAstra v3.2 ✅ pay-verify | reviews-viewer ', 'background:#b07800;color:#fff;font-weight:bold;padding:4px;');
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a34dcac3297a7629',t:'MTc4ODM2NTUwMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>
+/* ═══════════ SEWAASTRA v33 — SMART LOCATION ═══════════
+   1. Jagah badalte hi header me area ka naam LIVE update
+   2. GPS/Map se cart me "Area, City - PIN" auto-fill
+   3. Additional address alag field + agli baar auto-yaad
+*/
+
+/* ---------- REVERSE GEOCODE helper ---------- */
+function proRevGeo(lat, lon){
+  return fetch('https://nominatim.openstreetmap.org/reverse?format=json&addressdetails=1&lat=' + lat + '&lon=' + lon)
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var a = d.address || {};
+      var area = a.neighbourhood || a.suburb || a.hamlet || a.quarter || a.residential || a.road || a.village || '';
+      var city = a.city || a.town || a.village || a.state_district || a.county || '';
+      var pin  = a.postcode || '';
+      var line = [area, city].filter(Boolean).join(', ') + (pin ? ' - ' + pin : '');
+      return { area: area || city || 'Current Location', city: city, pin: pin, line: line || 'Current Location' };
+    });
+}
+
+/* ---------- 2. GPS button → Area + PIN auto-fill ---------- */
+window.getLiveLocation = function(){
+  showLoader('लोकेशन प्राप्त की जा रही है...');
+  if (!navigator.geolocation){ hideLoader(); return showAlert('त्रुटि', 'GPS उपलब्ध नहीं है।'); }
+  navigator.geolocation.getCurrentPosition(function(pos){
+    hideLoader();
+    userCoords.lat = pos.coords.latitude;
+    userCoords.lon = pos.coords.longitude;
+    document.getElementById('googleMapsLink').value = 'https://www.google.com/maps?q=' + userCoords.lat + ',' + userCoords.lon;
+    proRevGeo(userCoords.lat, userCoords.lon).then(function(g){
+      document.getElementById('manualAddr').value = g.line;
+      document.getElementById('locTxt').innerText = g.area;
+      window.__proLastArea = g.area;
+      try{ localStorage.setItem('sw_addr_line', g.line); }catch(e){}
+      showToast('📍 ' + g.line + ' सेट हो गया!');
+      var ex = document.getElementById('proAddrExtra');
+      if (ex && !ex.value) ex.focus();
+    }).catch(function(){
+      document.getElementById('manualAddr').value = 'GPS Location (' + userCoords.lat.toFixed(3) + ', ' + userCoords.lon.toFixed(3) + ')';
+      document.getElementById('locTxt').innerText = 'लोकेशन सेट ✅';
+      showToast('GPS लोकेशन मिल गई! 📍');
+    });
+  }, function(){
+    hideLoader();
+    showAlert('लोकेशन त्रुटि', 'लोकेशन अनुमति दें या मैप से चुनें।');
+  }, { enableHighAccuracy: true, timeout: 12000 });
+};
+
+/* ---------- Map pin confirm → bhi area+PIN ---------- */
+window.confirmMapLocation = function(){
+  document.getElementById('googleMapsLink').value = 'https://www.google.com/maps?q=' + userCoords.lat + ',' + userCoords.lon;
+  closeMapModal();
+  showLoader('जगह का नाम निकाला जा रहा है...');
+  proRevGeo(userCoords.lat, userCoords.lon).then(function(g){
+    hideLoader();
+    document.getElementById('manualAddr').value = g.line;
+    document.getElementById('locTxt').innerText = g.area;
+    window.__proLastArea = g.area;
+    try{ localStorage.setItem('sw_addr_line', g.line); }catch(e){}
+    showToast('📍 ' + g.line + ' कन्फर्म!');
+  }).catch(function(){
+    hideLoader();
+    document.getElementById('manualAddr').value = 'Map Pin: ' + userCoords.lat.toFixed(4) + ', ' + userCoords.lon.toFixed(4);
+    document.getElementById('locTxt').innerText = 'मैप सेट ✅';
+    showToast('मैप लोकेशन कन्फर्म हो गई!');
+  });
+};
+
+/* ---------- 1. LIVE WATCH: jagah badli → header me naya area ---------- */
+function proDist(a1, o1, a2, o2){
+  var R = 6371000, dLat = (a2-a1) * Math.PI/180, dLon = (o2-o1) * Math.PI/180;
+  var x = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(a1*Math.PI/180) * Math.cos(a2*Math.PI/180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
+}
+var proLastGeo = { lat: 0, lon: 0, ts: 0 };
+function proStartLocWatch(){
+  if (!navigator.geolocation || window.__proLocWatch) return;
+  window.__proLocWatch = navigator.geolocation.watchPosition(function(pos){
+    var la = pos.coords.latitude, lo = pos.coords.longitude;
+    userCoords.lat = la; userCoords.lon = lo;
+    var now = Date.now();
+    /* 150m+ move + 20s gap → naya area naam laao */
+    if (proDist(proLastGeo.lat, proLastGeo.lon, la, lo) > 150 && now - proLastGeo.ts > 20000){
+      proLastGeo = { lat: la, lon: lo, ts: now };
+      proRevGeo(la, lo).then(function(g){
+        var el = document.getElementById('locTxt');
+        if (el) el.innerText = g.area;
+        if (window.__proLastArea && window.__proLastArea !== g.area){
+          showToast('📍 अब आप ' + g.area + ' में हैं');
+        }
+        window.__proLastArea = g.area;
+      }).catch(function(){});
+    }
+  }, function(){}, { enableHighAccuracy: false, maximumAge: 25000, timeout: 20000 });
+}
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    if (localStorage.getItem('sw_logged') === 'true') proStartLocWatch();
+  }, 4000);
+});
+
+/* ---------- 3. Cart khulte hi saved address auto-fill ---------- */
+(function(){
+  var _co = window.checkout;
+  if (typeof _co !== 'function') return;
+  window.checkout = function(){
+    _co();
+    try{
+      var m = document.getElementById('manualAddr');
+      var e = document.getElementById('proAddrExtra');
+      if (m && !m.value.trim() && localStorage.getItem('sw_addr_line')) m.value = localStorage.getItem('sw_addr_line');
+      if (e && !e.value.trim() && localStorage.getItem('sw_addr_extra')) e.value = localStorage.getItem('sw_addr_extra');
+    }catch(x){}
+  };
+})();
+
+console.log('%c SewaAstra v3.3 📍 live area | auto PIN | extra address ', 'background:#0d6efd;color:#fff;font-weight:bold;padding:4px;');
+</script>
+
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a34e147898982062',t:'MTc4ODM2ODUyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
