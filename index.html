@@ -728,6 +728,68 @@ body.dark-mode #display img, body.dark-mode #bannerCarouselArea img{background:#
 .pro-orb, .pa-orb{will-change:transform;}
 </style>
 
+<style id="premiumV29">
+/* ═══ SHIMMER SKELETON ═══ */
+.pro-sk{position:relative;overflow:hidden;background:#eee6dd;border-radius:14px;}
+body.dark-mode .pro-sk{background:#2a221b;}
+.pro-sk::after{
+  content:"";position:absolute;inset:0;transform:translateX(-100%);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);
+  animation:skShine 1.15s infinite;
+}
+body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);}
+@keyframes skShine{100%{transform:translateX(100%)}}
+.pro-sk-card{display:flex;gap:12px;padding:12px;border:1px solid var(--border-color,#f0e7dc);border-radius:16px;margin-bottom:12px;background:var(--card-bg,#fff);}
+.pro-sk-img{width:92px;height:92px;flex:0 0 92px;}
+.pro-sk-l1{height:15px;width:70%;margin-bottom:9px;}
+.pro-sk-l2{height:11px;width:45%;margin-bottom:9px;}
+.pro-sk-l3{height:26px;width:55%;border-radius:8px;}
+.pro-sk-banner{height:150px;border-radius:16px;margin:0 0 10px;}
+.pro-sk-row{height:64px;margin-bottom:10px;border-radius:14px;}
+
+/* ═══ COUPON CELEBRATION ═══ */
+#proConfettiWrap{position:fixed;inset:0;z-index:99999990;pointer-events:none;overflow:hidden;display:none;}
+.pro-cf{position:absolute;top:-14px;width:9px;height:15px;border-radius:2px;animation:cfFall linear forwards;}
+@keyframes cfFall{
+  0%{transform:translateY(-10px) rotate(0) rotateY(0);opacity:1}
+  100%{transform:translateY(105vh) rotate(720deg) rotateY(540deg);opacity:.75}
+}
+#proCelebCard{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.5);z-index:99999991;
+  background:linear-gradient(135deg,#15a04a,#1fc25e);color:#fff;border-radius:22px;
+  padding:26px 34px;text-align:center;box-shadow:0 25px 70px rgba(21,160,74,.5);
+  opacity:0;pointer-events:none;transition:all .35s cubic-bezier(.2,.9,.3,1.4);
+}
+#proCelebCard.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+#proCelebCard .big{font-size:44px;animation:instFloat 1.2s ease-in-out infinite;}
+#proCelebCard .amt{font-size:26px;font-weight:900;margin:4px 0;}
+
+/* ═══ BILL / INVOICE ═══ */
+#proBillModal,#proPayModal{
+  position:fixed;inset:0;z-index:99999600;display:none;align-items:center;justify-content:center;
+  background:rgba(8,12,24,.6);backdrop-filter:blur(5px);padding:14px;
+}
+#proBillModal.open,#proPayModal.open{display:flex;}
+.pro-bill{
+  width:100%;max-width:400px;max-height:90dvh;overflow-y:auto;background:#fff;color:#1c2333;
+  border-radius:20px;animation:instPop .4s cubic-bezier(.2,.9,.3,1.2);
+}
+.pro-bill-head{background:linear-gradient(120deg,#0b1220,#3a1c0a 130%);color:#fff;padding:18px;border-radius:20px 20px 0 0;position:relative;}
+.pro-bill-head .st{position:absolute;top:14px;right:14px;font-size:10px;font-weight:900;padding:5px 11px;border-radius:12px;}
+.pro-bill table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.pro-bill td{padding:7px 0;border-bottom:1px dashed #eee;}
+.pro-bill .tr{text-align:right;font-weight:800;}
+#proQrBox{display:flex;justify-content:center;margin:10px 0;}
+#proQrBox img,#proQrBox canvas{border:8px solid #fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.15);}
+.pro-bill-btn{flex:1;border:none;border-radius:12px;padding:12px;font-weight:900;font-size:12.5px;cursor:pointer;}
+
+/* ═══ PAYMENT SHEET ═══ */
+.pro-pay{width:100%;max-width:400px;max-height:90dvh;overflow-y:auto;background:var(--card-bg,#fff);color:var(--text,#222);border-radius:20px;animation:instPop .4s cubic-bezier(.2,.9,.3,1.2);text-align:center;padding-bottom:16px;}
+.pro-pay-amt{font-size:34px;font-weight:900;color:#15a04a;}
+.pro-pay-step{display:flex;gap:8px;align-items:flex-start;text-align:left;font-size:12px;margin:7px 16px;color:#666;}
+.pro-pay-step b{color:#ff6b00;}
+</style>
+
 </head>
 <body id="mainBody">
 
@@ -3712,5 +3774,381 @@ if ('requestIdleCallback' in window){
 console.log('%c SewaAstra v2.8 ⚡ SPEED ENGINE — lazy leaflet | fast images ', 'background:#e6f7ed;color:#0f7a37;font-weight:bold;padding:4px;');
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a34d442cedd73e3f',t:'MTc4ODM1OTk4OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>
+/* ═══════════ SEWAASTRA v29 MEGA ═══════════
+   1. Shimmer skeletons  2. Language engine  3. Coupon celebration
+   4. Bill + UPI QR (78699691901)  5. Online = payment-first order
+*/
+
+/* ---------- 1. SHIMMER SKELETONS ---------- */
+var PRO_SK_CARD = '<div class="pro-sk-card pro-sk-tmp"><div class="pro-sk pro-sk-img"></div><div style="flex:1;"><div class="pro-sk pro-sk-l1"></div><div class="pro-sk pro-sk-l2"></div><div class="pro-sk pro-sk-l3"></div></div></div>';
+function proSkeletonHome(){
+  var d = document.getElementById('display');
+  if (d && !d.querySelector('.card') && !d.querySelector('.pro-sk-tmp'))
+    d.innerHTML = PRO_SK_CARD + PRO_SK_CARD + PRO_SK_CARD + PRO_SK_CARD;
+  var b = document.getElementById('bannerCarouselArea');
+  if (b && !b.querySelector('img') && !b.querySelector('.pro-sk-tmp'))
+    b.innerHTML = '<div class="pro-sk pro-sk-banner pro-sk-tmp" style="min-width:100%;"></div>';
+}
+proSkeletonHome();
+function proSkList(n){
+  var h = '';
+  for (var i = 0; i < (n || 3); i++) h += '<div class="pro-sk pro-sk-row"></div>';
+  return '<div style="padding:4px 0;">' + h + '</div>';
+}
+
+/* ---------- 2. LANGUAGE ENGINE (pura app) ---------- */
+var PRO_I18N = {
+  en: {
+    'सुप्रभात 🌞':'Good Morning 🌞','नमस्ते 👋':'Hello 👋','शुभ संध्या 🌙':'Good Evening 🌙',
+    'आपका कार्ट खाली है':'Your cart is empty','कोई भी सर्विस चुनें — expert घर आएगा!':'Pick any service — expert comes home!',
+    '🛠️ Services देखें':'🛠️ Browse Services','विकल्प चुनें (Select Option):':'Select Option:',
+    'कुल कीमत':'Total Price','🛒 कार्ट में जोड़ें':'🛒 Add to Cart','✨ सर्विस विवरण':'✨ Service Details',
+    'हमारे expert का काम कैसा रहा?':'How was our expert\u2019s work?','⭐ रिव्यू सबमिट करें':'⭐ Submit Review',
+    'अपना अनुभव लिखें...':'Write your experience...','मोबाइल नंबर दर्ज करें':'Enter mobile number',
+    'पता':'Address','तारीख':'Date','समय':'Time','भुगतान':'Payment','कुल':'Total','छूट':'Discount',
+    'भाषा बदली गई!':'Language changed!','सेवा को रेट करें':'Rate the Service',
+    '📲 App डाउनलोड करें':'📲 Download App','कूपन लग गया! 🎉':'Coupon Applied! 🎉',
+    'बधाई हो!':'Congratulations!','मेरे ऑर्डर':'My Orders','इतिहास':'History','होम':'Home','सहायता':'Support'
+  },
+  bh: {
+    'सुप्रभात 🌞':'सुप्रभात 🌞','नमस्ते 👋':'प्रणाम 🙏','शुभ संध्या 🌙':'शुभ साँझ 🌙',
+    'आपका कार्ट खाली है':'रउरा कार्ट खाली बा','कोई भी सर्विस चुनें — expert घर आएगा!':'कवनो सर्विस चुनीं — एक्सपर्ट घरे आई!',
+    '🛠️ Services देखें':'🛠️ सर्विस देखीं','कुल कीमत':'कुल दाम','🛒 कार्ट में जोड़ें':'🛒 कार्ट में जोड़ीं',
+    'हमारे expert का काम कैसा रहा?':'हमार एक्सपर्ट के काम कइसन रहल?','⭐ रिव्यू सबमिट करें':'⭐ रिव्यू भेजीं',
+    'अपना अनुभव लिखें...':'आपन अनुभव लिखीं...','भाषा बदली गई!':'भाषा बदल गइल!','मेरे ऑर्डर':'हमार ऑर्डर'
+  },
+  pb: {
+    'सुप्रभात 🌞':'ਸ਼ੁਭ ਸਵੇਰ 🌞','नमस्ते 👋':'ਸਤ ਸ੍ਰੀ ਅਕਾਲ 🙏','शुभ संध्या 🌙':'ਸ਼ੁਭ ਸ਼ਾਮ 🌙',
+    'आपका कार्ट खाली है':'ਤੁਹਾਡਾ ਕਾਰਟ ਖਾਲੀ ਹੈ','कोई भी सर्विस चुनें — expert घर आएगा!':'ਕੋਈ ਵੀ ਸਰਵਿਸ ਚੁਣੋ — ਐਕਸਪਰਟ ਘਰ ਆਵੇਗਾ!',
+    '🛠️ Services देखें':'🛠️ ਸਰਵਿਸਾਂ ਵੇਖੋ','कुल कीमत':'ਕੁੱਲ ਕੀਮਤ','🛒 कार्ट में जोड़ें':'🛒 ਕਾਰਟ ਵਿੱਚ ਪਾਓ',
+    'हमारे expert का काम कैसा रहा?':'ਸਾਡੇ ਐਕਸਪਰਟ ਦਾ ਕੰਮ ਕਿਵੇਂ ਰਿਹਾ?','⭐ रिव्यू सबमिट करें':'⭐ ਰਿਵਿਊ ਭੇਜੋ',
+    'अपना अनुभव लिखें...':'ਆਪਣਾ ਤਜਰਬਾ ਲਿਖੋ...','भाषा बदली गई!':'ਭਾਸ਼ਾ ਬਦਲ ਗਈ!','मेरे ऑर्डर':'ਮੇਰੇ ਆਰਡਰ'
+  }
+};
+function proApplyLang(){
+  var lang = (typeof currentLang !== 'undefined') ? currentLang : 'hi';
+  var dict = PRO_I18N[lang];
+  var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  var n;
+  while ((n = walker.nextNode())){
+    var t = n.nodeValue.trim();
+    if (!t) continue;
+    if (n.__hi === undefined && lang !== 'hi' && dict && dict[t]) n.__hi = n.nodeValue;
+    if (lang === 'hi'){ if (n.__hi !== undefined) n.nodeValue = n.__hi; }
+    else if (dict){
+      var base = (n.__hi !== undefined) ? n.__hi.trim() : t;
+      if (dict[base]) n.nodeValue = n.nodeValue.replace(t, dict[base]);
+    }
+  }
+  document.querySelectorAll('input[placeholder],textarea[placeholder]').forEach(function(el){
+    var p = el.getAttribute('placeholder');
+    if (!el.__hiP && lang !== 'hi') el.__hiP = p;
+    if (lang === 'hi'){ if (el.__hiP) el.setAttribute('placeholder', el.__hiP); }
+    else if (dict){ var b = el.__hiP || p; if (dict[b]) el.setAttribute('placeholder', dict[b]); }
+  });
+}
+(function(){
+  var _sl = window.setLang;
+  window.setLang = function(l, ev){ _sl(l, ev); setTimeout(proApplyLang, 60); };
+  var t = null;
+  new MutationObserver(function(){
+    if (typeof currentLang === 'undefined' || currentLang === 'hi') return;
+    clearTimeout(t); t = setTimeout(proApplyLang, 250);
+  }).observe(document.body, { childList: true, subtree: true });
+  window.addEventListener('load', function(){
+    var saved = localStorage.getItem('sw_lang');
+    if (saved && saved !== 'hi') setTimeout(proApplyLang, 1500);
+  });
+})();
+
+/* ---------- 3. COUPON CELEBRATION 🎉 ---------- */
+window.proCelebrate = function(amount){
+  var wrap = document.getElementById('proConfettiWrap');
+  if (!wrap){
+    document.body.insertAdjacentHTML('beforeend',
+      '<div id="proConfettiWrap"></div><div id="proCelebCard"><div class="big">🎉</div><div style="font-weight:900;font-size:15px;">कूपन लग गया!</div><div class="amt">₹' + amount + ' बचे!</div><div style="font-size:11px;opacity:.9;">बधाई हो!</div></div>');
+    wrap = document.getElementById('proConfettiWrap');
+  }
+  document.querySelector('#proCelebCard .amt').innerText = '₹' + amount + ' बचे!';
+  var colors = ['#ff6b00','#15a04a','#f5a623','#0d6efd','#e91e63','#9c27b0','#00bcd4'];
+  var bits = '';
+  for (var i = 0; i < 75; i++){
+    bits += '<span class="pro-cf" style="left:' + (Math.random()*100) + 'vw;background:' + colors[i%colors.length] +
+      ';animation-duration:' + (1.7+Math.random()*1.6) + 's;animation-delay:' + (Math.random()*0.5) + 's;width:' + (6+Math.random()*7) + 'px;"></span>';
+  }
+  wrap.innerHTML = bits; wrap.style.display = 'block';
+  var card = document.getElementById('proCelebCard');
+  card.classList.add('show');
+  try{ if (navigator.vibrate) navigator.vibrate([60,40,60]); }catch(e){}
+  setTimeout(function(){ card.classList.remove('show'); }, 2300);
+  setTimeout(function(){ wrap.style.display = 'none'; wrap.innerHTML = ''; }, 3600);
+};
+(function(){
+  var _ac = window.applyCoupon;
+  if (typeof _ac === 'function'){
+    window.applyCoupon = function(){
+      var before = appliedDiscount;
+      _ac();
+      if (appliedDiscount > 0 && appliedDiscount !== before) proCelebrate(appliedDiscount);
+    };
+  }
+})();
+
+/* ---------- QR LIB (on-demand) ---------- */
+window.proQRReady = null;
+function proEnsureQR(){
+  if (window.QRCode) return Promise.resolve();
+  if (window.proQRReady) return window.proQRReady;
+  window.proQRReady = new Promise(function(res, rej){
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+    s.onload = res;
+    s.onerror = function(){ window.proQRReady = null; rej(new Error('QR lib load failed')); };
+    document.head.appendChild(s);
+  });
+  return window.proQRReady;
+}
+var PRO_PHONEPE_MID = 'M23X4SPWMNOL8';   /* PhonePe Merchant ID */
+function proUpiId(){ return (CLOUD_CONFIG && CLOUD_CONFIG.upiId) ? CLOUD_CONFIG.upiId : '7869969190@ybl'; }
+function proUpiLink(amt, note, scheme){
+  var ref = 'SW' + Date.now().toString().slice(-8);
+  return (scheme || 'upi') + '://pay?pa=' + encodeURIComponent(proUpiId()) + '&pn=SewaAstra&am=' + amt + '&cu=INR&tn=' + encodeURIComponent(note || 'SewaAstra') + '&tr=' + ref;
+}
+function proMakeQR(el, text){
+  el.innerHTML = '';
+  proEnsureQR().then(function(){
+    new QRCode(el, { text: text, width: 170, height: 170, correctLevel: QRCode.CorrectLevel.M });
+  }).catch(function(){ el.innerHTML = '<div style="font-size:11px;color:#999;">QR load nahi hua — UPI button use karein</div>'; });
+}
+
+/* ---------- 4. BILL / INVOICE + QR ---------- */
+window.__proBillRate = null;
+window.proShowBill = function(oid, thenRate){
+  window.__proBillRate = thenRate ? oid : null;
+  var m = document.getElementById('proBillModal');
+  if (!m){
+    document.body.insertAdjacentHTML('beforeend', '<div id="proBillModal" onclick="if(event.target===this)proCloseBill()"><div class="pro-bill" id="proBillInner"></div></div>');
+    m = document.getElementById('proBillModal');
+  }
+  FS.collection('orders').doc(oid).get().then(function(d){
+    if (!d.exists) return showAlert('त्रुटि', 'ऑर्डर नहीं मिला');
+    var o = d.data();
+    var paid = (o.payment && /paid/i.test(o.payment.status || '')) ;
+    var rows = (o.items || []).map(function(it){
+      return '<tr><td>' + proEsc(it.n) + ' × ' + (it.qty||1) + '</td><td class="tr">₹' + (it.p*(it.qty||1)) + '</td></tr>';
+    }).join('');
+    window.__proBillTxt = '🧾 *SewaAstra Bill*%0A🆔 ' + oid + '%0A' + (o.items||[]).map(function(i){ return '• ' + i.n + ' x' + (i.qty||1) + ' = ₹' + (i.p*(i.qty||1)); }).join('%0A') + '%0A💰 Total: ₹' + o.total + '%0A' + (paid ? '✅ PAID' : '⏳ Payment Due — UPI: ' + proUpiId());
+    document.getElementById('proBillInner').innerHTML =
+      '<div class="pro-bill-head">' +
+        '<span class="st" style="background:' + (paid?'#1fc25e':'#f5a623') + ';color:#fff;">' + (paid?'✅ PAID':'⏳ DUE') + '</span>' +
+        '<div style="font-size:19px;font-weight:900;">🛠️ SewaAstra</div>' +
+        '<div style="font-size:11px;opacity:.85;">TAX INVOICE / BILL</div>' +
+        '<div style="font-size:11px;margin-top:6px;">🆔 <b>' + proEsc(oid) + '</b> &nbsp;•&nbsp; 📅 ' + proEsc(o.timestamp||'') + '</div>' +
+        '<div style="font-size:11px;">👤 ' + proEsc(o.mobile||'') + '</div>' +
+      '</div>' +
+      '<div style="padding:14px 16px;">' +
+        '<table>' + rows +
+          '<tr><td>Subtotal</td><td class="tr">₹' + (o.subtotal||0) + '</td></tr>' +
+          (o.discount ? '<tr><td style="color:#15a04a;">छूट (Coupon)</td><td class="tr" style="color:#15a04a;">−₹' + o.discount + '</td></tr>' : '') +
+          '<tr><td>Visit Charge</td><td class="tr">₹10</td></tr>' +
+          '<tr><td style="font-size:15px;font-weight:900;border:none;">कुल (Total)</td><td class="tr" style="font-size:17px;color:#15a04a;border:none;">₹' + o.total + '</td></tr>' +
+        '</table>' +
+        (paid
+          ? '<div style="text-align:center;background:#e6f7ed;border:1px solid #a8e6c2;border-radius:12px;padding:11px;margin-top:10px;font-weight:900;color:#0f7a37;font-size:13px;">✅ भुगतान हो चुका है' + (o.payment && o.payment.ref ? '<br><span style="font-size:10px;font-weight:700;">Ref: ' + proEsc(o.payment.ref) + '</span>' : '') + '</div>'
+          : '<div style="text-align:center;margin-top:8px;">' +
+              '<div style="font-size:12px;font-weight:900;color:#ff6b00;">📲 UPI से भुगतान करें — Scan QR</div>' +
+              '<div id="proQrBox"></div>' +
+              '<div style="font-size:11px;color:#888;">UPI ID: <b>' + proEsc(proUpiId()) + '</b></div>' +
+              '<a href="' + proUpiLink(o.total, oid, 'phonepe') + '" style="display:inline-block;margin:8px 3px 0;background:linear-gradient(90deg,#5f259f,#7b3fc4);color:#fff;padding:11px 18px;border-radius:12px;text-decoration:none;font-weight:900;font-size:12.5px;">💜 PhonePe ₹' + o.total + '</a>' +
+              '<a href="' + proUpiLink(o.total, oid) + '" style="display:inline-block;margin:8px 3px 0;background:linear-gradient(90deg,#15a04a,#1fc25e);color:#fff;padding:11px 18px;border-radius:12px;text-decoration:none;font-weight:900;font-size:12.5px;">💳 अन्य UPI</a>' +
+            '</div>') +
+        '<div style="display:flex;gap:8px;margin-top:14px;">' +
+          '<button class="pro-bill-btn" style="background:#0d6efd;color:#fff;" onclick="proPrintBill(\'' + oid + '\')">🖨️ Print / PDF</button>' +
+          '<button class="pro-bill-btn" style="background:#25d366;color:#fff;" onclick="window.open(\'https://wa.me/?text=\'+window.__proBillTxt,\'_blank\')">📤 Share</button>' +
+          '<button class="pro-bill-btn" style="background:#eee;color:#555;" onclick="proCloseBill()">बंद करें</button>' +
+        '</div>' +
+      '</div>';
+    m.classList.add('open');
+    if (!paid){
+      var qb = document.getElementById('proQrBox');
+      if (qb) proMakeQR(qb, proUpiLink(o.total, oid));
+    }
+  }).catch(function(e){ showAlert('त्रुटि', e.message); });
+};
+window.proCloseBill = function(){
+  document.getElementById('proBillModal').classList.remove('open');
+  if (window.__proBillRate){
+    var oid = window.__proBillRate; window.__proBillRate = null;
+    setTimeout(function(){ openRateModal(oid); }, 450);
+  }
+};
+window.proPrintBill = function(oid){
+  var inner = document.getElementById('proBillInner');
+  var w = window.open('', '_blank');
+  w.document.write('<html><head><title>SewaAstra Bill ' + oid + '</title><style>body{font-family:sans-serif;max-width:420px;margin:20px auto;}table{width:100%;border-collapse:collapse;font-size:13px;}td{padding:6px 0;border-bottom:1px dashed #ccc;}.tr{text-align:right;font-weight:bold;}.pro-bill-head{background:#0b1220;color:#fff;padding:16px;border-radius:12px;}button,a{display:none!important;}img,canvas{display:block!important;margin:10px auto;}</style></head><body>' + inner.innerHTML + '<p style="text-align:center;font-size:11px;color:#888;">धन्यवाद! SewaAstra — आपकी सेवा में 🙏</p></body></html>');
+  w.document.close();
+  setTimeout(function(){ w.print(); }, 600);
+};
+
+/* kaam COMPLETE → pehle BILL, phir RATING (v2.6 watcher upgrade) */
+function proStartRatingWatcher(){
+  try{
+    if (typeof isAdminUser === 'function' && isAdminUser()) return;
+    if (!getUID() && !getIdent()) return;
+    if (window.__proRateUnsub) window.__proRateUnsub();
+    window.__proRateUnsub = myOrdersQuery().onSnapshot(function(snap){
+      snap.docChanges().forEach(function(ch){
+        var o = ch.doc.data();
+        if (o.status === 'Completed' && !o.rated && !proRatePrompted[o.id]){
+          proRatePrompted[o.id] = true;
+          if (ch.type === 'modified'){
+            showToast('🎉 काम पूरा! आपका बिल तैयार है');
+            setTimeout(function(){ proShowBill(o.id, true); }, 900);
+          } else if (ch.type === 'added'){
+            setTimeout(function(){ openRateModal(o.id); }, 2500);
+          }
+        }
+      });
+    }, function(e){ console.warn('rate watch:', e.message); });
+  }catch(e){}
+}
+
+/* ---------- 5. ONLINE = PAYMENT PEHLE, ORDER BAAD ME ---------- */
+function proOpenPayment(amt, onDone){
+  var m = document.getElementById('proPayModal');
+  if (!m){
+    document.body.insertAdjacentHTML('beforeend', '<div id="proPayModal"><div class="pro-pay" id="proPayInner"></div></div>');
+    m = document.getElementById('proPayModal');
+  }
+  document.getElementById('proPayInner').innerHTML =
+    '<div style="background:linear-gradient(120deg,#0b1220,#123);color:#fff;padding:16px;border-radius:20px 20px 0 0;">' +
+      '<div style="font-weight:900;font-size:15px;">💳 पहले भुगतान करें</div>' +
+      '<div style="font-size:11px;opacity:.85;">Payment के बाद ही ऑर्डर place होगा</div>' + '<div style="font-size:10px;opacity:.7;margin-top:3px;">💜 PhonePe Merchant: ' + PRO_PHONEPE_MID + '</div></div>' +
+    '<div class="pro-pay-amt" style="margin-top:12px;">₹' + amt + '</div>' +
+    '<div id="proPayQr" style="display:flex;justify-content:center;margin:8px 0;"></div>' +
+    '<div style="font-size:11.5px;color:#888;">UPI ID: <b>' + proEsc(proUpiId()) + '</b></div>' +
+    '<a href="' + proUpiLink(amt, 'SewaAstra Order', 'phonepe') + '" style="display:inline-block;margin:10px 4px 4px;background:linear-gradient(90deg,#5f259f,#7b3fc4);color:#fff;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:900;font-size:13.5px;box-shadow:0 8px 20px rgba(95,37,159,.4);">💜 PhonePe से Pay करें</a>' +
+    '<a href="' + proUpiLink(amt, 'SewaAstra Order') + '" style="display:inline-block;margin:10px 4px 4px;background:linear-gradient(90deg,#15a04a,#1fc25e);color:#fff;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:900;font-size:13.5px;box-shadow:0 8px 20px rgba(21,160,74,.35);">📲 अन्य UPI App</a>' +
+    '<div class="pro-pay-step"><b>1.</b> QR scan करें या ऊपर के button से PhonePe/GPay/Paytm में pay करें</div>' +
+    '<div class="pro-pay-step"><b>2.</b> Payment के बाद UTR/Ref no. (optional) डालें</div>' +
+    '<input id="proPayRef" placeholder="UTR / Transaction ID (optional)" style="width:calc(100% - 32px);margin:6px 16px;border:1.5px solid var(--border-color,#ddd);border-radius:10px;padding:11px;font-size:13px;background:var(--card-bg);color:var(--text);">' +
+    '<div style="display:flex;gap:8px;margin:10px 16px 0;">' +
+      '<button id="proPayDoneBtn" style="flex:2;background:linear-gradient(90deg,#ff6b00,#ff8c2e);color:#fff;border:none;border-radius:12px;padding:13px;font-weight:900;font-size:13px;cursor:pointer;">✅ मैंने Payment कर दिया — Order Place करें</button>' +
+      '<button id="proPayCancelBtn" style="flex:1;background:#eee;color:#555;border:none;border-radius:12px;padding:13px;font-weight:800;font-size:12px;cursor:pointer;">रद्द</button>' +
+    '</div>';
+  m.classList.add('open');
+  proMakeQR(document.getElementById('proPayQr'), proUpiLink(amt, 'SewaAstra Order'));
+  document.getElementById('proPayDoneBtn').onclick = function(){
+    m.classList.remove('open');
+    onDone((document.getElementById('proPayRef').value || '').trim());
+  };
+  document.getElementById('proPayCancelBtn').onclick = function(){
+    m.classList.remove('open');
+    showToast('भुगतान रद्द — ऑर्डर place नहीं हुआ');
+  };
+}
+
+window.handleFinalOrder = function(){
+  var address = document.getElementById('manualAddr').value.trim();
+  var mobile = document.getElementById('altMobile').value.trim();
+  var date = document.getElementById('cartDate').value;
+  var time = document.getElementById('cartTime').value;
+  var remark = document.getElementById('cartRemark').value.trim();
+  var mapsLink = document.getElementById('googleMapsLink').value;
+  if (!address) return showAlert('पता आवश्यक है', 'कृपया अपनी डिलीवरी लोकेशन या पता दर्ज करें');
+  if (!selectedMode) return showAlert('भुगतान मोड चुनें', 'कृपया Cash या Online भुगतान का तरीका चुनें');
+  if (!cart.length) return showAlert('कार्ट खाली है', 'पहले कोई सेवा जोड़ें');
+  var subtotal = cart.reduce(function(a, c){ return a + (c.p * (c.qty||1)); }, 0);
+  var finalAmt = (subtotal - appliedDiscount) + 10;
+  if (finalAmt < 10) finalAmt = 10;
+
+  function placeOrder(payment){
+    var oid = 'SW' + Math.floor(100000 + Math.random() * 900000);
+    var userMobile = mobile || getIdent() || '';
+    var order = {
+      id: oid, uid: getUID(), mobile: userMobile,
+      items: cart.map(function(i){ return { n:i.n, p:i.p, qty:i.qty||1 }; }),
+      subtotal: subtotal, discount: appliedDiscount, total: finalAmt,
+      address: address, date: date, time: time, remark: remark,
+      mode: selectedMode, maps: mapsLink || '',
+      status: 'Order Placed', rated: false, payment: payment,
+      loc: (typeof userCoords !== 'undefined' ? { lat:userCoords.lat, lon:userCoords.lon } : null),
+      createdAt: Date.now(), timestamp: new Date().toLocaleString('hi-IN')
+    };
+    showLoader('ऑर्डर सेव हो रहा है...');
+    FS.collection('orders').doc(oid).set(order).then(function(){
+      hideLoader();
+      var hist = JSON.parse(localStorage.getItem('sw_order_history')) || [];
+      hist.unshift(order);
+      localStorage.setItem('sw_order_history', JSON.stringify(hist.slice(0, 50)));
+      var waMsg = '*🚀 New SewaAstra Booking!*%0A🆔 Order ID: ' + oid + '%0A👤 User: ' + userMobile +
+        '%0A📦 Items: ' + cart.map(function(i){ return i.n + ' (x' + (i.qty||1) + ')'; }).join(', ') +
+        '%0A💰 Total: ₹' + finalAmt + ' (' + selectedMode + (payment && /paid/i.test(payment.status) ? ' — PAID ✅' + (payment.ref ? ' Ref:' + payment.ref : '') : '') + ')' +
+        '%0A📍 Address: ' + address + '%0A🗺️ Map: ' + mapsLink + '%0A📅 ' + date + ' at ' + time + '%0A📝 ' + (remark || 'None');
+      closeCart(); cart = [];
+      try{ renderCart(); }catch(e){}
+      document.getElementById('bCount').innerText = '0';
+      appliedDiscount = 0;
+      var payLine = (payment && /paid/i.test(payment.status))
+        ? '<br><span style="color:#15a04a;font-weight:800;">✅ भुगतान सफल — ₹' + finalAmt + (payment.ref ? ' (Ref: ' + proEsc(payment.ref) + ')' : '') + '</span>'
+        : '';
+      showAlert('बुकिंग सफल! 🎉', 'आपका ऑर्डर <b>' + oid + '</b> ☁️ cloud में सेव हो गया है!' + payLine + '<br>स्टेटस अपडेट 📋 History में मिलेंगे।<br><br>WhatsApp पर विवरण भेजा जा रहा है...');
+      setTimeout(function(){ window.open('https://wa.me/917869969190?text=' + waMsg, '_blank'); }, 1800);
+      startMyOrdersListener();
+      proStartRatingWatcher();
+    }).catch(function(e){ hideLoader(); showAlert('त्रुटि', 'ऑर्डर सेव नहीं हो सका: ' + e.message); });
+  }
+
+  if (selectedMode === 'Online'){
+    proOpenPayment(finalAmt, function(ref){
+      placeOrder({ method:'UPI', status:'Paid (customer confirmed)', ref: ref || '', paidAt: Date.now(), upi: proUpiId(), gateway:'PhonePe', mid: PRO_PHONEPE_MID });
+    });
+  } else {
+    placeOrder({ method:'Cash', status:'Pay after service' });
+  }
+};
+
+/* ---------- HISTORY v3: skeleton + 🧾 Bill button ---------- */
+window.showHistory = function(){
+  showAlert('📋 मेरे ऑर्डर (Live)', proSkList(3));
+  myOrdersQuery().get().then(function(snap){
+    var orders = snap.docs.map(function(d){ return d.data(); });
+    if (!orders.length) return showAlert('ऑर्डर इतिहास', 'अभी तक कोई ऑर्डर नहीं है।');
+    orders.sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
+    var doneCnt = orders.filter(function(o){ return ['Completed','Cancelled'].indexOf(o.status) > -1; }).length;
+    var html = '<div style="text-align:left; max-height:65vh; overflow-y:auto;">';
+    if (doneCnt) html += '<button onclick="clearMyHistory()" style="width:100%;background:#fdecea;color:#e53935;border:1.5px dashed #f5c6c3;border-radius:12px;padding:10px;font-weight:800;font-size:12px;cursor:pointer;margin-bottom:12px;">🗑️ पूरी History साफ़ करें (' + doneCnt + ' पुराने ऑर्डर)</button>';
+    orders.forEach(function(o){
+      var clr = STATUS_CLR[o.status] || '#666';
+      var canCancel = ['Order Placed','Accepted'].indexOf(o.status) > -1;
+      var canRate = o.status === 'Completed' && !o.rated;
+      var canDel = ['Completed','Cancelled'].indexOf(o.status) > -1;
+      var paid = o.payment && /paid/i.test(o.payment.status || '');
+      html += '<div style="background:var(--card-bg); border:1px solid var(--border-color); padding:14px; border-radius:14px; margin-bottom:12px; box-shadow:0 4px 12px rgba(13,30,60,.06);">' +
+        '<div style="display:flex; justify-content:space-between; align-items:center; font-weight:800; font-size:14px;">' +
+          '<span style="color:var(--primary);">' + o.id + '</span>' +
+          '<span style="background:' + clr + '22;color:' + clr + ';padding:3px 10px;border-radius:12px;font-size:11px;">' + (STATUS_HI[o.status] || o.status) + '</span></div>' +
+        '<div style="font-size:12px; color:#888; margin:4px 0;">📅 ' + proEsc(o.date) + ' | ⏰ ' + proEsc(o.time) + ' | <b style="color:#15a04a;">₹' + o.total + '</b> (' + o.mode + (paid ? ' ✅PAID' : '') + ')</div>' +
+        '<div style="font-size:12px; margin:4px 0;">📍 ' + proEsc(o.address) + '</div>' +
+        '<div style="font-size:12px; font-weight:700; margin-top:4px;">🛠️ ' + (o.items||[]).map(function(i){ return proEsc(i.n) + ' (x' + (i.qty||1) + ')'; }).join(', ') + '</div>' +
+        (o.rated ? '<div style="font-size:12px;color:#f5a623;font-weight:800;margin-top:4px;">⭐ आपने रेटिंग दे दी है</div>' : '') +
+        '<div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">' +
+          '<button onclick="openLiveTracking(\'' + o.id + '\')" style="flex:1;min-width:84px;background:var(--primary);color:#fff;border:none;padding:8px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">🗺️ Tracking</button>' +
+          '<button onclick="openOrderChat(\'' + o.id + '\')" style="flex:1;min-width:70px;background:#0d6efd;color:#fff;border:none;padding:8px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">💬 Chat</button>' +
+          '<button onclick="proShowBill(\'' + o.id + '\')" style="flex:1;min-width:70px;background:#0b1220;color:#fff;border:none;padding:8px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">🧾 Bill</button>' +
+          (canRate ? '<button onclick="openRateModal(\'' + o.id + '\')" style="flex:1;min-width:70px;background:#f5a623;color:#fff;border:none;padding:8px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">⭐ Rate</button>' : '') +
+          (canCancel ? '<button onclick="cancelMyOrder(\'' + o.id + '\')" style="flex:1;min-width:70px;background:#e53935;color:#fff;border:none;padding:8px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">❌ Cancel</button>' : '') +
+          (canDel ? '<button class="pro-hist-del" onclick="deleteMyOrder(\'' + o.id + '\')" title="Delete">🗑️</button>' : '') +
+        '</div></div>';
+    });
+    html += '</div>';
+    showAlert('📋 मेरे ऑर्डर (Live)', html);
+  }).catch(function(e){ showAlert('त्रुटि', e.message); });
+};
+
+console.log('%c SewaAstra v2.9 🚀 skeleton | i18n | celebration | bill+QR | pay-first ', 'background:#e91e63;color:#fff;font-weight:bold;padding:4px;');
+</script>
+
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a34d90d2ecf23cfa',t:'MTc4ODM2MzEyOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
