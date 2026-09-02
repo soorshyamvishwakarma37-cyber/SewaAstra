@@ -3910,7 +3910,7 @@ function proEnsureQR(){
   return window.proQRReady;
 }
 var PRO_PHONEPE_MID = 'M23X4SPWMNOL8';   /* PhonePe Merchant ID */
-function proUpiId(){ return (CLOUD_CONFIG && CLOUD_CONFIG.upiId) ? CLOUD_CONFIG.upiId : '7869969190@ybl'; }
+function proUpiId(){ return (CLOUD_CONFIG && CLOUD_CONFIG.upiId) ? CLOUD_CONFIG.upiId : 'shoorshyam.vishwakarma@ibl'; }
 function proUpiLink(amt, note, scheme){
   var ref = 'SW' + Date.now().toString().slice(-8);
   return (scheme || 'upi') + '://pay?pa=' + encodeURIComponent(proUpiId()) + '&pn=SewaAstra&am=' + amt + '&cu=INR&tn=' + encodeURIComponent(note || 'SewaAstra') + '&tr=' + ref;
@@ -4028,22 +4028,61 @@ function proOpenPayment(amt, onDone){
     '<div class="pro-pay-amt" style="margin-top:12px;">₹' + amt + '</div>' +
     '<div id="proPayQr" style="display:flex;justify-content:center;margin:8px 0;"></div>' +
     '<div style="font-size:11.5px;color:#888;">UPI ID: <b>' + proEsc(proUpiId()) + '</b></div>' +
-    '<a href="' + proUpiLink(amt, 'SewaAstra Order', 'phonepe') + '" style="display:inline-block;margin:10px 4px 4px;background:linear-gradient(90deg,#5f259f,#7b3fc4);color:#fff;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:900;font-size:13.5px;box-shadow:0 8px 20px rgba(95,37,159,.4);">💜 PhonePe से Pay करें</a>' +
-    '<a href="' + proUpiLink(amt, 'SewaAstra Order') + '" style="display:inline-block;margin:10px 4px 4px;background:linear-gradient(90deg,#15a04a,#1fc25e);color:#fff;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:900;font-size:13.5px;box-shadow:0 8px 20px rgba(21,160,74,.35);">📲 अन्य UPI App</a>' +
+    '<a href="' + proUpiLink(amt, 'SewaAstra Order', 'phonepe') + '" class="pro-pay-link" style="display:inline-block;margin:10px 4px 4px;background:linear-gradient(90deg,#5f259f,#7b3fc4);color:#fff;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:900;font-size:13.5px;box-shadow:0 8px 20px rgba(95,37,159,.4);">💜 PhonePe से Pay करें</a>' +
+    '<a href="' + proUpiLink(amt, 'SewaAstra Order') + '" class="pro-pay-link" style="display:inline-block;margin:10px 4px 4px;background:linear-gradient(90deg,#15a04a,#1fc25e);color:#fff;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:900;font-size:13.5px;box-shadow:0 8px 20px rgba(21,160,74,.35);">📲 अन्य UPI App</a>' +
     '<div class="pro-pay-step"><b>1.</b> QR scan करें या ऊपर के button से PhonePe/GPay/Paytm में pay करें</div>' +
     '<div class="pro-pay-step"><b>2.</b> Payment के बाद UTR/Ref no. (optional) डालें</div>' +
     '<input id="proPayRef" placeholder="UTR / Transaction ID (optional)" style="width:calc(100% - 32px);margin:6px 16px;border:1.5px solid var(--border-color,#ddd);border-radius:10px;padding:11px;font-size:13px;background:var(--card-bg);color:var(--text);">' +
-    '<div style="display:flex;gap:8px;margin:10px 16px 0;">' +
-      '<button id="proPayDoneBtn" style="flex:2;background:linear-gradient(90deg,#ff6b00,#ff8c2e);color:#fff;border:none;border-radius:12px;padding:13px;font-weight:900;font-size:13px;cursor:pointer;">✅ मैंने Payment कर दिया — Order Place करें</button>' +
-      '<button id="proPayCancelBtn" style="flex:1;background:#eee;color:#555;border:none;border-radius:12px;padding:13px;font-weight:800;font-size:12px;cursor:pointer;">रद्द</button>' +
+    '<div id="proPayLock" style="margin:10px 16px 0;background:#f4f0ec;border:1.5px dashed #d9cfc4;border-radius:12px;padding:12px;font-size:12px;font-weight:800;color:#998;display:flex;align-items:center;justify-content:center;gap:7px;">🔒 पहले ऊपर से Payment पूरा करें — फिर Order button यहाँ खुलेगा</div>' +
+    '<div id="proPayWait" style="display:none;margin:10px 16px 0;background:#fff5ed;border:1.5px dashed #ffb066;border-radius:12px;padding:12px;font-size:12px;font-weight:800;color:#e85a0c;">⏳ Payment check हो रहा है... UPI app से वापस आइए</div>' +
+    '<div id="proPayBtnRow" style="display:none;gap:8px;margin:10px 16px 0;">' +
+      '<button id="proPayDoneBtn" style="flex:2;background:linear-gradient(90deg,#15a04a,#1fc25e);color:#fff;border:none;border-radius:12px;padding:14px;font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 8px 22px rgba(21,160,74,.4);animation:instPop .45s cubic-bezier(.2,.9,.3,1.2), instGlow 1.8s ease-in-out infinite;">✅ Payment हो गया — Order Place करें</button>' +
+    '</div>' +
+    '<div style="display:flex;margin:8px 16px 0;">' +
+      '<button id="proPayCancelBtn" style="flex:1;background:transparent;color:#999;border:1.5px solid var(--border-color,#e5e5e5);border-radius:12px;padding:11px;font-weight:800;font-size:12px;cursor:pointer;">रद्द करें</button>' +
     '</div>';
   m.classList.add('open');
   proMakeQR(document.getElementById('proPayQr'), proUpiLink(amt, 'SewaAstra Order'));
+
+  /* ── payment-complete detection: pay tap → UPI app → wapas → Order button popup ── */
+  var payAttempted = false, unlocked = false;
+  function proUnlockOrder(){
+    if (unlocked) return;
+    unlocked = true;
+    document.getElementById('proPayLock').style.display = 'none';
+    document.getElementById('proPayWait').style.display = 'none';
+    document.getElementById('proPayBtnRow').style.display = 'flex';
+    try{ if (navigator.vibrate) navigator.vibrate([80,50,80]); }catch(e){}
+    showToast('✅ अब Order Place कर सकते हैं!');
+  }
+  document.querySelectorAll('#proPayInner .pro-pay-link').forEach(function(a){
+    a.addEventListener('click', function(){
+      payAttempted = true;
+      document.getElementById('proPayLock').style.display = 'none';
+      document.getElementById('proPayWait').style.display = 'block';
+      /* agar UPI app nahi khula (desktop), 12s baad unlock */
+      setTimeout(function(){ if (payAttempted && !unlocked) proUnlockOrder(); }, 12000);
+    });
+  });
+  /* UPI app se wapas aate hi Order button POPUP */
+  function proVisBack(){
+    if (document.visibilityState === 'visible' && payAttempted && !unlocked){
+      setTimeout(proUnlockOrder, 700);
+    }
+  }
+  document.addEventListener('visibilitychange', proVisBack);
+  /* QR scan wale doosre phone se pay karte hain — unke liye UTR daalte hi unlock */
+  document.getElementById('proPayRef').addEventListener('input', function(){
+    if (this.value.trim().length >= 6) proUnlockOrder();
+  });
+
   document.getElementById('proPayDoneBtn').onclick = function(){
+    document.removeEventListener('visibilitychange', proVisBack);
     m.classList.remove('open');
     onDone((document.getElementById('proPayRef').value || '').trim());
   };
   document.getElementById('proPayCancelBtn').onclick = function(){
+    document.removeEventListener('visibilitychange', proVisBack);
     m.classList.remove('open');
     showToast('भुगतान रद्द — ऑर्डर place नहीं हुआ');
   };
@@ -4150,5 +4189,5 @@ window.showHistory = function(){
 console.log('%c SewaAstra v2.9 🚀 skeleton | i18n | celebration | bill+QR | pay-first ', 'background:#e91e63;color:#fff;font-weight:bold;padding:4px;');
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a34d90d2ecf23cfa',t:'MTc4ODM2MzEyOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a34dac45ea6f4936',t:'MTc4ODM2NDI1Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
