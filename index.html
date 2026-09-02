@@ -11,20 +11,24 @@
 </script>
 
 <!-- Firebase Compatibility & App Scripts -->
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="dns-prefetch" href="https://unpkg.com">
+<link rel="dns-prefetch" href="https://cdn-icons-png.flaticon.com">
+<link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
+<link rel="dns-prefetch" href="https://nominatim.openstreetmap.org">
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics-compat.js"></script>
 
 <!-- Leaflet CSS & JS for Interactive Map Selection & Live Tracking -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>SewaAstra - Home Services (Multi-Service & Secure Admin)</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+<title>SewaAstra PRO - Home Services (Cloud Connected)</title>
+<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
 
 <style>
     :root { 
@@ -222,6 +226,508 @@
     @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 100px; opacity: 1;} }
     @keyframes fadeout { from {bottom: 100px; opacity: 1;} to {bottom: 0; opacity: 0;} }
 </style>
+
+<style id="premiumAuthCSS">
+/* ═══════ PREMIUM LOGIN INTERFACE ═══════ */
+.premium-auth{background:linear-gradient(160deg,#0b1220 0%,#14213d 48%,#3a1c0a 100%)!important;}
+.pa-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.pa-orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.45;animation:paFloat 9s ease-in-out infinite;}
+.pa-o1{width:280px;height:280px;background:#ff6b00;top:-70px;left:-70px;}
+.pa-o2{width:240px;height:240px;background:#2563eb;bottom:-50px;right:-60px;animation-delay:3s;}
+.pa-o3{width:170px;height:170px;background:#ff9d4d;top:42%;left:62%;animation-delay:6s;}
+@keyframes paFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.08)}}
+.pa-card{position:relative;width:100%;max-width:392px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:28px;padding:32px 26px 24px;box-shadow:0 25px 60px rgba(0,0,0,.5);animation:paUp .55s cubic-bezier(.2,.8,.3,1);color:#fff;text-align:center;}
+@keyframes paUp{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+.pa-logo-wrap{position:relative;width:96px;height:96px;margin:0 auto 14px;}
+.pa-ring{position:absolute;inset:-8px;border-radius:50%;border:2.5px solid transparent;border-top-color:#ff6b00;border-right-color:#ffb066;animation:paSpin 2.6s linear infinite;}
+@keyframes paSpin{to{transform:rotate(360deg)}}
+.pa-logo-wrap img{width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.9);box-shadow:0 10px 26px rgba(0,0,0,.45);}
+.pa-logo-fb{display:none;width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,#ff6b00,#ff9d4d);align-items:center;justify-content:center;font-size:44px;box-shadow:0 10px 26px rgba(255,107,0,.4);}
+.pa-title{font-size:30px;font-weight:900;letter-spacing:.5px;color:#fff;margin:0 0 2px;}
+.pa-title span{background:linear-gradient(90deg,#ff6b00,#ffb066);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.pa-sub{font-size:13px;color:#c7d2e3;margin:0 0 14px;}
+.pa-trust{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+.pa-trust span{font-size:10.5px;font-weight:700;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);padding:5px 11px;border-radius:20px;color:#e8eef7;}
+.pa-google{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#1d2733;border:none;border-radius:14px;padding:13px;font-size:14.5px;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.3);transition:transform .15s, box-shadow .2s;}
+.pa-google:hover{box-shadow:0 10px 26px rgba(0,0,0,.4);}
+.pa-google:active{transform:scale(.97);}
+.pa-google img{width:20px;height:20px;margin:0;border:none;border-radius:0;box-shadow:none;}
+.pa-divider{display:flex;align-items:center;gap:10px;margin:18px 0 14px;color:#9fb0c7;font-size:12px;font-weight:600;}
+.pa-divider:before,.pa-divider:after{content:"";flex:1;height:1px;background:rgba(255,255,255,.18);}
+.pa-input-group{display:flex;align-items:center;background:rgba(255,255,255,.10);border:1.5px solid rgba(255,255,255,.22);border-radius:14px;overflow:hidden;transition:border .2s, box-shadow .2s;}
+.pa-input-group:focus-within{border-color:#ff6b00;box-shadow:0 0 0 3px rgba(255,107,0,.28);}
+.pa-flag{padding:14px 12px;font-size:14px;font-weight:800;color:#fff;border-right:1px solid rgba(255,255,255,.18);white-space:nowrap;}
+.pa-input-group input{flex:1;background:transparent!important;border:none!important;outline:none;padding:14px 13px!important;font-size:16px!important;letter-spacing:1.5px;color:#fff!important;margin:0!important;width:auto!important;border-radius:0!important;}
+.pa-input-group input::placeholder{color:#8fa0b8;letter-spacing:0;}
+.pa-btn{width:100%;margin-top:13px;background:linear-gradient(90deg,#ff6b00,#ff8c2e);color:#fff;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(255,107,0,.4);transition:transform .15s, box-shadow .2s;letter-spacing:.3px;}
+.pa-btn:hover{box-shadow:0 12px 30px rgba(255,107,0,.55);}
+.pa-btn:active{transform:scale(.97);}
+.pa-otp-note{font-size:12.5px;color:#c7d2e3;margin:0 0 10px;}
+.pa-otp-input{width:100%;background:rgba(255,255,255,.10)!important;border:1.5px solid rgba(255,255,255,.22)!important;border-radius:14px!important;padding:14px!important;text-align:center;font-size:26px!important;letter-spacing:14px;font-weight:800;color:#fff!important;outline:none;margin:0!important;}
+.pa-otp-input::placeholder{letter-spacing:8px;color:#8fa0b8;}
+.pa-otp-input:focus{border-color:#ff6b00!important;box-shadow:0 0 0 3px rgba(255,107,0,.28);}
+.pa-link{font-size:12.5px;color:#ffb066;cursor:pointer;display:block;margin-top:14px;font-weight:700;}
+.pa-terms{font-size:10.5px;color:#8fa0b8;margin:18px 0 0;line-height:1.7;}
+.pa-terms b{color:#c7d2e3;}
+#recaptcha-container{margin-top:10px;display:flex;justify-content:center;}
+@media(max-width:380px){.pa-card{padding:26px 18px 20px;}.pa-title{font-size:26px;}}
+</style>
+
+<style id="premiumUICSS">
+/* ═══════════ PREMIUM HOME & CART UI (v2.1) ═══════════ */
+
+/* ── APP HEADER — premium gradient + glow ── */
+.app-header{
+  background:linear-gradient(135deg,#ff6b00 0%,#ff8c2e 55%,#ffa14d 100%)!important;
+  border-radius:0 0 30px 30px!important;
+  box-shadow:0 10px 30px rgba(255,107,0,.35)!important;
+  position:sticky;top:0;z-index:1000;overflow:hidden;
+}
+.app-header::before{content:"";position:absolute;top:-70px;right:-60px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.16);pointer-events:none;}
+.app-header::after{content:"";position:absolute;bottom:-90px;left:-50px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.10);pointer-events:none;}
+body.dark-mode .app-header{background:linear-gradient(135deg,#1a1a1a,#2b1a0d)!important;box-shadow:0 10px 30px rgba(0,0,0,.5)!important;}
+.brand-text{font-weight:900!important;letter-spacing:2px!important;font-size:19px!important;color:#fff!important;text-shadow:0 2px 8px rgba(0,0,0,.25);}
+.loc-badge{background:rgba(255,255,255,.18)!important;border:1px solid rgba(255,255,255,.35)!important;backdrop-filter:blur(6px);border-radius:20px!important;padding:6px 12px!important;color:#fff!important;font-weight:700;font-size:11.5px;}
+.user-pic-circle{border:2.5px solid rgba(255,255,255,.9)!important;box-shadow:0 4px 12px rgba(0,0,0,.3)!important;}
+.search-container{position:relative;z-index:2;}
+.search-bar{
+  border-radius:16px!important;padding:14px 15px 14px 45px!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.18)!important;font-size:14px!important;
+  border:1.5px solid transparent!important;transition:box-shadow .2s,border .2s!important;
+}
+.search-bar:focus{border-color:#fff!important;box-shadow:0 8px 28px rgba(0,0,0,.3)!important;}
+
+/* ── BANNERS — shine sweep + depth ── */
+.banner-card{
+  min-width:290px!important;height:140px!important;border-radius:24px!important;
+  box-shadow:0 12px 28px rgba(255,128,8,.35)!important;
+  transition:transform .25s!important;
+}
+.banner-card:active{transform:scale(.97);}
+.banner-card::after{
+  content:"";position:absolute;top:0;left:-80%;width:50%;height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);
+  transform:skewX(-20deg);animation:bnShine 3.5s ease-in-out infinite;
+}
+@keyframes bnShine{0%,60%{left:-80%}100%{left:130%}}
+
+/* ── CATEGORY GRID — premium tiles ── */
+.cat-grid{
+  background:var(--card-bg)!important;border-radius:28px!important;
+  box-shadow:0 10px 30px rgba(13,30,60,.10)!important;
+  margin:-14px 12px 0!important;padding:20px 12px!important;position:relative;z-index:5;
+  gap:14px 10px!important;
+}
+.cat-icon{
+  width:62px!important;height:62px!important;border-radius:20px!important;
+  background:linear-gradient(145deg,#fff5ed,#ffe4cf)!important;
+  border:1px solid #ffd9bb!important;
+  box-shadow:0 6px 14px rgba(255,107,0,.15)!important;
+  transition:transform .2s,box-shadow .2s!important;font-size:22px;
+}
+.cat-item:active .cat-icon{transform:scale(.9);}
+.cat-item:hover .cat-icon{transform:translateY(-4px);box-shadow:0 12px 22px rgba(255,107,0,.28)!important;}
+body.dark-mode .cat-icon{background:linear-gradient(145deg,#2c2c2c,#241a12)!important;border-color:#3d2c1e!important;}
+.cat-item div:last-child,.cat-item p{font-weight:700!important;}
+
+/* ── SECTION HEADER — accent bar ── */
+.section-header span{position:relative;padding-left:14px;}
+.section-header span::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);width:5px;height:20px;border-radius:4px;background:linear-gradient(180deg,#ff6b00,#ffb066);}
+
+/* ── SUB TABS — pill chips ── */
+.sub-tabs{border-bottom:none!important;background:transparent!important;padding:12px 15px 4px!important;}
+.sub-tabs button,.sub-tabs span,.sub-tabs div{border-radius:20px!important;}
+
+/* ── SERVICE CARDS — luxe ── */
+.card{
+  border-radius:22px!important;border:1px solid #f0e6dc!important;
+  box-shadow:0 8px 24px rgba(13,30,60,.08)!important;
+  transition:transform .22s,box-shadow .22s!important;
+}
+.card:hover{transform:translateY(-4px);box-shadow:0 16px 36px rgba(255,107,0,.16)!important;}
+body.dark-mode .card{border-color:#333!important;}
+.card img{border-radius:16px!important;}
+.add-btn{
+  border-radius:12px!important;padding:8px 22px!important;letter-spacing:.3px;
+  background:linear-gradient(90deg,#ff6b00,#ff8c2e)!important;color:#fff!important;border:none!important;
+  box-shadow:0 6px 16px rgba(255,107,0,.35)!important;
+}
+.add-btn:active{transform:scale(.94);}
+
+/* ── BOTTOM NAV — floating glass dock ── */
+.bottom-nav{
+  left:50%!important;transform:translateX(-50%)!important;
+  bottom:10px!important;width:calc(100% - 24px)!important;max-width:520px!important;
+  border-radius:24px!important;border:1px solid rgba(255,255,255,.5)!important;
+  background:rgba(255,255,255,.88)!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  box-shadow:0 12px 34px rgba(13,30,60,.22)!important;padding:10px 0 12px!important;
+}
+body.dark-mode .bottom-nav{background:rgba(30,30,30,.9)!important;border-color:rgba(255,255,255,.08)!important;}
+.nav-item{transition:transform .15s;}
+.nav-item:active{transform:scale(.9);}
+.nav-item.active::after{content:"";display:block;width:18px;height:3.5px;border-radius:3px;background:linear-gradient(90deg,#ff6b00,#ffb066);margin:3px auto 0;}
+#homePage{padding-bottom:96px;}
+
+/* ── CART — premium checkout sheet ── */
+.cart-overlay{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+.cart-panel{
+  border-radius:30px 30px 0 0!important;
+  background:linear-gradient(180deg,#fdf9f5 0%,#f4f6f8 120px)!important;
+  box-shadow:0 -18px 50px rgba(0,0,0,.3)!important;position:relative;
+  animation:cartUp .35s cubic-bezier(.2,.8,.3,1);
+}
+@keyframes cartUp{from{transform:translateY(60px);opacity:.4}to{transform:none;opacity:1}}
+.cart-panel::before{content:"";display:block;width:46px;height:5px;border-radius:3px;background:#d7dee8;margin:-6px auto 12px;}
+body.dark-mode .cart-panel{background:linear-gradient(180deg,#241d17 0%,#121212 120px)!important;}
+.cart-panel h2{font-size:20px!important;font-weight:900!important;letter-spacing:.3px;}
+.cart-card{
+  border-radius:18px!important;border:1px solid #f0e6dc!important;
+  box-shadow:0 6px 18px rgba(13,30,60,.07)!important;padding:16px!important;
+}
+body.dark-mode .cart-card{border-color:#333!important;}
+.bill-row{font-size:13.5px;padding:3px 0;}
+.bill-row.total-amt{
+  font-size:17px!important;font-weight:900!important;color:#ff6b00!important;
+  border-top:1.5px dashed #e8d9c9;margin-top:8px;padding-top:10px!important;
+}
+.input-field,.addr-input{
+  border:1.5px solid #e6e0d8!important;border-radius:12px!important;
+  padding:12px!important;font-size:13.5px!important;transition:border .2s,box-shadow .2s!important;
+  background:var(--card-bg)!important;color:var(--text)!important;
+}
+.input-field:focus,.addr-input:focus{border-color:#ff6b00!important;box-shadow:0 0 0 3px rgba(255,107,0,.15)!important;outline:none;}
+.loc-btn,.map-btn{border-radius:12px!important;font-weight:700!important;transition:transform .15s;}
+.loc-btn:active,.map-btn:active{transform:scale(.97);}
+#availableCouponsContainer button,#availableCouponsContainer div{border-radius:18px!important;}
+#payCash,#payOnline{
+  border-radius:14px!important;font-size:14px!important;padding:14px!important;
+  transition:all .2s!important;box-shadow:0 3px 10px rgba(13,30,60,.06);
+}
+button[onclick^="handleFinalOrder"]{
+  background:linear-gradient(90deg,#15a04a,#2ecc71)!important;
+  border-radius:18px!important;letter-spacing:.5px;
+  box-shadow:0 12px 30px rgba(21,160,74,.45)!important;
+  transition:transform .15s!important;position:relative;overflow:hidden;
+}
+button[onclick^="handleFinalOrder"]:active{transform:scale(.98);}
+button[onclick^="handleFinalOrder"]::after{
+  content:"";position:absolute;top:0;left:-80%;width:50%;height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);
+  transform:skewX(-20deg);animation:bnShine 3s ease-in-out infinite;
+}
+
+/* smooth scroll + hidden scrollbars everywhere */
+.banner-carousel::-webkit-scrollbar,.sub-tabs::-webkit-scrollbar,#availableCouponsContainer::-webkit-scrollbar{display:none;}
+</style>
+
+<style id="premiumAdminCSS">
+/* ═══════ PREMIUM ADMIN PANEL (v2.2) ═══════ */
+#adminModal .box{
+  border-radius:26px!important;padding:0 0 20px!important;overflow:hidden!important;
+  box-shadow:0 30px 70px rgba(0,0,0,.5)!important;border:1px solid rgba(255,255,255,.15);
+  max-height:92vh!important;
+}
+#adminModal .box > div:first-child{
+  background:linear-gradient(120deg,#0b1220,#3a1c0a 130%)!important;
+  padding:18px 20px!important;margin:0 0 14px!important;position:relative;overflow:hidden;
+}
+#adminModal .box > div:first-child::after{content:"";position:absolute;top:-40px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,107,0,.25);}
+#adminModal .box > div:first-child h3{color:#fff!important;font-size:17px!important;letter-spacing:.5px;position:relative;z-index:2;}
+#adminModal .box > div:first-child i{color:#fff!important;background:rgba(255,255,255,.15);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px!important;position:relative;z-index:2;}
+#adminModal .box > div:nth-child(2){
+  background:#fff3e8!important;border-radius:14px!important;padding:5px!important;
+  margin:0 14px 14px!important;box-shadow:inset 0 1px 4px rgba(255,107,0,.12);
+}
+body.dark-mode #adminModal .box > div:nth-child(2){background:#2b2119!important;}
+#adminModal .box > div:nth-child(2) button{border-radius:10px!important;padding:9px 4px!important;transition:all .2s!important;letter-spacing:.2px;}
+#adminModal #adminSecServices,#adminModal #adminSecCategories,#adminModal #adminSecBanners,#adminModal #adminSecCoupons,#adminModal #adminSecOrders{padding:0 16px;}
+#adminModal label{color:#ff6b00!important;font-weight:800!important;letter-spacing:.3px;text-transform:uppercase;font-size:10px!important;}
+#adminModal .input-field,#adminModal select,#adminModal textarea,#adminModal input{
+  border:1.5px solid #eadfd4!important;border-radius:12px!important;padding:11px!important;
+  font-size:13px!important;transition:border .2s,box-shadow .2s!important;
+}
+#adminModal .input-field:focus,#adminModal input:focus,#adminModal select:focus{border-color:#ff6b00!important;box-shadow:0 0 0 3px rgba(255,107,0,.15)!important;outline:none;}
+#adminModal button[onclick^="saveAdmin"],#adminModal button[onclick^="convertAdmin"]{
+  background:linear-gradient(90deg,#ff6b00,#ff8c2e)!important;color:#fff!important;border:none!important;
+  border-radius:12px!important;box-shadow:0 6px 16px rgba(255,107,0,.35)!important;font-weight:800!important;
+}
+#adminModal button[onclick^="deleteAdmin"],#adminModal button[onclick^="clearAdmin"]{border-radius:12px!important;}
+#admOrdersList > div{transition:transform .15s;}
+#admOrdersList > div:hover{transform:translateY(-2px);}
+#admOrderStats > div{border-top:3px solid #ff6b00;box-shadow:0 4px 12px rgba(13,30,60,.08);font-weight:700;}
+.pro-timeline{display:flex;justify-content:space-between;margin:12px 0 4px;position:relative;}
+.pro-timeline::before{content:"";position:absolute;top:14px;left:8%;right:8%;height:3px;background:#e8e2da;border-radius:2px;z-index:0;}
+.pro-step{position:relative;z-index:1;text-align:center;flex:1;}
+.pro-step .dot{width:28px;height:28px;border-radius:50%;background:#e8e2da;color:#999;display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:12px;transition:all .3s;}
+.pro-step.done .dot{background:linear-gradient(135deg,#15a04a,#2ecc71);color:#fff;box-shadow:0 4px 10px rgba(21,160,74,.4);}
+.pro-step.now .dot{background:linear-gradient(135deg,#ff6b00,#ff8c2e);color:#fff;box-shadow:0 4px 12px rgba(255,107,0,.5);animation:proPulse 1.4s infinite;}
+@keyframes proPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.pro-step span{font-size:8.5px;font-weight:700;color:#888;display:block;}
+.pro-step.done span,.pro-step.now span{color:#333;}
+</style>
+<style id="premiumCartV23">
+/* CART ULTRA PREMIUM */
+.item-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 10px!important;margin-bottom:8px;
+  background:linear-gradient(120deg,#fffdfb,#fff7f0)!important;
+  border:1px solid #f5e8db!important;border-radius:14px!important;
+  transition:transform .15s;
+}
+.item-row:active{transform:scale(.98);}
+body.dark-mode .item-row{background:linear-gradient(120deg,#241d17,#1c1712)!important;border-color:#3a2d20!important;}
+.qty-ctrl{
+  display:flex;align-items:center;gap:10px;background:#fff;
+  border:1.5px solid #ffd9bb!important;border-radius:22px!important;
+  padding:5px 8px!important;box-shadow:0 3px 10px rgba(255,107,0,.12);
+}
+body.dark-mode .qty-ctrl{background:#2b2119;}
+.qty-ctrl i{
+  width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#ff6b00,#ff8c2e);color:#fff!important;font-size:10px!important;
+  box-shadow:0 3px 8px rgba(255,107,0,.3);transition:transform .12s;
+}
+.qty-ctrl i:active{transform:scale(.85);}
+.qty-ctrl span{font-weight:900;font-size:15px;min-width:18px;text-align:center;color:#ff6b00;}
+#couponInput{letter-spacing:1px;font-weight:800;}
+#availableCouponsContainer > *{
+  background:linear-gradient(120deg,#fff5ed,#ffe9d6)!important;
+  border:1.5px dashed #ffb066!important;color:#e85a0c!important;
+  font-weight:800!important;padding:7px 13px!important;font-size:11px!important;
+  transition:transform .15s;cursor:pointer;
+}
+#availableCouponsContainer > *:active{transform:scale(.93);}
+.pro-save-chip{
+  margin-top:10px;background:linear-gradient(90deg,#e6f7ed,#d2f2df);
+  border:1px solid #a8e6c2;color:#0f7a37;font-weight:800;font-size:12.5px;
+  padding:10px 14px;border-radius:12px;text-align:center;
+  animation:savePop .4s cubic-bezier(.2,.8,.3,1);
+}
+@keyframes savePop{from{transform:scale(.8);opacity:0}to{transform:none;opacity:1}}
+.pro-cart-empty{text-align:center;padding:26px 10px;}
+.pro-cart-empty .ic{font-size:52px;animation:cartBounce 1.6s ease-in-out infinite;display:inline-block;}
+@keyframes cartBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.pro-cart-count{
+  display:inline-flex;align-items:center;gap:6px;background:#fff5ed;color:#ff6b00;
+  font-size:11px;font-weight:900;padding:5px 12px;border-radius:14px;border:1px solid #ffd9bb;
+  margin-bottom:10px;letter-spacing:.3px;
+}
+#fTotal{transition:transform .25s;display:inline-block;}
+#fTotal.pop{transform:scale(1.25);color:#15a04a;}
+.pro-hist-del{
+  background:#fff!important;color:#e53935!important;border:1.5px solid #f5c6c3!important;
+  border-radius:8px!important;padding:8px!important;font-size:11px!important;font-weight:800!important;cursor:pointer;min-width:38px;
+}
+.pro-hist-del:active{transform:scale(.92);}
+</style>
+
+<style id="premiumV24">
+/* ═══════ v24: ADMIN FULLSCREEN ═══════ */
+#adminModal{padding:0!important;align-items:stretch!important;}
+#adminModal .box{
+  width:100vw!important;max-width:100vw!important;
+  height:100dvh!important;max-height:100dvh!important;
+  border-radius:0!important;margin:0!important;
+}
+#adminModal .box > div:first-child{
+  position:sticky!important;top:0;z-index:60;border-radius:0!important;
+  box-shadow:0 6px 20px rgba(0,0,0,.25);
+}
+#adminModal .box > div:nth-child(2){position:sticky;top:64px;z-index:55;flex-wrap:wrap;}
+
+/* ═══════ v24: SERVICE OPTION PICKER (photo ke saath) ═══════ */
+#svcOptModal{position:fixed;inset:0;z-index:99990;display:none;background:rgba(8,12,24,.55);backdrop-filter:blur(4px);}
+#svcOptModal.open{display:flex;align-items:flex-end;justify-content:center;}
+.svc-sheet{
+  width:100%;max-width:480px;background:var(--card-bg,#fff);
+  border-radius:24px 24px 0 0;max-height:88dvh;overflow-y:auto;
+  animation:sheetUp .32s cubic-bezier(.2,.9,.3,1);position:relative;
+}
+@keyframes sheetUp{from{transform:translateY(55%);opacity:.4}to{transform:none;opacity:1}}
+.svc-hero{position:relative;height:195px;overflow:hidden;}
+.svc-hero img{width:100%;height:100%;object-fit:cover;display:block;}
+.svc-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(6,9,18,.88));}
+.svc-hero .tt{position:absolute;left:16px;right:60px;bottom:12px;z-index:2;color:#fff;}
+.svc-hero .tt h3{margin:0;font-size:19px;font-weight:900;text-shadow:0 2px 8px rgba(0,0,0,.4);}
+.svc-hero .tt .sub{font-size:12px;opacity:.95;margin-top:3px;font-weight:700;}
+.svc-close{
+  position:absolute;top:12px;right:12px;z-index:3;width:36px;height:36px;border-radius:50%;
+  background:rgba(0,0,0,.45);color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;border:1px solid rgba(255,255,255,.25);
+}
+.svc-opt-head{font-size:12px;font-weight:900;color:#ff6b00;letter-spacing:.5px;margin:14px 16px 10px;text-transform:uppercase;}
+.svc-opt-card{
+  display:flex;align-items:center;gap:12px;margin:0 14px 10px;padding:10px;
+  border:2px solid var(--border-color,#eee);border-radius:16px;cursor:pointer;
+  transition:all .15s;background:var(--card-bg,#fff);
+}
+.svc-opt-card:active{transform:scale(.98);}
+.svc-opt-card img{width:56px;height:56px;border-radius:12px;object-fit:cover;flex:0 0 56px;}
+.svc-opt-card .nm{font-size:13.5px;font-weight:800;line-height:1.3;}
+.svc-opt-card .pr{font-size:12px;font-weight:900;color:#15a04a;margin-top:3px;}
+.svc-opt-card.sel{border-color:#ff6b00;background:linear-gradient(120deg,#fff7f0,#ffefe0);box-shadow:0 6px 18px rgba(255,107,0,.18);}
+body.dark-mode .svc-opt-card.sel{background:linear-gradient(120deg,#2b2016,#241a10);}
+.svc-opt-card .tick{
+  margin-left:auto;width:22px;height:22px;border-radius:50%;border:2px solid #ccc;flex:0 0 22px;
+  display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;
+}
+.svc-opt-card.sel .tick{background:#ff6b00;border-color:#ff6b00;}
+.svc-foot{
+  position:sticky;bottom:0;background:var(--card-bg,#fff);padding:12px 16px;
+  display:flex;gap:12px;align-items:center;border-top:1px solid var(--border-color,#eee);
+  box-shadow:0 -8px 24px rgba(0,0,0,.08);z-index:5;
+}
+.svc-foot .tot{font-size:19px;font-weight:900;color:#15a04a;line-height:1;}
+.svc-foot .lbl{font-size:10px;color:#999;font-weight:700;}
+.svc-foot button{
+  flex:1;background:linear-gradient(90deg,#ff6b00,#ff8c2e);color:#fff;border:none;
+  border-radius:14px;padding:14px;font-weight:900;font-size:14px;cursor:pointer;
+  box-shadow:0 8px 20px rgba(255,107,0,.35);
+}
+.svc-foot button:active{transform:scale(.97);}
+
+/* ═══════ v24: CUSTOMERS LIST (admin) ═══════ */
+.pro-cust-card{
+  display:flex;gap:11px;align-items:center;background:var(--card-bg);border:1px solid var(--border-color);
+  padding:11px;border-radius:14px;margin-bottom:10px;box-shadow:0 4px 12px rgba(13,30,60,.06);text-align:left;
+}
+.pro-cust-card .av{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:0 0 44px;border:2px solid #ffd9bb;background:#fff5ed;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;}
+.pro-cust-card .av img{width:100%;height:100%;object-fit:cover;}
+#svcFootPrice{transition:transform .22s;display:inline-block;}
+#svcFootPrice.pop{transform:scale(1.18);}
+</style>
+
+<style id="premiumV25">
+/* ═══════ v25: PREMIUM APP INSTALL POPUP ═══════ */
+#installAppModal{backdrop-filter:blur(6px);background:rgba(8,12,24,.6)!important;}
+#installAppModal .box{
+  max-width:370px!important;border-radius:26px!important;overflow:hidden!important;
+  padding:0 0 22px!important;border:1px solid rgba(255,255,255,.2);
+  box-shadow:0 30px 80px rgba(0,0,0,.5)!important;
+  animation:instPop .45s cubic-bezier(.2,.9,.3,1.2);
+}
+@keyframes instPop{from{transform:scale(.7) translateY(40px);opacity:0}to{transform:none;opacity:1}}
+#installAppModal .box img{
+  width:86px!important;height:86px!important;margin:26px auto 4px;display:block;
+  border-radius:22px;box-shadow:0 12px 30px rgba(255,107,0,.35);
+  animation:instFloat 2.2s ease-in-out infinite;position:relative;z-index:2;
+  background:#fff;padding:10px;
+}
+@keyframes instFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+#installAppModal .box::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:130px;
+  background:linear-gradient(135deg,#ff6b00,#ff9a3d 60%,#ffb968);z-index:0;
+}
+#installAppModal .box::after{
+  content:"";position:absolute;top:96px;left:0;right:0;height:46px;
+  background:var(--card-bg,#fff);border-radius:26px 26px 0 0;z-index:1;
+}
+#installAppModal .welcome-note{position:relative;z-index:2;font-weight:900!important;}
+#installAppModal .tagline{position:relative;z-index:2;padding:0 22px;}
+#installAppModal .box > div[style*="primary-light"]{
+  position:relative;z-index:2;margin:0 18px 18px!important;
+  background:linear-gradient(120deg,#fff5ed,#ffe9d6)!important;
+  border:1.5px dashed #ffb066;border-radius:14px!important;line-height:1.9!important;
+}
+#installAppModal button[onclick^="triggerAppInstall"]{
+  position:relative;z-index:2;width:calc(100% - 36px);margin:0 18px 10px!important;
+  background:linear-gradient(90deg,#15a04a,#1fc25e)!important;border:none;border-radius:14px!important;
+  padding:15px!important;font-weight:900!important;font-size:15px!important;color:#fff;cursor:pointer;
+  box-shadow:0 10px 26px rgba(21,160,74,.4)!important;
+  animation:instGlow 1.8s ease-in-out infinite;
+}
+@keyframes instGlow{0%,100%{box-shadow:0 10px 26px rgba(21,160,74,.35)}50%{box-shadow:0 10px 34px rgba(21,160,74,.65)}}
+#installAppModal button[onclick^="triggerAppInstall"]:active{transform:scale(.97);}
+#installAppModal button[onclick^="closeInstallModal"]{
+  position:relative;z-index:2;width:calc(100% - 36px);margin:0 18px!important;
+  background:transparent!important;color:#999!important;border:1.5px solid var(--border-color,#e5e5e5)!important;
+  border-radius:14px!important;padding:12px!important;font-weight:800!important;font-size:12.5px!important;cursor:pointer;
+}
+.pro-inst-badge{
+  position:relative;z-index:2;display:flex;justify-content:center;gap:14px;
+  margin:2px 0 14px;font-size:10.5px;font-weight:800;color:#888;
+}
+.pro-inst-badge span{display:flex;align-items:center;gap:4px;}
+/* floating install pill on home */
+#proInstallPill{
+  position:fixed;bottom:86px;right:14px;z-index:9000;
+  background:linear-gradient(90deg,#0b1220,#26364f);color:#fff;
+  border:1px solid rgba(255,255,255,.18);border-radius:30px;
+  padding:11px 16px;font-size:12px;font-weight:900;cursor:pointer;
+  box-shadow:0 10px 28px rgba(0,0,0,.35);display:none;align-items:center;gap:7px;
+  animation:pillIn .5s cubic-bezier(.2,.9,.3,1.2);
+}
+@keyframes pillIn{from{transform:translateX(120px);opacity:0}to{transform:none;opacity:1}}
+#proInstallPill .dot{width:7px;height:7px;border-radius:50%;background:#1fc25e;animation:instGlow 1.5s infinite;}
+</style>
+
+<style id="premiumV26">
+/* ═══════ v26: ADMIN SCROLL FIX ═══════ */
+#adminModal .box{
+  overflow-y:auto!important;overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  padding-bottom:40px!important;
+}
+/* ═══════ v26: PREMIUM RATING POPUP ═══════ */
+.pro-rate-hero{
+  width:74px;height:74px;border-radius:50%;margin:0 auto 8px;
+  background:linear-gradient(135deg,#ff6b00,#ff9a3d);display:flex;align-items:center;justify-content:center;
+  font-size:34px;box-shadow:0 12px 30px rgba(255,107,0,.35);
+  animation:instFloat 2.2s ease-in-out infinite;
+}
+#proStars span{display:inline-block;transition:transform .15s;}
+#proStars span:active{transform:scale(1.4);}
+#proRateEmoji{
+  font-size:14px;font-weight:900;margin:2px 0 10px;min-height:20px;
+  animation:savePop .3s cubic-bezier(.2,.8,.3,1);
+}
+.pro-rate-chip{
+  display:inline-block;background:#fff5ed;border:1.5px dashed #ffb066;color:#e85a0c;
+  font-size:11px;font-weight:800;padding:6px 11px;border-radius:14px;margin:3px;cursor:pointer;
+  transition:all .15s;
+}
+.pro-rate-chip.on{background:linear-gradient(90deg,#ff6b00,#ff8c2e);color:#fff;border-style:solid;border-color:#ff6b00;}
+.pro-rate-chip:active{transform:scale(.92);}
+/* admin delete order btn */
+.pro-adm-del{
+  width:100%;margin-top:8px;background:#fdecea!important;color:#e53935!important;
+  border:1.5px dashed #f5c6c3!important;border-radius:10px!important;padding:8px!important;
+  font-size:11px!important;font-weight:900!important;cursor:pointer;
+}
+.pro-adm-del:active{transform:scale(.97);}
+</style>
+
+<!-- ═══════ v27: REAL PWA ═══════ -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ff6b00">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SewaAstra">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style id="premiumV27">
+#proNetBar{
+  position:fixed;top:0;left:0;right:0;z-index:99999999;display:none;
+  text-align:center;font-size:11.5px;font-weight:900;padding:7px 10px;color:#fff;
+  animation:netIn .3s ease;
+}
+@keyframes netIn{from{transform:translateY(-100%)}to{transform:none}}
+#proNetBar.off{display:block;background:linear-gradient(90deg,#5f6368,#3c4043);}
+#proNetBar.on{display:block;background:linear-gradient(90deg,#15a04a,#1fc25e);}
+</style>
+
+<style id="premiumV28">
+/* ═══════ v28: SPEED BOOST ═══════ */
+/* Offscreen cards render skip — lambi list me bada speed gain */
+.card{content-visibility:auto;contain-intrinsic-size:0 175px;}
+.item-row{content-visibility:auto;contain-intrinsic-size:0 70px;}
+/* Image placeholder — jhatka nahi lagega */
+#display img, #bannerCarouselArea img{background:#f6efe8;}
+body.dark-mode #display img, body.dark-mode #bannerCarouselArea img{background:#2a221b;}
+/* GPU-friendly animations */
+.pro-orb, .pa-orb{will-change:transform;}
+</style>
+
 </head>
 <body id="mainBody">
 
@@ -264,46 +770,62 @@
 </div>
 
 <!-- MANDATORY STUNNING AUTHENTICATION OVERLAY -->
-<div id="authOverlay" class="full-overlay" style="display:flex;">
-    <div class="box">
-        <img src="sewaastra.png" alt="SewaAstra Logo" />
-        <div class="welcome-note">Welcome to SewaAstra</div>
-        <div class="tagline">भारत की सबसे भरोसेमंद होम सर्विस ऐप</div>
-        
-        <!-- GOOGLE LOGIN BUTTON -->
-        <button onclick="loginWithGoogle()" style="background:white; color:#444; border:2px solid #ddd; display:flex; align-items:center; justify-content:center; gap:12px; font-weight:600; margin-bottom:15px; box-shadow:none;">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px; margin:0;" /> Google से लॉगिन करें
-        </button>
-
-        <div style="display:flex; align-items:center; gap:10px; margin:10px 0; color:#888; font-size:13px;">
-            <div style="flex:1; height:1px; background:#ddd;"></div> या मोबाइल नंबर से <div style="flex:1; height:1px; background:#ddd;"></div>
+<div id="authOverlay" class="full-overlay premium-auth" style="display:flex;">
+    <div class="pa-bg"><span class="pa-orb pa-o1"></span><span class="pa-orb pa-o2"></span><span class="pa-orb pa-o3"></span></div>
+    <div class="pa-card">
+        <div class="pa-logo-wrap">
+            <div class="pa-ring"></div>
+            <img src="sewaastra.png" alt="SewaAstra Logo" onerror="this.style.display='none';document.getElementById('paLogoFb').style.display='flex';" />
+            <div id="paLogoFb" class="pa-logo-fb">🛠️</div>
+        </div>
+        <h1 class="pa-title">Sewa<span>Astra</span></h1>
+        <p class="pa-sub">भारत की सबसे भरोसेमंद होम सर्विस ऐप</p>
+        <div class="pa-trust">
+            <span>✅ Verified Experts</span><span>🔒 100% Secure</span><span>⭐ 4.8 Rated</span>
         </div>
 
+        <button class="pa-google" onclick="loginWithGoogle()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" /> Google से लॉगिन करें
+        </button>
+
+        <div class="pa-divider">या मोबाइल नंबर से</div>
+
         <div id="phoneAuthSection">
-            <input type="tel" id="userPhone" placeholder="मोबाइल नंबर (उदा. 9876543210)" maxlength="10" />
-            <button onclick="sendRealPhoneOTP()">रियल OTP भेजें</button>
+            <div class="pa-input-group">
+                <span class="pa-flag">🇮🇳 +91</span>
+                <input type="tel" id="userPhone" placeholder="मोबाइल नंबर दर्ज करें" maxlength="10" inputmode="numeric" />
+            </div>
+            <button class="pa-btn" onclick="sendRealPhoneOTP()">OTP भेजें &nbsp;<i class="fa fa-arrow-right"></i></button>
         </div>
 
         <div id="otpAuthSection" style="display:none;">
-            <p style="font-size: 13px; color: #666;">दर्ज नंबर पर Firebase द्वारा 6-अंकों का OTP भेजा गया है</p>
-            <input type="text" id="userOTP" placeholder="OTP दर्ज करें (6 अंक)" maxlength="6" />
-            <button onclick="verifyRealPhoneOTP()">OTP सत्यापित करें</button>
-            <span style="font-size:12px; color:var(--primary); cursor:pointer; display:block; margin-top:10px;" onclick="resetAuth()">← दूसरा नंबर बदलें</span>
+            <p class="pa-otp-note">📲 आपके नंबर पर 6-अंकों का OTP भेजा गया है</p>
+            <input type="text" id="userOTP" class="pa-otp-input" placeholder="••••••" maxlength="6" inputmode="numeric" />
+            <button class="pa-btn" onclick="verifyRealPhoneOTP()">सत्यापित करें &nbsp;<i class="fa fa-check-circle"></i></button>
+            <span class="pa-link" onclick="resetAuth()">← दूसरा नंबर बदलें</span>
         </div>
-        
+
         <div id="recaptcha-container"></div>
+        <p class="pa-terms">जारी रखने पर आप हमारी <b>सेवा शर्तें</b> व <b>गोपनीयता नीति</b> स्वीकार करते हैं</p>
     </div>
 </div>
 
 <!-- POST-GOOGLE LOGIN MOBILE NUMBER PROMPT OVERLAY -->
-<div id="googlePhonePromptOverlay" class="full-overlay" style="display:none;">
-    <div class="box">
-        <img src="sewaastra.png" alt="SewaAstra Logo" />
-        <div class="welcome-note">मोबाइल नंबर दर्ज करें</div>
-        <div class="tagline">सुरक्षा और बुकिंग कन्फर्मेशन के लिए</div>
-        
-        <input type="tel" id="googleLinkedPhone" placeholder="मोबाइल नंबर (10 अंक)" maxlength="10" />
-        <button onclick="submitGoogleLinkedPhone()">मोबाइल नंबर सेव करें</button>
+<div id="googlePhonePromptOverlay" class="full-overlay premium-auth" style="display:none;">
+    <div class="pa-bg"><span class="pa-orb pa-o1"></span><span class="pa-orb pa-o2"></span></div>
+    <div class="pa-card">
+        <div class="pa-logo-wrap">
+            <div class="pa-ring"></div>
+            <img src="sewaastra.png" alt="SewaAstra Logo" onerror="this.style.display='none';document.getElementById('paLogoFb2').style.display='flex';" />
+            <div id="paLogoFb2" class="pa-logo-fb">📱</div>
+        </div>
+        <h1 class="pa-title" style="font-size:22px;">मोबाइल नंबर दर्ज करें</h1>
+        <p class="pa-sub">सुरक्षा और बुकिंग कन्फर्मेशन के लिए</p>
+        <div class="pa-input-group">
+            <span class="pa-flag">🇮🇳 +91</span>
+            <input type="tel" id="googleLinkedPhone" placeholder="मोबाइल नंबर (10 अंक)" maxlength="10" inputmode="numeric" />
+        </div>
+        <button class="pa-btn" onclick="submitGoogleLinkedPhone()">नंबर सेव करें &nbsp;<i class="fa fa-check"></i></button>
     </div>
 </div>
 
@@ -715,10 +1237,10 @@
 
   if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
-      firebase.analytics();
+      try{ if(firebase.analytics) firebase.analytics(); }catch(e){}
   }
 
-  const db = firebase.database();
+  const db = null; /* RTDB unused - removed for speed */
   const firestore = firebase.firestore();
 
   let cart = [];
@@ -1752,7 +2274,7 @@
       return `
           <div class="card">
               <div class="card-top">
-                  <img src="${item.i}" onclick="showAlert('${item.n}', 'बेहतरीन गुणवत्ता वाली होम सर्विस।')" />
+                  <img loading="lazy" decoding="async" src="${item.i}" onclick="showAlert('${item.n}', 'बेहतरीन गुणवत्ता वाली होम सर्विस।')" />
                   <div class="card-info">
                       <h4>${item.n}</h4>
                       <div class="rating-row">
@@ -1853,243 +2375,1342 @@
       }
   };
 </script>
-  <script>
-let orderMsg = `*🚀 New SewaAstra Booking!* %0A` +
-                     `🆔 Order ID: ${orderDetails.id}%0A` +
-                     `👤 User: ${orderDetails.mobile}%0A` +
-                     `📦 Items: ${cart.map(i => i.n + ' (x' + (i.qty||1) + ')').join(', ')}%0A` +
-                     `💰 Total Amount: ₹${finalAmt} (${selectedMode})%0A` +
-                     `📍 Address: ${address}%0A` +
-                     `📅 Schedule: ${date} at ${time}%0A` +
-                     `🗺️ Maps: ${mapsLink}`;
 
-      // Save to Firestore if available
-      try {
-          firestore.collection("orders").add(orderDetails).catch(e => console.log(e));
-      } catch(e) {}
+<!-- ═══════ SEWAASTRA PRO CLOUD UPGRADE LAYER v2.0 ═══════ -->
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   SEWAASTRA PRO — CLOUD UPGRADE LAYER (v2.0)
+   Yeh layer original code ke UPAR chalti hai aur sab kuch REAL banati hai:
+   ✅ Orders ab Firestore me save (har device pe dikhte hain)
+   ✅ Admin ke Services/Categories/Banners/Coupons ab CLOUD me (sab users ko dikhte hain)
+   ✅ Real-time Order History + live status updates + notifications
+   ✅ Admin ORDERS tab — status change karo, customer ko turant dikhega
+   ✅ REAL chat (customer ↔ admin) per order
+   ✅ Rating & review system
+   ✅ Order cancel + UPI online payment link
+   ═══════════════════════════════════════════════════════════════════ */
 
-      cart = [];
-      appliedDiscount = 0;
-      document.getElementById('bCount').innerText = "0";
-      closeCart();
-      
-      showAlert("बुकिंग सफल! 🎉", `आपका ऑर्डर आईडी <b>${orderDetails.id}</b> सफलतापूर्वक दर्ज कर लिया गया है!<br><br>पार्टनर जल्द ही आपसे संपर्क करेगा।`);
-      
-      // Open WhatsApp to notify admin/partner
-      window.open(`https://wa.me/917869969190?text=${orderMsg}`, '_blank');
-  }
+/* ─────────────── HELPERS ─────────────── */
+const FS = firebase.firestore();
+const STATUS_LIST = ['Order Placed', 'Accepted', 'On the Way', 'Working', 'Completed', 'Cancelled'];
+const STATUS_HI = {
+  'Order Placed': '📦 ऑर्डर प्राप्त', 'Accepted': '✅ स्वीकृत', 'On the Way': '🛵 रास्ते में',
+  'Working': '🔧 काम चालू', 'Completed': '🎉 पूर्ण', 'Cancelled': '❌ रद्द'
+};
+const STATUS_CLR = {
+  'Order Placed': '#b26a00', 'Accepted': '#14538c', 'On the Way': '#7b2ff2',
+  'Working': '#0d6efd', 'Completed': '#28a745', 'Cancelled': '#e53935'
+};
+function proEsc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function getUID() { try { return firebase.auth().currentUser ? firebase.auth().currentUser.uid : null; } catch (e) { return null; } }
+function getIdent() { return localStorage.getItem('sw_user') || ''; }
+function isAdminUser() { return localStorage.getItem('sw_is_admin') === 'true'; }
+let CLOUD_CONFIG = {};   // {upiId, ...}
+let myOrdersCache = {};  // id -> status (notification diff ke liye)
+let unsubMyOrders = null, unsubAllOrders = null, unsubChat = null;
+let activeChatOrderId = null;
 
-  function showHistory() {
-      let history = JSON.parse(localStorage.getItem('sw_order_history')) || [];
-      let display = document.getElementById('display');
-      document.getElementById('catTitle').innerText = "Order History & Live Tracking";
-      display.innerHTML = "";
-
-      if(history.length === 0) {
-          display.innerHTML = `<div style="text-align:center; padding:40px; color:#888;">${LANG_DATA[currentLang].noHistory}</div>`;
-          return;
-      }
-
-      history.forEach(o => {
-          display.innerHTML += `
-              <div class="card">
-                  <div style="display:flex; justify-content:space-between; align-items:center;">
-                      <b>Order ID: ${o.id}</b>
-                      <span style="font-size:11px; background:var(--primary-light); color:var(--primary); padding:3px 8px; border-radius:6px; font-weight:bold;">${o.status}</span>
-                  </div>
-                  <div style="font-size:13px; color:#555; margin-top:4px;">
-                      <b>डिटेल्स:</b> ${o.items.map(i => i.n + ' (x' + (i.qty||1) + ')').join(', ')}<br>
-                      <b>कुल राशि:</b> ₹${o.total} (${o.mode})<br>
-                      <b>पता:</b> ${o.address}<br>
-                      <b>समय:</b> ${o.date} | ${o.time}
-                  </div>
-                  <div style="display:flex; gap:10px; margin-top:10px;">
-                      <button onclick="openLiveTracking('${o.id}')" style="flex:1; background:var(--primary); color:white; border:none; padding:8px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:12px;"><i class="fa fa-map-marked-alt"></i> लाइव ट्रैकिंग देखें</button>
-                      <button onclick="window.open('https://wa.me/917869969190?text=Query regarding Order ID ${o.id}', '_blank')" style="flex:1; background:#25d366; color:white; border:none; padding:8px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:12px;"><i class="fab fa-whatsapp"></i> सहायता</button>
-                  </div>
-              </div>`;
-      });
-  }
-
-  function toggleProfile() {
-      let overlay = document.getElementById('profileOverlay');
-      overlay.style.display = (overlay.style.display === 'flex') ? 'none' : 'flex';
-      let savedPhoto = localStorage.getItem('sw_user_photo');
-      if(savedPhoto) {
-          document.getElementById('headerPic').src = savedPhoto;
-          document.getElementById('sheetPic').src = savedPhoto;
-      }
-      let phone = localStorage.getItem('sw_user') || '7869969190';
-      document.getElementById('profilePhoneDisplay').innerText = "+91 " + phone;
-      checkAdminAccess(phone);
-  }
-
-  function closeProfile(e) {
-      if(!e || e.target.id === 'profileOverlay') {
-          document.getElementById('profileOverlay').style.display = 'none';
-      }
-  }
-
-  function openSupportView() {
-      document.getElementById('homePage').style.display = 'none';
-      document.getElementById('supportPage').style.display = 'block';
-      resetSupportFlow();
-  }
-
-  function closeSupportView() {
-      document.getElementById('supportPage').style.display = 'none';
-      document.getElementById('homePage').style.display = 'block';
-  }
-
-  function selectSuppIssue(issue) {
-      currentIssue = issue;
-      document.getElementById('step1').style.display = 'none';
-      document.getElementById('step2').style.display = 'block';
-      document.getElementById('issueLabel').innerText = "चयनित समस्या: " + issue;
-  }
-
-  function resetSupportFlow() {
-      document.getElementById('step1').style.display = 'block';
-      document.getElementById('step2').style.display = 'none';
-  }
-
-  function talkToExpert(type) {
-      let msg = `नमस्ते SewaAstra टीम, मुझे इस समस्या में सहायता चाहिए: ${currentIssue}`;
-      if(type === 'wa') {
-          window.open(`https://wa.me/917869969190?text=${encodeURIComponent(msg)}`, '_blank');
-      } else {
-          window.location.href = "tel:7869969190";
-      }
-  }
-
-  function showToast(msg) {
-      let t = document.getElementById('welcomeToast');
-      t.innerText = msg;
-      t.style.display = 'block';
-      setTimeout(() => { t.style.display = 'none'; }, 3000);
-  }
-
-  function load(catKey, elem) {
-      let display = document.getElementById('display');
-      display.innerHTML = "";
-      document.getElementById('catTitle').innerText = (categoriesData.find(c => c.key === catKey)?.name || catKey) + " Services";
-      
-      if(elem) {
-          document.querySelectorAll('.cat-item').forEach(i => i.style.opacity = '0.7');
-          elem.style.opacity = '1';
-          elem.querySelector('.cat-icon').classList.add('animate-icon');
-          setTimeout(() => elem.querySelector('.cat-icon').classList.remove('animate-icon'), 300);
-      }
-
-      if(mainData[catKey]) {
-          mainData[catKey].forEach((s, idx) => {
-              display.innerHTML += createCard(s, catKey + '_' + idx);
-          });
-      }
-  }
-
-  function createCard(s, idKey) {
-      let subOptionsHtml = "";
-      if (s.subOptions && s.subOptions.length > 0) {
-          subOptionsHtml = `<div class="service-sub-options" id="subopts_${idKey}" style="display:flex;">`;
-          s.subOptions.forEach((opt, oIdx) => {
-              let checked = oIdx === 0 ? "checked" : "";
-              subOptionsHtml += `<label><input type="radio" name="subopt_${idKey}" value="${opt}" ${checked} onchange="updateSubOptionPrice('${idKey}', ${s.p}, '${opt}')"> ${opt}</label>`;
-          });
-          subOptionsHtml += `</div>`;
-      }
-
-      return `
-          <div class="card">
-              <div class="card-top">
-                  <img src="${s.i}" alt="${s.n}" />
-                  <div class="card-info">
-                      <h4>${s.n}</h4>
-                      <div class="rating-row">
-                          <i class="fa fa-star"></i>
-                          <i class="fa fa-star"></i>
-                          <i class="fa fa-star"></i>
-                          <i class="fa fa-star"></i>
-                          <i class="fa fa-star-half-alt"></i>
-                          <span class="rating-val">4.8</span>
-                          <span class="review-count">(1.2k+ reviews)</span>
-                      </div>
-                      <div class="price-row">
-                          <b id="price_${idKey}">₹${s.p}</b>
-                          <button class="add-btn" id="btn_${idKey}" onclick="addToCart('${s.n}', ${s.p}, '${s.i}', '${idKey}')">जोड़ें (Add)</button>
-                      </div>
-                  </div>
-              </div>
-              ${subOptionsHtml}
-          </div>`;
-  }
-
-  function updateSubOptionPrice(idKey, basePrice, selectedOpt) {
-      let match = selectedOpt.match(/\(+₹(\d+)\)/);
-      let extra = match ? parseInt(match[1]) : 0;
-      let total = basePrice + extra;
-      document.getElementById(`price_${idKey}`).innerText = "₹" + total;
-  }
-
-  function addToCart(name, basePrice, img, idKey) {
-      let selectedSub = "";
-      let finalPrice = basePrice;
-      let radioElem = document.querySelector(`input[name="subopt_${idKey}"]:checked`);
-      if(radioElem) {
-          selectedSub = radioElem.value;
-          let match = selectedSub.match(/\(+₹(\d+)\)/);
-          let extra = match ? parseInt(match[1]) : 0;
-          finalPrice += extra;
-      }
-
-      let existing = cart.find(i => i.n === name && i.selectedSub === selectedSub);
-      if (existing) {
-          existing.qty = (existing.qty || 1) + 1;
-      } else {
-          cart.push({ n: name, p: finalPrice, i: img, selectedSub: selectedSub, qty: 1 });
-      }
-
-      document.getElementById('bCount').innerText = cart.reduce((acc, curr) => acc + (curr.qty || 1), 0);
-      showToast(`${name} कार्ट में जोड़ दिया गया! 🛒`);
-      
-      let btn = document.getElementById(`btn_${idKey}`);
-      if(btn) {
-          btn.innerText = "जोड़ दिया (Added)";
-          btn.classList.add("filled");
-          setTimeout(() => {
-              btn.innerText = "जोड़ें (Add)";
-              btn.classList.remove("filled");
-          }, 1500);
-      }
-  }
-
-  window.onload = function() {
-      renderCategoriesGrid();
-      renderBanners();
-      load(categoriesData[0].key);
-      
-      let isDark = localStorage.getItem('sw_dark') === 'true';
-      if(isDark) {
-          document.body.classList.add('dark-mode');
-          document.getElementById('darkBtn').checked = true;
-      }
-
-      let savedLang = localStorage.getItem('sw_lang') || 'hi';
-      setLang(savedLang);
-
-      if(localStorage.getItem('sw_logged') === 'true') {
-          document.getElementById('authOverlay').style.display = 'none';
-          let user = localStorage.getItem('sw_user');
-          if(user) checkAdminAccess(user);
-          let savedPhoto = localStorage.getItem('sw_user_photo');
-          if(savedPhoto) {
-              document.getElementById('headerPic').src = savedPhoto;
-              document.getElementById('sheetPic').src = savedPhoto;
-          }
-          fetchCityNameByGPS();
-      }
+/* ═══════════════ 1. CLOUD CONFIG SYNC (admin data sab jagah real) ═══════════════ */
+function pushConfigToCloud() {
+  const payload = {
+    categoriesData: JSON.stringify(categoriesData),
+    mainData: JSON.stringify(mainData),
+    bannersData: JSON.stringify(bannersData),
+    couponsData: JSON.stringify(couponsData),
+    upiId: CLOUD_CONFIG.upiId || '',
+    updatedAt: Date.now()
   };
+  FS.collection('app_config').doc('main').set(payload, { merge: true })
+    .then(() => showToast('☁️ Cloud me save ho gaya — sab users ko dikhega!'))
+    .catch(e => showToast('Cloud sync error: ' + e.message));
+}
+
+function applyCloudConfig(d) {
+  try {
+    if (d.categoriesData) { categoriesData = JSON.parse(d.categoriesData); localStorage.setItem('sw_custom_categories', d.categoriesData); }
+    if (d.mainData) { mainData = JSON.parse(d.mainData); localStorage.setItem('sw_custom_services', d.mainData); }
+    if (d.bannersData) { bannersData = JSON.parse(d.bannersData); localStorage.setItem('sw_custom_banners', d.bannersData); }
+    if (d.couponsData) { couponsData = JSON.parse(d.couponsData); localStorage.setItem('sw_custom_coupons', d.couponsData); }
+    CLOUD_CONFIG.upiId = d.upiId || '';
+    try { renderCategoriesGrid(); } catch (e) {}
+    try { renderBanners(); } catch (e) {}
+    try { renderMoreCategoriesGrid(); } catch (e) {}
+  } catch (e) { console.warn('config apply:', e); }
+}
+
+FS.collection('app_config').doc('main').onSnapshot(snap => {
+  if (snap.exists) applyCloudConfig(snap.data());
+  else if (isAdminUser()) pushConfigToCloud();   // pehli baar admin device se seed
+}, e => console.warn('config listen:', e));
+
+/* Admin save/delete functions ko wrap karo — original chalega, phir cloud push */
+['saveAdminCategory', 'deleteAdminCategory', 'saveAdminServiceChanges',
+ 'saveAdminBannerChanges', 'saveAdminCouponChanges'].forEach(fn => {
+  const orig = window[fn];
+  if (typeof orig === 'function') {
+    window[fn] = function () { orig.apply(this, arguments); pushConfigToCloud(); };
+  }
+});
+
+/* ═══════════════ 2. REAL ORDERS (Firestore me save) ═══════════════ */
+window.handleFinalOrder = function () {
+  let address = document.getElementById('manualAddr').value.trim();
+  let mobile = document.getElementById('altMobile').value.trim();
+  let date = document.getElementById('cartDate').value;
+  let time = document.getElementById('cartTime').value;
+  let remark = document.getElementById('cartRemark').value.trim();
+  let mapsLink = document.getElementById('googleMapsLink').value;
+
+  if (!address) return showAlert('पता आवश्यक है', 'कृपया अपनी डिलीवरी लोकेशन या पता दर्ज करें');
+  if (!selectedMode) return showAlert('भुगतान मोड चुनें', 'कृपया Cash या Online भुगतान का तरीका चुनें');
+  if (!cart.length) return showAlert('कार्ट खाली है', 'पहले कोई सेवा जोड़ें');
+
+  let subtotal = cart.reduce((acc, c) => acc + (c.p * (c.qty || 1)), 0);
+  let finalAmt = (subtotal - appliedDiscount) + 10;
+  if (finalAmt < 10) finalAmt = 10;
+
+  const oid = 'SW' + Math.floor(100000 + Math.random() * 900000);
+  const userMobile = mobile || getIdent() || '';
+  const order = {
+    id: oid,
+    uid: getUID(),
+    mobile: userMobile,
+    items: cart.map(i => ({ n: i.n, p: i.p, qty: i.qty || 1 })),
+    subtotal, discount: appliedDiscount, total: finalAmt,
+    address, date, time, remark, mode: selectedMode, maps: mapsLink || '',
+    status: 'Order Placed', rated: false,
+    loc: (typeof userCoords !== 'undefined' ? {lat: userCoords.lat, lon: userCoords.lon} : null),
+    createdAt: Date.now(),
+    timestamp: new Date().toLocaleString('hi-IN')
+  };
+
+  showLoader('ऑर्डर सेव हो रहा है...');
+  FS.collection('orders').doc(oid).set(order).then(() => {
+    hideLoader();
+    // offline cache bhi rakho
+    let hist = JSON.parse(localStorage.getItem('sw_order_history')) || [];
+    hist.unshift(order);
+    localStorage.setItem('sw_order_history', JSON.stringify(hist.slice(0, 50)));
+
+    const waMsg = `*🚀 New SewaAstra Booking!*%0A🆔 Order ID: ${oid}%0A👤 User: ${userMobile}%0A📦 Items: ${cart.map(i => i.n + ' (x' + (i.qty || 1) + ')').join(', ')}%0A💰 Total: ₹${finalAmt} (${selectedMode})%0A📍 Address: ${address}%0A🗺️ Map: ${mapsLink}%0A📅 ${date} at ${time}%0A📝 ${remark || 'None'}`;
+
+    closeCart();
+    cart = [];
+    try { renderCart(); } catch (e) {}
+    document.getElementById('bCount').innerText = '0';
+    appliedDiscount = 0;
+
+    let extra = '';
+    if (selectedMode === 'Online' && CLOUD_CONFIG.upiId) {
+      const upi = `upi://pay?pa=${encodeURIComponent(CLOUD_CONFIG.upiId)}&pn=SewaAstra&am=${finalAmt}&cu=INR&tn=${oid}`;
+      extra = `<br><a href="${upi}" style="display:inline-block;margin-top:10px;background:#15a04a;color:#fff;padding:10px 18px;border-radius:10px;text-decoration:none;font-weight:bold;">💳 UPI से ₹${finalAmt} Pay करें</a>`;
+    }
+    showAlert('बुकिंग सफल! 🎉', `आपका ऑर्डर <b>${oid}</b> ☁️ cloud में सेव हो गया है!<br>स्टेटस अपडेट आपको यहीं मिलेंगे (📋 History में देखें)।${extra}<br><br>WhatsApp पर विवरण भेजा जा रहा है...`);
+    setTimeout(() => { window.open(`https://wa.me/917869969190?text=${waMsg}`, '_blank'); }, 1800);
+    startMyOrdersListener();
+  }).catch(e => {
+    hideLoader();
+    showAlert('त्रुटि', 'ऑर्डर सेव नहीं हो सका: ' + e.message);
+  });
+};
+
+/* ═══════════════ 3. REAL ORDER HISTORY + NOTIFICATIONS ═══════════════ */
+function myOrdersQuery() {
+  const uid = getUID();
+  if (uid) return FS.collection('orders').where('uid', '==', uid);
+  const ident = getIdent();
+  return FS.collection('orders').where('mobile', '==', ident);
+}
+
+function startMyOrdersListener() {
+  if (isAdminUser()) return;             // admin apna tab use karega
+  if (unsubMyOrders) unsubMyOrders();
+  if (!getUID() && !getIdent()) return;
+  unsubMyOrders = myOrdersQuery().onSnapshot(snap => {
+    snap.docChanges().forEach(ch => {
+      const o = ch.doc.data();
+      if (ch.type === 'modified' && myOrdersCache[o.id] && myOrdersCache[o.id] !== o.status) {
+        showToast(`🔔 ऑर्डर ${o.id}: ${STATUS_HI[o.status] || o.status}`);
+      }
+      myOrdersCache[o.id] = o.status;
+    });
+  }, e => console.warn('orders listen:', e));
+}
+
+window.showHistory = function () {
+  showLoader('इतिहास लोड हो रहा है...');
+  myOrdersQuery().get().then(snap => {
+    hideLoader();
+    let orders = snap.docs.map(d => d.data());
+    if (!orders.length) return showAlert('ऑर्डर इतिहास', 'अभी तक कोई ऑर्डर नहीं है।');
+    orders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    let html = `<div style="text-align:left; max-height:65vh; overflow-y:auto;">`;
+    orders.forEach(o => {
+      const clr = STATUS_CLR[o.status] || '#666';
+      const canCancel = ['Order Placed', 'Accepted'].includes(o.status);
+      const canRate = o.status === 'Completed' && !o.rated;
+      html += `
+      <div style="background:var(--card-bg); border:1px solid var(--border-color); padding:14px; border-radius:12px; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-weight:bold; font-size:14px;">
+          <span style="color:var(--primary);">${o.id}</span>
+          <span style="background:${clr}22;color:${clr};padding:3px 10px;border-radius:12px;font-size:11px;">${STATUS_HI[o.status] || o.status}</span>
+        </div>
+        <div style="font-size:12px; color:#888; margin:4px 0;">📅 ${proEsc(o.date)} | ⏰ ${proEsc(o.time)} | ₹${o.total} (${o.mode})</div>
+        <div style="font-size:12px; margin:4px 0;">📍 ${proEsc(o.address)}</div>
+        <div style="font-size:12px; font-weight:600; margin-top:4px;">🛠️ ${(o.items || []).map(i => proEsc(i.n) + ' (x' + (i.qty || 1) + ')').join(', ')}</div>
+        ${o.rated ? `<div style="font-size:12px;color:#f5a623;font-weight:bold;margin-top:4px;">⭐ आपने रेटिंग दे दी है</div>` : ''}
+        <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
+          <button onclick="openLiveTracking('${o.id}')" style="flex:1;min-width:90px;background:var(--primary);color:#fff;border:none;padding:8px;border-radius:8px;font-size:11px;font-weight:bold;cursor:pointer;">🗺️ Tracking</button>
+          <button onclick="openOrderChat('${o.id}')" style="flex:1;min-width:90px;background:#0d6efd;color:#fff;border:none;padding:8px;border-radius:8px;font-size:11px;font-weight:bold;cursor:pointer;">💬 Chat</button>
+          ${canRate ? `<button onclick="openRateModal('${o.id}')" style="flex:1;min-width:90px;background:#f5a623;color:#fff;border:none;padding:8px;border-radius:8px;font-size:11px;font-weight:bold;cursor:pointer;">⭐ Rate</button>` : ''}
+          ${canCancel ? `<button onclick="cancelMyOrder('${o.id}')" style="flex:1;min-width:90px;background:#e53935;color:#fff;border:none;padding:8px;border-radius:8px;font-size:11px;font-weight:bold;cursor:pointer;">❌ Cancel</button>` : ''}
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+    showAlert('📋 मेरे ऑर्डर (Live)', html);
+  }).catch(e => { hideLoader(); showAlert('त्रुटि', e.message); });
+};
+
+window.cancelMyOrder = function (oid) {
+  if (!confirm(`ऑर्डर ${oid} रद्द करना है?`)) return;
+  FS.collection('orders').doc(oid).update({ status: 'Cancelled' })
+    .then(() => { showToast('❌ ऑर्डर रद्द हो गया'); closeCustomAlert(); setTimeout(showHistory, 400); })
+    .catch(e => showAlert('त्रुटि', e.message));
+};
+
+/* ═══════════════ 4. REAL CHAT (per order, customer ↔ admin) ═══════════════ */
+window.openOrderChat = function (oid) {
+  activeChatOrderId = oid;
+  closeCustomAlert();
+  document.getElementById('chatCallModal').style.display = 'flex';
+  const box = document.getElementById('chatMsgContainer');
+  box.innerHTML = `<div style="text-align:center;font-size:11px;color:#999;margin-bottom:8px;">📦 Order ${oid} — Live Chat</div>`;
+  if (unsubChat) unsubChat();
+  unsubChat = FS.collection('orders').doc(oid).collection('chats')
+    .onSnapshot(snap => {
+      const msgs = snap.docs.map(d => d.data()).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+      const myRole = isAdminUser() ? 'admin' : 'user';
+      box.innerHTML = `<div style="text-align:center;font-size:11px;color:#999;margin-bottom:8px;">📦 Order ${oid} — Live Chat</div>` +
+        msgs.map(m => `<div class="chat-bubble ${m.sender === myRole ? 'user' : 'partner'}">${proEsc(m.text)}</div>`).join('');
+      box.scrollTop = box.scrollHeight;
+    }, e => { box.innerHTML += `<div style="color:red;font-size:12px;">Chat error: ${proEsc(e.message)}</div>`; });
+};
+
+/* purana generic chat bhi order chat ban jaye */
+window.openInAppChat = function () {
+  // latest active order dhundo
+  myOrdersQuery().get().then(snap => {
+    let orders = snap.docs.map(d => d.data()).filter(o => !['Completed', 'Cancelled'].includes(o.status));
+    orders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    if (orders.length) openOrderChat(orders[0].id);
+    else showAlert('चैट', 'कोई active ऑर्डर नहीं है। पहले कोई सेवा बुक करें, फिर उस ऑर्डर पर चैट करें।');
+  }).catch(() => { document.getElementById('chatCallModal').style.display = 'flex'; });
+};
+
+window.sendChatMessage = function () {
+  const input = document.getElementById('chatInputMsg');
+  const text = input.value.trim();
+  if (!text) return;
+  if (!activeChatOrderId) return showToast('पहले कोई ऑर्डर चुनें');
+  input.value = '';
+  FS.collection('orders').doc(activeChatOrderId).collection('chats').add({
+    text, sender: isAdminUser() ? 'admin' : 'user',
+    by: getIdent() || getUID() || 'anon', ts: Date.now()
+  }).catch(e => showToast('भेज नहीं सका: ' + e.message));
+};
+
+/* ═══════════════ 5. RATING SYSTEM ═══════════════ */
+let currentRating = 5;
+window.openRateModal = function (oid) {
+  closeCustomAlert();
+  currentRating = 5;
+  const html = `
+    <div style="text-align:center;">
+      <div id="proStars" style="font-size:34px; cursor:pointer; margin:10px 0;">
+        ${[1, 2, 3, 4, 5].map(i => `<span data-s="${i}" onclick="setProRating(${i})" style="color:#f5a623;">★</span>`).join('')}
+      </div>
+      <textarea id="proRateCmt" placeholder="अपना अनुभव लिखें..." style="width:100%;border:1px solid var(--border-color);border-radius:10px;padding:10px;font-size:13px;min-height:60px;background:var(--card-bg);color:var(--text);"></textarea>
+      <button onclick="submitProRating('${oid}')" style="width:100%;margin-top:10px;background:var(--primary);color:#fff;border:none;padding:12px;border-radius:10px;font-weight:bold;cursor:pointer;">SUBMIT REVIEW</button>
+    </div>`;
+  showAlert('⭐ सेवा को रेट करें', html);
+};
+window.setProRating = function (n) {
+  currentRating = n;
+  document.querySelectorAll('#proStars span').forEach(s => {
+    s.style.color = (+s.dataset.s <= n) ? '#f5a623' : '#ccc';
+  });
+};
+window.submitProRating = function (oid) {
+  const cmt = (document.getElementById('proRateCmt')?.value || '').trim();
+  FS.collection('reviews').add({
+    orderId: oid, rating: currentRating, comment: cmt,
+    by: getIdent() || getUID() || 'anon', ts: Date.now()
+  }).then(() => FS.collection('orders').doc(oid).update({ rated: true, rating: currentRating }))
+    .then(() => { closeCustomAlert(); showToast('⭐ धन्यवाद! रिव्यू सेव हो गया'); })
+    .catch(e => showAlert('त्रुटि', e.message));
+};
+
+/* ═══════════════ 6. ADMIN ORDERS TAB (real-time management) ═══════════════ */
+function injectAdminOrdersTab() {
+  const tabRow = document.getElementById('admTabServBtn')?.parentElement;
+  const modalBody = document.getElementById('adminSecServices')?.parentElement;
+  if (!tabRow || !modalBody || document.getElementById('admTabOrdersBtn')) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'admTabOrdersBtn';
+  btn.innerHTML = '📦 Orders';
+  btn.setAttribute('style', 'flex:1; padding:8px; border:none; border-radius:8px; font-weight:bold; background:transparent; color:#555; font-size:11px; cursor:pointer;');
+  btn.onclick = () => switchAdminTab('orders');
+  tabRow.insertBefore(btn, tabRow.firstChild);
+
+  const sec = document.createElement('div');
+  sec.id = 'adminSecOrders';
+  sec.style.display = 'none';
+  sec.innerHTML = `
+    <div id="admOrderStats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;"></div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;">
+      <input id="admUpiId" placeholder="अपनी UPI ID (online payment के लिए)" style="flex:1;border:1px solid #ddd;border-radius:8px;padding:8px;font-size:12px;">
+      <button onclick="saveAdminUpi()" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:bold;cursor:pointer;">Save</button>
+    </div>
+    <div id="admOrdersList" style="max-height:55vh;overflow-y:auto;">Loading...</div>`;
+  modalBody.appendChild(sec);
+}
+
+const _origSwitchAdminTab = window.switchAdminTab;
+window.switchAdminTab = function (tab) {
+  injectAdminOrdersTab();
+  const sec = document.getElementById('adminSecOrders');
+  const btn = document.getElementById('admTabOrdersBtn');
+  if (tab === 'orders') {
+    _origSwitchAdminTab('services');            // baaki sab hide + unke buttons reset
+    document.getElementById('adminSecServices').style.display = 'none';
+    sec.style.display = 'block';
+    btn.style.background = 'var(--primary)'; btn.style.color = 'white';
+    document.getElementById('admTabServBtn').style.background = 'transparent';
+    document.getElementById('admTabServBtn').style.color = '#555';
+    startAllOrdersListener();
+    document.getElementById('admUpiId').value = CLOUD_CONFIG.upiId || '';
+  } else {
+    if (sec) sec.style.display = 'none';
+    if (btn) { btn.style.background = 'transparent'; btn.style.color = '#555'; }
+    _origSwitchAdminTab(tab);
+  }
+};
+
+window.saveAdminUpi = function () {
+  CLOUD_CONFIG.upiId = document.getElementById('admUpiId').value.trim();
+  pushConfigToCloud();
+};
+
+function startAllOrdersListener() {
+  if (unsubAllOrders) return;   // already live
+  unsubAllOrders = FS.collection('orders').onSnapshot(snap => {
+    const orders = snap.docs.map(d => d.data()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    renderAdminOrders(orders.slice(0, 100));
+  }, e => { const el = document.getElementById('admOrdersList'); if (el) el.innerHTML = 'Error: ' + proEsc(e.message); });
+}
+
+function renderAdminOrders(orders) {
+  const list = document.getElementById('admOrdersList');
+  const statsEl = document.getElementById('admOrderStats');
+  if (!list) return;
+  const todayStr = new Date().toDateString();
+  const todayCnt = orders.filter(o => new Date(o.createdAt || 0).toDateString() === todayStr).length;
+  const pending = orders.filter(o => !['Completed', 'Cancelled'].includes(o.status)).length;
+  const revenue = orders.filter(o => o.status === 'Completed').reduce((s, o) => s + (o.total || 0), 0);
+  if (statsEl) statsEl.innerHTML = ['<b>' + todayCnt + '</b><span>आज के ऑर्डर</span>', '<b>' + pending + '</b><span>Active</span>', '<b>₹' + revenue.toLocaleString('en-IN') + '</b><span>Revenue</span>']
+    .map(x => `<div style="background:var(--primary-light);border-radius:10px;padding:10px;text-align:center;font-size:11px;display:flex;flex-direction:column;gap:2px;color:#333;">${x}</div>`).join('');
+
+  if (!orders.length) { list.innerHTML = '<p style="text-align:center;color:#999;">कोई ऑर्डर नहीं</p>'; return; }
+  list.innerHTML = orders.map(o => {
+    const clr = STATUS_CLR[o.status] || '#666';
+    return `
+    <div style="border:1px solid var(--border-color);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--card-bg);">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:bold;">
+        <span style="color:var(--primary);">${o.id}</span>
+        <span style="color:${clr};font-size:11px;">${STATUS_HI[o.status] || o.status}</span>
+      </div>
+      <div style="font-size:11.5px;color:#888;margin:3px 0;">📞 ${proEsc(o.mobile)} | 📅 ${proEsc(o.date)} ${proEsc(o.time)} | ₹${o.total} (${o.mode})</div>
+      <div style="font-size:11.5px;margin:3px 0;">📍 ${proEsc(o.address)}</div>
+      <div style="font-size:11.5px;font-weight:600;">🛠️ ${(o.items || []).map(i => proEsc(i.n) + ' x' + (i.qty || 1)).join(', ')}</div>
+      ${o.remark ? `<div style="font-size:11px;color:#a06;margin-top:2px;">📝 ${proEsc(o.remark)}</div>` : ''}
+      ${o.rating ? `<div style="font-size:11px;color:#f5a623;font-weight:bold;">⭐ Customer rating: ${o.rating}/5</div>` : ''}
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center;">
+        <select onchange="adminSetStatus('${o.id}', this.value)" style="flex:1;min-width:120px;border:1px solid #ddd;border-radius:8px;padding:6px;font-size:11px;">
+          ${STATUS_LIST.map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${STATUS_HI[s]}</option>`).join('')}
+        </select>
+        <button onclick="openOrderChat('${o.id}')" style="background:#0d6efd;color:#fff;border:none;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:bold;cursor:pointer;">💬</button>
+        <a href="tel:${o.mobile}" style="background:#28a745;color:#fff;border-radius:8px;padding:7px 10px;font-size:11px;text-decoration:none;font-weight:bold;">📞</a>
+        ${o.maps ? `<a href="${proEsc(o.maps)}" target="_blank" style="background:#7b2ff2;color:#fff;border-radius:8px;padding:7px 10px;font-size:11px;text-decoration:none;font-weight:bold;">🗺️</a>` : ''}
+        <a href="https://wa.me/91${proEsc(o.mobile)}" target="_blank" style="background:#25D366;color:#fff;border-radius:8px;padding:7px 10px;font-size:11px;text-decoration:none;font-weight:bold;">WA</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.adminSetStatus = function (oid, status) {
+  FS.collection('orders').doc(oid).update({ status })
+    .then(() => showToast(`${oid} → ${STATUS_HI[status]}`))
+    .catch(e => showAlert('त्रुटि', e.message));
+};
+
+/* ═══════════════ 7. STARTUP ═══════════════ */
+try {
+  firebase.auth().onAuthStateChanged(u => { if (u) startMyOrdersListener(); });
+} catch (e) {}
+setTimeout(() => {
+  if (localStorage.getItem('sw_logged')) startMyOrdersListener();
+  if (isAdminUser()) injectAdminOrdersTab();
+}, 2500);
+console.log('%c SewaAstra PRO Cloud Layer v2.0 active ☁️✅ ', 'background:#ff6b00;color:#fff;font-weight:bold;padding:4px;');
+
 </script>
- 
-</body>
+
+<script>
+/* Premium touch: time-based greeting chip under header */
+(function(){
+  try{
+    var h = new Date().getHours();
+    var g = h < 12 ? 'सुप्रभात 🌅' : h < 17 ? 'नमस्ते ☀️' : 'शुभ संध्या 🌆';
+    var header = document.querySelector('.app-header .search-container');
+    if(header){
+      var chip = document.createElement('div');
+      chip.style.cssText = 'margin-top:10px;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:11.5px;font-weight:700;padding:5px 12px;border-radius:16px;backdrop-filter:blur(6px);';
+      chip.innerHTML = g + ' — आज कौन सा काम करवाना है?';
+      header.parentNode.insertBefore(chip, header.nextSibling);
+    }
+  }catch(e){}
+})();
+</script>
+
+<!-- ═══════ SEWAASTRA PRO-MAX LAYER v2.2 ═══════ -->
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   SEWAASTRA PRO-MAX LAYER v2.2
+   ✅ Banner auto-scroll carousel
+   ✅ Service card → expandable multi-service options
+   ✅ REAL live tracking (partner GPS → customer map, Firestore realtime)
+   ✅ Admin: 📡 Live Location Share + premium orders list
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─────── 1. BANNER AUTO-SCROLL ─────── */
+(function () {
+  let bannerTimer = null, pauseUntil = 0;
+  function startBannerAuto() {
+    const el = document.getElementById('bannerCarouselArea');
+    if (!el) return;
+    if (bannerTimer) clearInterval(bannerTimer);
+    ['touchstart', 'mousedown'].forEach(ev =>
+      el.addEventListener(ev, () => { pauseUntil = Date.now() + 6000; }, { passive: true }));
+    bannerTimer = setInterval(() => {
+      if (Date.now() < pauseUntil) return;
+      if (!el.children.length) return;
+      const cardW = el.children[0].offsetWidth + 12;
+      const maxScroll = el.scrollWidth - el.clientWidth - 10;
+      if (el.scrollLeft >= maxScroll) el.scrollTo({ left: 0, behavior: 'smooth' });
+      else el.scrollBy({ left: cardW, behavior: 'smooth' });
+    }, 3200);
+  }
+  setTimeout(startBannerAuto, 1500);
+  setInterval(() => {   // agar banners baad me render hue
+    const el = document.getElementById('bannerCarouselArea');
+    if (el && el.children.length && !bannerTimer) startBannerAuto();
+  }, 4000);
+})();
+
+/* ─────── 2. MULTI-SERVICE OPTIONS (expandable on click) ─────── */
+(function () {
+  function enhanceCards() {
+    document.querySelectorAll('#display .card').forEach(card => {
+      if (card.dataset.proEnh) return;
+      const sub = card.querySelector('.service-sub-options');
+      if (!sub) { card.dataset.proEnh = '1'; return; }
+      card.dataset.proEnh = '1';
+      sub.style.display = 'none';
+      const optCount = sub.querySelectorAll('label').length;
+      const chip = document.createElement('button');
+      chip.innerHTML = `🧩 ${optCount} विकल्प उपलब्ध — देखें <i class="fa fa-chevron-down" style="font-size:10px;"></i>`;
+      chip.style.cssText = 'width:100%;margin-top:2px;background:#fff5ed;color:#ff6b00;border:1.5px dashed #ffb066;border-radius:12px;padding:9px;font-size:12px;font-weight:800;cursor:pointer;transition:all .2s;';
+      chip.onclick = function (e) {
+        e.stopPropagation();
+        const open = sub.style.display !== 'none';
+        sub.style.display = open ? 'none' : 'flex';
+        chip.innerHTML = open
+          ? `🧩 ${optCount} विकल्प उपलब्ध — देखें <i class="fa fa-chevron-down" style="font-size:10px;"></i>`
+          : `🧩 विकल्प चुनें <i class="fa fa-chevron-up" style="font-size:10px;"></i>`;
+        chip.style.background = open ? '#fff5ed' : '#ff6b00';
+        chip.style.color = open ? '#ff6b00' : '#fff';
+      };
+      sub.parentNode.insertBefore(chip, sub);
+    });
+  }
+  const disp = document.getElementById('display');
+  if (disp) new MutationObserver(enhanceCards).observe(disp, { childList: true, subtree: false });
+  setTimeout(enhanceCards, 1200);
+})();
+
+/* ─────── 3. REAL LIVE TRACKING (Firestore + Leaflet) ─────── */
+let proTrackMap = null, proCustMarker = null, proPartnerMarker = null,
+    proTrackLine = null, unsubTrack = null;
+
+const TRACK_STEPS = [
+  { s: 'Order Placed', ic: '📦', lb: 'ऑर्डर' },
+  { s: 'Accepted', ic: '✅', lb: 'स्वीकृत' },
+  { s: 'On the Way', ic: '🛵', lb: 'रास्ते में' },
+  { s: 'Working', ic: '🔧', lb: 'काम चालू' },
+  { s: 'Completed', ic: '🎉', lb: 'पूर्ण' }
+];
+
+window.openLiveTracking = function (oid) {
+  closeCustomAlert();
+  const modal = document.getElementById('liveTrackingModal');
+  modal.style.display = 'flex';
+
+  // map init (fresh)
+  setTimeout(() => {
+    if (proTrackMap) { try { proTrackMap.remove(); } catch (e) {} proTrackMap = null; }
+    proCustMarker = proPartnerMarker = proTrackLine = null;
+    proTrackMap = L.map('trackingMapContainer').setView([userCoords.lat, userCoords.lon], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(proTrackMap);
+    subscribeTrack(oid);
+  }, 300);
+};
+
+function subscribeTrack(oid) {
+  if (unsubTrack) unsubTrack();
+  const infoEl = document.querySelector('#liveTrackingModal > div:last-of-type');
+  unsubTrack = FS.collection('orders').doc(oid).onSnapshot(snap => {
+    if (!snap.exists) return;
+    const o = snap.data();
+    const custLoc = o.loc && o.loc.lat ? [o.loc.lat, o.loc.lon] : [userCoords.lat, userCoords.lon];
+    const pLoc = o.partnerLoc && o.partnerLoc.lat ? [o.partnerLoc.lat, o.partnerLoc.lon] : null;
+
+    if (proTrackMap) {
+      if (!proCustMarker) {
+        proCustMarker = L.marker(custLoc).addTo(proTrackMap).bindPopup('🏠 आपकी लोकेशन');
+      } else proCustMarker.setLatLng(custLoc);
+
+      if (pLoc) {
+        const bikeIcon = L.divIcon({ html: '<div style="font-size:26px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.4));">🛵</div>', className: '', iconSize: [30, 30] });
+        if (!proPartnerMarker) proPartnerMarker = L.marker(pLoc, { icon: bikeIcon }).addTo(proTrackMap).bindPopup('👨‍🔧 SewaAstra Partner');
+        else proPartnerMarker.setLatLng(pLoc);
+        if (proTrackLine) proTrackMap.removeLayer(proTrackLine);
+        proTrackLine = L.polyline([pLoc, custLoc], { color: '#ff6b00', weight: 4, dashArray: '8 8', opacity: .8 }).addTo(proTrackMap);
+        try { proTrackMap.fitBounds([pLoc, custLoc], { padding: [45, 45] }); } catch (e) {}
+      }
+    }
+
+    // premium status timeline + info
+    const curIdx = TRACK_STEPS.findIndex(t => t.s === o.status);
+    const isCancelled = o.status === 'Cancelled';
+    const freshLoc = pLoc && o.partnerLoc.ts && (Date.now() - o.partnerLoc.ts < 120000);
+    if (infoEl) {
+      infoEl.innerHTML = `
+        <div style="font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center;">
+          <span>📦 ${oid}</span>
+          <span style="color:${isCancelled ? '#e53935' : '#15a04a'};font-size:12px;">${STATUS_HI[o.status] || o.status}</span>
+        </div>
+        ${isCancelled ? `<p style="color:#e53935;font-size:13px;margin:8px 0;">यह ऑर्डर रद्द हो चुका है।</p>` : `
+        <div class="pro-timeline">
+          ${TRACK_STEPS.map((t, i) => `
+            <div class="pro-step ${i < curIdx ? 'done' : i === curIdx ? 'now' : ''}">
+              <div class="dot">${t.ic}</div><span>${t.lb}</span>
+            </div>`).join('')}
+        </div>
+        <div style="font-size:12px;color:${freshLoc ? '#15a04a' : '#888'};font-weight:700;margin:6px 0;">
+          ${freshLoc ? '🟢 पार्टनर की LIVE लोकेशन दिख रही है' : pLoc ? '🟡 पार्टनर की आखिरी लोकेशन' : '⏳ पार्टनर की लोकेशन का इंतज़ार — काम शुरू होते ही यहाँ दिखेगी'}
+        </div>`}
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button onclick="openMaskCall()" style="flex:1;background:#15a04a;color:#fff;border:none;padding:11px;border-radius:12px;font-weight:800;cursor:pointer;"><i class="fa fa-phone-alt"></i> Call</button>
+          <button onclick="closeLiveTracking();openOrderChat('${oid}')" style="flex:1;background:#ff6b00;color:#fff;border:none;padding:11px;border-radius:12px;font-weight:800;cursor:pointer;"><i class="fa fa-comment-dots"></i> Live Chat</button>
+        </div>`;
+    }
+  }, e => console.warn('track:', e));
+}
+
+const _origCloseLT = window.closeLiveTracking;
+window.closeLiveTracking = function () {
+  if (unsubTrack) { unsubTrack(); unsubTrack = null; }
+  if (proTrackMap) { try { proTrackMap.remove(); } catch (e) {} proTrackMap = null; }
+  proCustMarker = proPartnerMarker = proTrackLine = null;
+  try { _origCloseLT(); } catch (e) { document.getElementById('liveTrackingModal').style.display = 'none'; }
+};
+
+/* ─────── 4. ADMIN: LIVE LOCATION SHARE + premium orders ─────── */
+let proWatchers = {};   // oid -> geolocation watchId
+
+window.adminShareLoc = function (oid) {
+  if (proWatchers[oid] !== undefined) {          // stop sharing
+    navigator.geolocation.clearWatch(proWatchers[oid]);
+    delete proWatchers[oid];
+    FS.collection('orders').doc(oid).update({ sharing: false });
+    showToast('📡 Location sharing बंद');
+    return;
+  }
+  if (!navigator.geolocation) return showToast('GPS उपलब्ध नहीं है');
+  let lastPush = 0;
+  const wid = navigator.geolocation.watchPosition(pos => {
+    if (Date.now() - lastPush < 4000) return;
+    lastPush = Date.now();
+    FS.collection('orders').doc(oid).update({
+      partnerLoc: { lat: pos.coords.latitude, lon: pos.coords.longitude, ts: Date.now() },
+      sharing: true
+    }).catch(() => {});
+  }, err => showToast('GPS error: ' + err.message), { enableHighAccuracy: true, maximumAge: 3000 });
+  proWatchers[oid] = wid;
+  showToast('📡 LIVE location share शुरू — customer को दिखेगी');
+  FS.collection('orders').doc(oid).update({ sharing: true });
+};
+
+/* premium admin orders renderer (overrides v2.0 wala) */
+window.renderAdminOrders = function (orders) {
+  const list = document.getElementById('admOrdersList');
+  const statsEl = document.getElementById('admOrderStats');
+  if (!list) return;
+  const todayStr = new Date().toDateString();
+  const todayCnt = orders.filter(o => new Date(o.createdAt || 0).toDateString() === todayStr).length;
+  const pending = orders.filter(o => !['Completed', 'Cancelled'].includes(o.status)).length;
+  const revenue = orders.filter(o => o.status === 'Completed').reduce((s, o) => s + (o.total || 0), 0);
+  if (statsEl) statsEl.innerHTML = ['<b>' + todayCnt + '</b><span>आज के ऑर्डर</span>', '<b>' + pending + '</b><span>Active</span>', '<b>₹' + revenue.toLocaleString('en-IN') + '</b><span>Revenue</span>']
+    .map(x => `<div style="background:var(--primary-light);border-radius:12px;padding:12px;text-align:center;font-size:11px;display:flex;flex-direction:column;gap:2px;color:#333;">${x}</div>`).join('');
+
+  if (!orders.length) { list.innerHTML = '<p style="text-align:center;color:#999;">कोई ऑर्डर नहीं</p>'; return; }
+  list.innerHTML = orders.map(o => {
+    const clr = STATUS_CLR[o.status] || '#666';
+    const sharing = proWatchers[o.id] !== undefined;
+    return `
+    <div style="border:1px solid var(--border-color);border-radius:16px;padding:13px;margin-bottom:11px;background:var(--card-bg);box-shadow:0 4px 12px rgba(13,30,60,.06);">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:800;">
+        <span style="color:var(--primary);">${o.id}</span>
+        <span style="background:${clr}22;color:${clr};padding:3px 10px;border-radius:12px;font-size:10.5px;">${STATUS_HI[o.status] || o.status}</span>
+      </div>
+      <div style="font-size:11.5px;color:#888;margin:4px 0;">📞 ${proEsc(o.mobile)} | 📅 ${proEsc(o.date)} ${proEsc(o.time)} | <b style="color:#15a04a;">₹${o.total}</b> (${o.mode})</div>
+      <div style="font-size:11.5px;margin:3px 0;">📍 ${proEsc(o.address)}</div>
+      <div style="font-size:11.5px;font-weight:700;">🛠️ ${(o.items || []).map(i => proEsc(i.n) + ' x' + (i.qty || 1)).join(', ')}</div>
+      ${o.remark ? `<div style="font-size:11px;color:#a06;margin-top:2px;">📝 ${proEsc(o.remark)}</div>` : ''}
+      ${o.rating ? `<div style="font-size:11px;color:#f5a623;font-weight:800;">⭐ Customer rating: ${o.rating}/5</div>` : ''}
+      ${o.sharing ? `<div style="font-size:10.5px;color:#15a04a;font-weight:800;">🟢 Live location share ON</div>` : ''}
+      <div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;align-items:center;">
+        <select onchange="adminSetStatus('${o.id}', this.value)" style="flex:1;min-width:118px;border:1.5px solid #eadfd4;border-radius:10px;padding:7px;font-size:11px;font-weight:700;">
+          ${STATUS_LIST.map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${STATUS_HI[s]}</option>`).join('')}
+        </select>
+        <button onclick="adminShareLoc('${o.id}')" title="Live location share" style="background:${sharing ? '#e53935' : '#7b2ff2'};color:#fff;border:none;border-radius:10px;padding:8px 10px;font-size:11px;font-weight:800;cursor:pointer;">📡${sharing ? ' STOP' : ''}</button>
+        <button onclick="openOrderChat('${o.id}')" style="background:#0d6efd;color:#fff;border:none;border-radius:10px;padding:8px 10px;font-size:11px;font-weight:800;cursor:pointer;">💬</button>
+        <a href="tel:${o.mobile}" style="background:#28a745;color:#fff;border-radius:10px;padding:8px 10px;font-size:11px;text-decoration:none;font-weight:800;">📞</a>
+        ${o.maps && o.maps !== 'Not Provided' ? `<a href="${proEsc(o.maps)}" target="_blank" style="background:#ff6b00;color:#fff;border-radius:10px;padding:8px 10px;font-size:11px;text-decoration:none;font-weight:800;">🗺️</a>` : ''}
+        <a href="https://wa.me/91${proEsc(o.mobile)}" target="_blank" style="background:#25D366;color:#fff;border-radius:10px;padding:8px 10px;font-size:11px;text-decoration:none;font-weight:800;">WA</a>
+      </div>
+    </div>`;
+  }).join('');
+};
+
+console.log('%c SewaAstra PRO-MAX v2.2 ✅ auto-banner | multi-options | REAL tracking ', 'background:#15a04a;color:#fff;font-weight:bold;padding:4px;');
+
+</script>
+<script>
+/* SEWAASTRA v23 — History Delete + Ultra Premium Cart */
+
+/* 1. CART EXTRAS (wrap renderCart) */
+(function(){
+  const _rc = window.renderCart;
+  window.renderCart = function(){
+    _rc();
+    try{
+      const list = document.getElementById('cartItemsList');
+      if(!cart.length){
+        list.innerHTML = `<div class="pro-cart-empty">
+          <span class="ic">🛒</span>
+          <div style="font-weight:900;font-size:15px;margin:8px 0 4px;">आपका कार्ट खाली है</div>
+          <div style="font-size:12px;color:#888;margin-bottom:12px;">कोई भी सर्विस चुनें — expert घर आएगा!</div>
+          <button onclick="closeCart()" style="background:linear-gradient(90deg,#ff6b00,#ff8c2e);color:#fff;border:none;border-radius:12px;padding:11px 26px;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 6px 16px rgba(255,107,0,.35);">🛠️ Services देखें</button>
+        </div>`;
+      } else {
+        const totalItems = cart.reduce((s,i)=>s+(i.qty||1),0);
+        list.insertAdjacentHTML('afterbegin',
+          `<div class="pro-cart-count">🛠️ ${cart.length} सर्विस • ${totalItems} आइटम</div>`);
+      }
+      const fT = document.getElementById('fTotal');
+      const billCard = fT ? fT.closest('.cart-card') : null;
+      const oldChip = document.getElementById('proSaveChip');
+      if(oldChip) oldChip.remove();
+      if(billCard && appliedDiscount > 0){
+        billCard.insertAdjacentHTML('beforeend',
+          `<div id="proSaveChip" class="pro-save-chip">🎉 बधाई हो! आप इस ऑर्डर पर <b>₹${appliedDiscount}</b> बचा रहे हैं</div>`);
+      }
+      if(fT){ fT.classList.remove('pop'); void fT.offsetWidth; fT.classList.add('pop');
+        setTimeout(()=>fT.classList.remove('pop'), 400); }
+    }catch(e){}
+  };
+})();
+
+/* 2. HISTORY DELETE */
+window.deleteMyOrder = function(oid){
+  if(!confirm(`ऑर्डर ${oid} को history से हमेशा के लिए delete करना है?`)) return;
+  FS.collection('orders').doc(oid).delete()
+    .then(()=>{ showToast('🗑️ ऑर्डर delete हो गया'); closeCustomAlert(); setTimeout(showHistory, 350); })
+    .catch(e=>showAlert('त्रुटि', e.message));
+};
+
+window.clearMyHistory = function(){
+  if(!confirm('सभी पूर्ण/रद्द ऑर्डर history से delete हो जाएंगे। पक्का?')) return;
+  showLoader('History साफ़ हो रही है...');
+  myOrdersQuery().get().then(snap=>{
+    const batch = FS.batch();
+    let n = 0;
+    snap.docs.forEach(d=>{
+      const s = d.data().status;
+      if(s === 'Completed' || s === 'Cancelled'){ batch.delete(d.ref); n++; }
+    });
+    return batch.commit().then(()=>n);
+  }).then(n=>{
+    hideLoader(); closeCustomAlert();
+    showToast(n ? `🗑️ ${n} ऑर्डर delete हो गए` : 'कोई पूर्ण/रद्द ऑर्डर नहीं मिला');
+    setTimeout(showHistory, 400);
+  }).catch(e=>{ hideLoader(); showAlert('त्रुटि', e.message); });
+};
+
+/* 3. HISTORY UI (overrides v2.0 — delete buttons ke saath) */
+window.showHistory = function(){
+  showLoader('इतिहास लोड हो रहा है...');
+  myOrdersQuery().get().then(snap=>{
+    hideLoader();
+    let orders = snap.docs.map(d=>d.data());
+    if(!orders.length) return showAlert('ऑर्डर इतिहास', 'अभी तक कोई ऑर्डर नहीं है।');
+    orders.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    const doneCnt = orders.filter(o=>['Completed','Cancelled'].includes(o.status)).length;
+    let html = `<div style="text-align:left; max-height:65vh; overflow-y:auto;">`;
+    if(doneCnt) html += `<button onclick="clearMyHistory()" style="width:100%;background:#fdecea;color:#e53935;border:1.5px dashed #f5c6c3;border-radius:12px;padding:10px;font-weight:800;font-size:12px;cursor:pointer;margin-bottom:12px;">🗑️ पूरी History साफ़ करें (${doneCnt} पुराने ऑर्डर)</button>`;
+    orders.forEach(o=>{
+      const clr = STATUS_CLR[o.status] || '#666';
+      const canCancel = ['Order Placed','Accepted'].includes(o.status);
+      const canRate = o.status === 'Completed' && !o.rated;
+      const canDel = ['Completed','Cancelled'].includes(o.status);
+      html += `
+      <div style="background:var(--card-bg); border:1px solid var(--border-color); padding:14px; border-radius:14px; margin-bottom:12px; box-shadow:0 4px 12px rgba(13,30,60,.06);">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-weight:800; font-size:14px;">
+          <span style="color:var(--primary);">${o.id}</span>
+          <span style="background:${clr}22;color:${clr};padding:3px 10px;border-radius:12px;font-size:11px;">${STATUS_HI[o.status] || o.status}</span>
+        </div>
+        <div style="font-size:12px; color:#888; margin:4px 0;">📅 ${proEsc(o.date)} | ⏰ ${proEsc(o.time)} | <b style="color:#15a04a;">₹${o.total}</b> (${o.mode})</div>
+        <div style="font-size:12px; margin:4px 0;">📍 ${proEsc(o.address)}</div>
+        <div style="font-size:12px; font-weight:700; margin-top:4px;">🛠️ ${(o.items||[]).map(i=>proEsc(i.n)+' (x'+(i.qty||1)+')').join(', ')}</div>
+        ${o.rated ? `<div style="font-size:12px;color:#f5a623;font-weight:800;margin-top:4px;">⭐ आपने रेटिंग दे दी है</div>` : ''}
+        <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
+          <button onclick="openLiveTracking('${o.id}')" style="flex:1;min-width:84px;background:var(--primary);color:#fff;border:none;padding:8px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">🗺️ Tracking</button>
+          <button onclick="openOrderChat('${o.id}')" style="flex:1;min-width:70px;background:#0d6efd;color:#fff;border:none;padding:8px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">💬 Chat</button>
+          ${canRate ? `<button onclick="openRateModal('${o.id}')" style="flex:1;min-width:70px;background:#f5a623;color:#fff;border:none;padding:8px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">⭐ Rate</button>` : ''}
+          ${canCancel ? `<button onclick="cancelMyOrder('${o.id}')" style="flex:1;min-width:70px;background:#e53935;color:#fff;border:none;padding:8px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">❌ Cancel</button>` : ''}
+          ${canDel ? `<button class="pro-hist-del" onclick="deleteMyOrder('${o.id}')" title="Delete">🗑️</button>` : ''}
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+    showAlert('📋 मेरे ऑर्डर (Live)', html);
+  }).catch(e=>{ hideLoader(); showAlert('त्रुटि', e.message); });
+};
+
+console.log('%c SewaAstra v2.3 FINAL ✅ history-delete | ultra cart ', 'background:#0d6efd;color:#fff;font-weight:bold;padding:4px;');
+</script>
+
+<script>
+/* ═══════════ SEWAASTRA v24 LAYER ═══════════
+   1. Customer profile → Firestore users/{mobile ya gmail}
+   2. Admin fullscreen + 👥 Users tab
+   3. Service click → photo option picker sheet
+*/
+
+/* ---------- 1. CUSTOMER DATA (users collection) ---------- */
+function proSaveProfile(){
+  try{
+    const u = firebase.auth().currentUser;
+    const stored = (localStorage.getItem('sw_user')||'').trim();
+    const phone = /^\d{10}$/.test(stored) ? stored : '';
+    const email = (u && u.email) || (stored.indexOf('@')>-1 ? stored : '');
+    const key = phone || email;
+    if(!key) return;
+    const data = {
+      phone: phone || null,
+      email: email || null,
+      name: (u && u.displayName) || null,
+      photo: localStorage.getItem('sw_user_photo') || (u && u.photoURL) || null,
+      uid: u ? u.uid : null,
+      provider: (u && u.providerData && u.providerData[0]) ? u.providerData[0].providerId : 'phone',
+      city: (document.getElementById('cityName')||{innerText:''}).innerText || null,
+      lastLogin: Date.now(),
+      lastLoginAt: new Date().toLocaleString('en-IN'),
+      logins: firebase.firestore.FieldValue.increment(1)
+    };
+    Object.keys(data).forEach(k=>{ if(data[k]===null) delete data[k]; });
+    const ref = FS.collection('users').doc(String(key));
+    ref.get().then(d=>{
+      if(!d.exists) data.createdAt = new Date().toLocaleString('en-IN');
+      return ref.set(data, {merge:true});
+    }).then(()=>console.log('👤 profile saved →', key))
+      .catch(e=>console.log('profile err', e.message));
+  }catch(e){ console.log('profile', e); }
+}
+firebase.auth().onAuthStateChanged(u=>{ if(u) setTimeout(proSaveProfile, 1500); });
+(function(){
+  const _g = window.submitGoogleLinkedPhone;
+  window.submitGoogleLinkedPhone = function(){ _g(); setTimeout(proSaveProfile, 800); };
+})();
+
+/* ---------- 2. ADMIN: 👥 USERS TAB + LIST ---------- */
+window.openCustomersList = function(){
+  showLoader('Customers लोड हो रहे हैं...');
+  FS.collection('users').get().then(snap=>{
+    hideLoader();
+    if(snap.empty) return showAlert('👥 Customers', 'अभी तक कोई customer login नहीं हुआ है।');
+    let users = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    users.sort((a,b)=>(b.lastLogin||0)-(a.lastLogin||0));
+    let html = `<div style="text-align:left;max-height:65vh;overflow-y:auto;">
+      <div style="font-size:12px;font-weight:800;color:#888;margin-bottom:10px;">कुल ${users.length} customers (mobile/gmail के आधार पर)</div>`;
+    users.forEach(c=>{
+      const ph = c.phone ? String(c.phone) : '';
+      html += `<div class="pro-cust-card">
+        <div class="av">${c.photo ? `<img src="${proEsc(c.photo)}" onerror="this.parentElement.innerHTML='👤'">` : '👤'}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:900;font-size:13.5px;">${proEsc(c.name || ph || c.email || c.id)}</div>
+          ${ph ? `<div style="font-size:11.5px;color:#666;">📱 +91 ${proEsc(ph)}</div>` : ''}
+          ${c.email ? `<div style="font-size:11px;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">✉️ ${proEsc(c.email)}</div>` : ''}
+          <div style="font-size:10px;color:#999;margin-top:2px;">🕐 ${proEsc(c.lastLoginAt||'')} • ${c.logins||1} logins • ${proEsc(c.provider||'')}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          ${ph ? `<a href="tel:+91${ph}" style="background:#15a04a;color:#fff;padding:6px 9px;border-radius:8px;font-size:11px;text-decoration:none;">📞</a>
+          <a href="https://wa.me/91${ph}" target="_blank" style="background:#25d366;color:#fff;padding:6px 9px;border-radius:8px;font-size:11px;text-decoration:none;">💬</a>` : ''}
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+    showAlert('👥 Customers (Firebase)', html);
+  }).catch(e=>{ hideLoader(); showAlert('त्रुटि', e.message); });
+};
+(function(){
+  const tabRow = document.querySelector('#adminModal .box > div:nth-child(2)');
+  if(tabRow && !document.getElementById('admTabCustBtn')){
+    const b = document.createElement('button');
+    b.id = 'admTabCustBtn';
+    b.innerHTML = '👥 Users';
+    b.setAttribute('style','flex:1;padding:8px;border:none;border-radius:8px;font-weight:bold;background:transparent;color:var(--text);font-size:11px;cursor:pointer;');
+    b.onclick = openCustomersList;
+    tabRow.appendChild(b);
+  }
+})();
+
+/* ---------- 3. SERVICE CLICK → PHOTO OPTION PICKER ---------- */
+document.body.insertAdjacentHTML('beforeend', `
+<div id="svcOptModal" onclick="if(event.target===this)closeSvcOpt()">
+  <div class="svc-sheet">
+    <div class="svc-hero">
+      <img id="svcHeroImg" src="" alt="">
+      <div class="svc-close" onclick="closeSvcOpt()"><i class="fa fa-times"></i></div>
+      <div class="tt"><h3 id="svcHeroName"></h3>
+        <div class="sub">⭐ 4.8 (320+ reviews) • ✅ Verified Expert</div></div>
+    </div>
+    <div id="svcOptBody"></div>
+    <div class="svc-foot">
+      <div><div class="lbl">कुल कीमत</div><div class="tot" id="svcFootPrice">₹0</div></div>
+      <button onclick="svcAddNow()">🛒 कार्ट में जोड़ें</button>
+    </div>
+  </div>
+</div>`);
+
+window.__svcSel = null;
+
+window.openSvcOptions = function(el){
+  const card = el.closest('.card');
+  if(!card) return;
+  const h4 = card.querySelector('h4');
+  const img = card.querySelector('img');
+  const btn = card.querySelector('.add-btn');
+  if(!h4 || !btn) return;
+  const uid = btn.id.replace('btn_','');
+  const name = h4.innerText.trim();
+  const src = img ? img.src : '';
+  const radios = card.querySelectorAll(`input[name="sub_${uid}"]`);
+  let base = 0, opts = [], idx = 0;
+  if(radios.length){
+    const oc = radios[0].getAttribute('onchange') || '';
+    const m = oc.match(/,\s*(\d+)\s*\)/);
+    base = m ? parseInt(m[1]) : 0;
+    radios.forEach((r,i)=>{
+      const em = r.value.match(/\+₹(\d+)/);
+      opts.push({ v: r.value, extra: em ? parseInt(em[1]) : 0 });
+      if(r.checked) idx = i;
+    });
+  } else {
+    const pd = card.querySelector('#priceDisplay_'+uid);
+    base = pd ? parseInt(pd.innerText.replace(/[^\d]/g,'')||'0') : 0;
+  }
+  window.__svcSel = { uid, name, src, base, opts, idx };
+
+  document.getElementById('svcHeroImg').src = src;
+  document.getElementById('svcHeroName').innerText = name;
+  const body = document.getElementById('svcOptBody');
+  if(opts.length){
+    let h = `<div class="svc-opt-head">🧩 अपना विकल्प चुनें (${opts.length} options)</div>`;
+    opts.forEach((o,i)=>{
+      h += `<div class="svc-opt-card ${i===idx?'sel':''}" data-i="${i}" onclick="svcPick(${i})">
+        <img src="${src}" alt="">
+        <div><div class="nm">${proEsc(o.v.replace(/\s*\(\+₹\d+\)\s*/,''))}</div>
+        <div class="pr">₹${base + o.extra}${o.extra?` <span style="color:#999;font-weight:700;font-size:10px;">(+₹${o.extra})</span>`:''}</div></div>
+        <div class="tick"><i class="fa fa-check"></i></div>
+      </div>`;
+    });
+    body.innerHTML = h;
+  } else {
+    body.innerHTML = `<div class="svc-opt-head">✨ सर्विस विवरण</div>
+      <div style="margin:0 16px 14px;font-size:13px;color:#777;line-height:1.6;">
+        बेहतरीन गुणवत्ता वाली होम सर्विस — प्रशिक्षित और verified expert आपके घर आएगा। 
+        सभी tools और genuine parts के साथ। ✅ Service warranty उपलब्ध।
+      </div>`;
+  }
+  svcUpdatePrice();
+  document.getElementById('svcOptModal').classList.add('open');
+};
+
+window.svcPick = function(i){
+  const s = window.__svcSel; if(!s) return;
+  s.idx = i;
+  document.querySelectorAll('#svcOptBody .svc-opt-card').forEach(c=>{
+    c.classList.toggle('sel', +c.dataset.i === i);
+  });
+  svcUpdatePrice();
+};
+
+function svcUpdatePrice(){
+  const s = window.__svcSel; if(!s) return;
+  const extra = s.opts.length ? s.opts[s.idx].extra : 0;
+  const el = document.getElementById('svcFootPrice');
+  el.innerText = '₹' + (s.base + extra);
+  el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+}
+
+window.svcAddNow = function(){
+  const s = window.__svcSel; if(!s) return;
+  if(s.opts.length){
+    const radios = document.getElementsByName('sub_'+s.uid);
+    for(let r of radios) r.checked = (r.value === s.opts[s.idx].v);
+    if(typeof updateCardPrice === 'function') updateCardPrice(s.uid, s.base);
+  }
+  addToCart(s.name, s.base, s.uid);
+  closeSvcOpt();
+};
+
+window.closeSvcOpt = function(){
+  document.getElementById('svcOptModal').classList.remove('open');
+};
+
+/* photo/naam par click → picker (purana alert hatao) */
+(function(){
+  const disp = document.getElementById('display');
+  if(!disp) return;
+  function enh(){
+    disp.querySelectorAll('.card img, .card h4').forEach(el=>{
+      if(el.dataset.v24) return;
+      el.dataset.v24 = '1';
+      el.removeAttribute('onclick');
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', ()=>openSvcOptions(el));
+    });
+  }
+  new MutationObserver(enh).observe(disp, {childList:true, subtree:true});
+  enh();
+})();
+
+console.log('%c SewaAstra v2.4 ✅ fullscreen-admin | users-db | photo-options ', 'background:#7b2ff7;color:#fff;font-weight:bold;padding:4px;');
+</script>
+
+<script>
+/* ═══════════ SEWAASTRA v25 — SMART APP INSTALL POPUP ═══════════
+   - Har NAYE customer ko login ke turant baad popup
+   - "बाद में" = sirf 24 ghante snooze (hamesha band nahi)
+   - App installed ho to kabhi nahi dikhega
+   - Home par floating "📲 App" pill bhi
+*/
+
+window.proDeferredPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  window.proDeferredPrompt = e;
+  proMaybeShowPill();
+});
+window.addEventListener('appinstalled', function(){
+  localStorage.setItem('sw_app_installed', 'true');
+  var p = document.getElementById('proInstallPill');
+  if(p) p.style.display = 'none';
+  showToast('🎉 SewaAstra ऐप install हो गया!');
+});
+
+function proIsStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true
+      || localStorage.getItem('sw_app_installed') === 'true';
+}
+function proInstallSnoozed(){
+  var t = parseInt(localStorage.getItem('sw_install_snooze') || '0');
+  return Date.now() < t;
+}
+function proShowInstallModal(){
+  if(proIsStandalone()) return;
+  var m = document.getElementById('installAppModal');
+  if(!m) return;
+  /* trust badges ek baar add karo */
+  if(!m.querySelector('.pro-inst-badge')){
+    var btn = m.querySelector('button[onclick^="triggerAppInstall"]');
+    if(btn) btn.insertAdjacentHTML('beforebegin',
+      '<div class="pro-inst-badge"><span>🔒 100% Safe</span><span>⚡ Instant Install</span><span>📦 सिर्फ 1 MB</span></div>');
+  }
+  m.style.display = 'flex';
+}
+
+/* login ke baad — har naye customer ko (installed nahi + snooze khatam) */
+window.checkAndShowInstallModalAfterLogin = function(){
+  if(proIsStandalone() || proInstallSnoozed()) return;
+  setTimeout(proShowInstallModal, 1200);
+};
+
+/* Install button — captured prompt use karo */
+window.triggerAppInstall = function(){
+  document.getElementById('installAppModal').style.display = 'none';
+  if(window.proDeferredPrompt){
+    window.proDeferredPrompt.prompt();
+    window.proDeferredPrompt.userChoice.then(function(ch){
+      if(ch.outcome === 'accepted'){
+        localStorage.setItem('sw_app_installed', 'true');
+        showToast('SewaAstra ऐप install हो रहा है! 🎉');
+      } else {
+        localStorage.setItem('sw_install_snooze', String(Date.now() + 24*60*60*1000));
+      }
+      window.proDeferredPrompt = null;
+    });
+  } else {
+    showAlert('📲 ऐप इनस्टॉल करें',
+      'अपने ब्राउज़र मेनू <b>(⋮)</b> में जाकर <b>"Add to Home Screen"</b> या <b>"Install App"</b> पर टैप करें — SewaAstra आपकी होम स्क्रीन पर ऐप की तरह आ जाएगा! ⚡');
+  }
+};
+
+/* "बाद में" = 24 ghante snooze, hamesha ke liye band NahI */
+window.closeInstallModal = function(){
+  document.getElementById('installAppModal').style.display = 'none';
+  localStorage.setItem('sw_install_snooze', String(Date.now() + 24*60*60*1000));
+  proMaybeShowPill();
+};
+
+/* HOME SCREEN par bhi: logged-in user + app installed nahi → popup */
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    var authVisible = false;
+    var a = document.getElementById('authOverlay');
+    if(a && getComputedStyle(a).display !== 'none') authVisible = true;
+    if(!authVisible && localStorage.getItem('sw_logged') === 'true'
+       && !proIsStandalone() && !proInstallSnoozed()){
+      proShowInstallModal();
+    }
+    proMaybeShowPill();
+  }, 2500);
+});
+
+/* floating pill — popup band hone ke baad bhi ek chhota reminder */
+function proMaybeShowPill(){
+  if(proIsStandalone()) return;
+  if(localStorage.getItem('sw_logged') !== 'true') return;
+  var p = document.getElementById('proInstallPill');
+  if(!p){
+    document.body.insertAdjacentHTML('beforeend',
+      '<div id="proInstallPill" onclick="proShowInstallModal()"><span class="dot"></span>📲 App डाउनलोड करें</div>');
+    p = document.getElementById('proInstallPill');
+  }
+  p.style.display = 'flex';
+}
+
+console.log('%c SewaAstra v2.5 ✅ smart install popup ', 'background:#15a04a;color:#fff;font-weight:bold;padding:4px;');
+</script>
+
+<script>
+/* ═══════════ SEWAASTRA v26 ═══════════
+   1. Admin panel scroll fix (CSS)
+   2. Kaam Complete → customer ko AUTO rating popup
+   3. Rating partner ke Firebase data me save (partners/{phone})
+   4. Admin orders me bhi Delete button
+*/
+
+var PRO_PARTNER_PHONE = '7869969190';
+var proRatePrompted = {};
+
+/* ---------- AUTO RATING POPUP (jab partner kaam complete kare) ---------- */
+function proStartRatingWatcher(){
+  try{
+    if (typeof isAdminUser === 'function' && isAdminUser()) return;
+    if (!getUID() && !getIdent()) return;
+    if (window.__proRateUnsub) window.__proRateUnsub();
+    window.__proRateUnsub = myOrdersQuery().onSnapshot(function(snap){
+      snap.docChanges().forEach(function(ch){
+        var o = ch.doc.data();
+        if (o.status === 'Completed' && !o.rated && !proRatePrompted[o.id]){
+          proRatePrompted[o.id] = true;
+          if (ch.type === 'modified'){
+            /* partner ne ABHI complete kiya → turant popup */
+            showToast('🎉 आपका काम पूरा हो गया!');
+            setTimeout(function(){ openRateModal(o.id); }, 900);
+          } else if (ch.type === 'added'){
+            /* app khola aur pehle se koi un-rated completed order pada hai */
+            setTimeout(function(){ openRateModal(o.id); }, 2500);
+          }
+        }
+      });
+    }, function(e){ console.warn('rate watch:', e.message); });
+  }catch(e){ console.log(e); }
+}
+firebase.auth().onAuthStateChanged(function(u){ if(u) setTimeout(proStartRatingWatcher, 1800); });
+window.addEventListener('load', function(){
+  if (localStorage.getItem('sw_logged') === 'true') setTimeout(proStartRatingWatcher, 3000);
+});
+
+/* ---------- PREMIUM RATING MODAL ---------- */
+var PRO_RATE_EMOJI = {1:'😞 बहुत खराब', 2:'😕 खराब', 3:'😐 ठीक-ठाक', 4:'😊 अच्छा', 5:'🤩 शानदार!'};
+
+window.openRateModal = function(oid){
+  closeCustomAlert();
+  currentRating = 5;
+  var html = '<div style="text-align:center;">' +
+    '<div class="pro-rate-hero">🧑‍🔧</div>' +
+    '<div style="font-weight:900;font-size:14px;">हमारे expert का काम कैसा रहा?</div>' +
+    '<div style="font-size:11px;color:#999;margin-bottom:4px;">Order: ' + proEsc(oid) + '</div>' +
+    '<div id="proStars" style="font-size:38px;cursor:pointer;margin:8px 0 2px;">' +
+      [1,2,3,4,5].map(function(i){ return '<span data-s="' + i + '" onclick="setProRating(' + i + ')" style="color:#f5a623;">★</span>'; }).join('') +
+    '</div>' +
+    '<div id="proRateEmoji">🤩 शानदार!</div>' +
+    '<div style="margin-bottom:8px;">' +
+      ['⚡ समय पर सेवा','✨ बढ़िया काम','🙏 विनम्र व्यवहार','🧰 सही tools','💰 सही कीमत'].map(function(c){
+        return '<span class="pro-rate-chip" onclick="proRateChip(this)">' + c + '</span>';
+      }).join('') +
+    '</div>' +
+    '<textarea id="proRateCmt" placeholder="अपना अनुभव लिखें..." style="width:100%;border:1px solid var(--border-color);border-radius:12px;padding:10px;font-size:13px;min-height:56px;background:var(--card-bg);color:var(--text);"></textarea>' +
+    '<button onclick="submitProRating(\'' + oid + '\')" style="width:100%;margin-top:10px;background:linear-gradient(90deg,#ff6b00,#ff8c2e);color:#fff;border:none;padding:14px;border-radius:14px;font-weight:900;font-size:14px;cursor:pointer;box-shadow:0 8px 20px rgba(255,107,0,.35);">⭐ रिव्यू सबमिट करें</button>' +
+    '</div>';
+  showAlert('⭐ सेवा को रेट करें', html);
+};
+
+window.setProRating = function(n){
+  currentRating = n;
+  document.querySelectorAll('#proStars span').forEach(function(s){
+    s.style.color = (+s.dataset.s <= n) ? '#f5a623' : '#ccc';
+  });
+  var em = document.getElementById('proRateEmoji');
+  if(em) em.innerHTML = PRO_RATE_EMOJI[n] || '';
+};
+
+window.proRateChip = function(el){
+  el.classList.toggle('on');
+  var t = document.getElementById('proRateCmt');
+  if(!t) return;
+  var tag = el.innerText.trim();
+  if(el.classList.contains('on')){
+    t.value = (t.value ? t.value + ' ' : '') + tag + '.';
+  } else {
+    t.value = t.value.replace(tag + '.', '').replace(/\s{2,}/g,' ').trim();
+  }
+};
+
+/* ---------- SUBMIT: review + PARTNER ke data me save ---------- */
+window.submitProRating = function(oid){
+  var cmt = (document.getElementById('proRateCmt') ? document.getElementById('proRateCmt').value : '').trim();
+  var by = getIdent() || getUID() || 'anon';
+  showLoader('रिव्यू सेव हो रहा है...');
+  FS.collection('orders').doc(oid).get().then(function(d){
+    var o = d.exists ? d.data() : {};
+    var partnerPh = String(o.partnerPhone || PRO_PARTNER_PHONE);
+    var review = { orderId: oid, rating: currentRating, comment: cmt, by: by, partner: partnerPh, ts: Date.now(), at: new Date().toLocaleString('en-IN') };
+    var pref = FS.collection('partners').doc(partnerPh);
+    return Promise.all([
+      FS.collection('reviews').add(review),
+      pref.collection('reviews').add(review),
+      pref.set({
+        phone: partnerPh, name: 'SewaAstra Partner',
+        ratingSum: firebase.firestore.FieldValue.increment(currentRating),
+        ratingCount: firebase.firestore.FieldValue.increment(1),
+        lastReview: review
+      }, {merge:true}),
+      FS.collection('orders').doc(oid).update({ rated: true, rating: currentRating, ratedBy: by })
+    ]).then(function(){
+      /* average nikaal ke partner doc me save */
+      return pref.get().then(function(pd){
+        var p = pd.data() || {};
+        if(p.ratingCount) return pref.update({ avgRating: Math.round((p.ratingSum / p.ratingCount) * 10) / 10 });
+      });
+    });
+  }).then(function(){
+    hideLoader(); closeCustomAlert();
+    showToast('⭐ धन्यवाद! रेटिंग partner के प्रोफाइल में सेव हो गई 🎉');
+  }).catch(function(e){ hideLoader(); showAlert('त्रुटि', e.message); });
+};
+
+/* ---------- ADMIN ORDERS: DELETE BUTTON ---------- */
+window.adminDeleteOrder = function(oid){
+  if(!confirm('ऑर्डर ' + oid + ' को हमेशा के लिए delete करना है?\n(Chat history भी हट जाएगी)')) return;
+  FS.collection('orders').doc(oid).delete()
+    .then(function(){ showToast('🗑️ ऑर्डर ' + oid + ' delete हो गया'); })
+    .catch(function(e){ showAlert('त्रुटि', e.message); });
+};
+(function(){
+  var _rao = window.renderAdminOrders;
+  window.renderAdminOrders = function(orders){
+    _rao(orders);
+    try{
+      var list = document.getElementById('admOrdersList');
+      if(!list) return;
+      var cards = list.children;
+      for(var i = 0; i < cards.length && i < orders.length; i++){
+        if(cards[i].querySelector('.pro-adm-del')) continue;
+        var b = document.createElement('button');
+        b.className = 'pro-adm-del';
+        b.innerHTML = '🗑️ इस ऑर्डर को Delete करें';
+        b.setAttribute('onclick', "adminDeleteOrder('" + orders[i].id + "')");
+        cards[i].appendChild(b);
+      }
+    }catch(e){}
+  };
+})();
+
+console.log('%c SewaAstra v2.6 ✅ scroll-fix | auto-rating→partner | admin-delete ', 'background:#f5a623;color:#000;font-weight:bold;padding:4px;');
+</script>
+
+<script>
+/* ═══════════ SEWAASTRA v27 — PWA ENGINE ═══════════ */
+(function(){
+  /* SW register (https ya localhost par chalega) */
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    navigator.serviceWorker.register('sw.js').then(function(reg){
+      console.log('✅ SW registered:', reg.scope);
+      /* current page ko cache karwao — offline me yahi khulega */
+      function cachePage(){
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type:'CACHE_PAGE', url: location.href });
+        }
+      }
+      if (navigator.serviceWorker.controller) cachePage();
+      navigator.serviceWorker.addEventListener('controllerchange', cachePage);
+      /* naya version aaya to batao */
+      reg.addEventListener('updatefound', function(){
+        var nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', function(){
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            showToast('🔄 App का नया version तैयार है — दोबारा खोलने पर मिलेगा');
+          }
+        });
+      });
+    }).catch(function(e){ console.log('SW fail:', e.message); });
+  }
+
+  /* OFFLINE / ONLINE indicator bar */
+  document.body.insertAdjacentHTML('beforeend', '<div id="proNetBar"></div>');
+  var bar = document.getElementById('proNetBar');
+  window.addEventListener('offline', function(){
+    bar.className = 'off';
+    bar.innerHTML = '📴 आप Offline हैं — App cached mode में चल रहा है';
+  });
+  window.addEventListener('online', function(){
+    bar.className = 'on';
+    bar.innerHTML = '✅ Internet वापस आ गया!';
+    setTimeout(function(){ bar.className = ''; }, 2500);
+  });
+
+  /* manifest shortcuts: ?view=orders / ?view=cart */
+  window.addEventListener('load', function(){
+    var v = new URLSearchParams(location.search).get('view');
+    if (!v) return;
+    setTimeout(function(){
+      if (localStorage.getItem('sw_logged') !== 'true') return;
+      if (v === 'orders' && typeof showHistory === 'function') showHistory();
+      if (v === 'cart' && typeof checkout === 'function') { try{ checkout(); }catch(e){} }
+    }, 2000);
+  });
+})();
+console.log('%c SewaAstra v2.7 ✅ REAL PWA — manifest | sw | offline ', 'background:#ff6b00;color:#fff;font-weight:bold;padding:4px;');
+</script>
+
+<script>
+/* ═══════════ SEWAASTRA v28 — SPEED ENGINE ═══════════
+   1. Leaflet lazy-load (map khulne par hi download)
+   2. Unsplash images auto-compress (600px, q60)
+   3. Sab images lazy + async decode
+*/
+
+/* ---------- 1. LEAFLET ON-DEMAND ---------- */
+window.proLeafletReady = null;
+window.proEnsureLeaflet = function(){
+  if (window.L) return Promise.resolve();
+  if (window.proLeafletReady) return window.proLeafletReady;
+  showLoader('Map लोड हो रहा है...');
+  window.proLeafletReady = new Promise(function(res, rej){
+    var css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(css);
+    var s = document.createElement('script');
+    s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    s.onload = function(){ hideLoader(); res(); };
+    s.onerror = function(){ hideLoader(); window.proLeafletReady = null; rej(new Error('Map load failed')); };
+    document.head.appendChild(s);
+  });
+  return window.proLeafletReady;
+};
+(function(){
+  var _omm = window.openMapModal;
+  if (typeof _omm === 'function'){
+    window.openMapModal = function(){
+      var a = arguments;
+      proEnsureLeaflet().then(function(){ _omm.apply(null, a); })
+        .catch(function(e){ showAlert('त्रुटि', e.message); });
+    };
+  }
+  var _olt = window.openLiveTracking;
+  if (typeof _olt === 'function'){
+    window.openLiveTracking = function(oid){
+      proEnsureLeaflet().then(function(){ _olt(oid); })
+        .catch(function(e){ showAlert('त्रुटि', e.message); });
+    };
+  }
+})();
+
+/* ---------- 2 & 3. IMAGE SPEED OPTIMIZER ---------- */
+function proFastenImg(im){
+  if (im.dataset.proFast) return;
+  im.dataset.proFast = '1';
+  /* lazy + async decode */
+  if (!im.hasAttribute('loading')) im.setAttribute('loading', 'lazy');
+  if (!im.hasAttribute('decoding')) im.setAttribute('decoding', 'async');
+  /* Unsplash: full-size ke bajaye 600px compressed version */
+  var src = im.getAttribute('src') || '';
+  if (src.indexOf('images.unsplash.com') > -1 && src.indexOf('w=') === -1){
+    im.src = src + (src.indexOf('?') > -1 ? '&' : '?') + 'auto=format&fit=crop&w=600&q=60';
+  }
+}
+function proFastenAll(root){
+  (root || document).querySelectorAll('#display img, #bannerCarouselArea img, .card img').forEach(proFastenImg);
+  /* pehla banner eager rakho (turant dikhe) */
+  var first = document.querySelector('#bannerCarouselArea img');
+  if (first) first.setAttribute('loading', 'eager');
+}
+new MutationObserver(function(){ proFastenAll(); })
+  .observe(document.body, { childList: true, subtree: true });
+proFastenAll();
+
+/* idle time me tracking-modal ke tiles ka DNS warm karo */
+if ('requestIdleCallback' in window){
+  requestIdleCallback(function(){
+    ['https://a.tile.openstreetmap.org','https://b.tile.openstreetmap.org'].forEach(function(h){
+      var l = document.createElement('link'); l.rel = 'dns-prefetch'; l.href = h;
+      document.head.appendChild(l);
+    });
+  });
+}
+
+console.log('%c SewaAstra v2.8 ⚡ SPEED ENGINE — lazy leaflet | fast images ', 'background:#e6f7ed;color:#0f7a37;font-weight:bold;padding:4px;');
+</script>
+
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a34d442cedd73e3f',t:'MTc4ODM1OTk4OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
