@@ -5444,5 +5444,504 @@ body.dark-mode .v39mg span{background:#2e2e2e}
 })();
 
 </script>
+
+<script>
+/* ═══════════════ CUSTOMER v4.4 — LIVE WALLET(SW ₹) + COINS + REFER ₹1000-COIN + SERVICE RATING + EDIT-POPUP ═══════════════ */
+(function(){
+  if(window.__c44) return; window.__c44=1;
+
+  function wEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function wKey(){
+    try{
+      var st=(localStorage.getItem('sw_user')||'').trim();
+      if(/^\d{10}$/.test(st)) return st;
+      if(st.indexOf('@')>-1) return st;
+      var u=firebase.auth().currentUser; if(u) return u.uid;
+      if(st) return st;
+    }catch(e){}
+    return '';
+  }
+  function wAuthed(){ try{ return !!firebase.auth().currentUser || localStorage.getItem('sw_logged')==='true'; }catch(e){ return false; } }
+  var wC={sw:0,coins:0,refBy:'',refKind:'',refPaid:0,led:[]};
+  var wRef=null;
+  function wMy(){ wRef=FS.collection('users').doc(wKey()); return wRef; }
+
+  /* ─── ensure wallet doc ─── */
+  function wEnsure(){
+    var k=wKey(); if(!k) return;
+    try{
+      FS.collection('users').doc(k).get().then(function(d){
+        var upd={};
+        if(!d.exists){ upd={key:k,kind:'customer',swBal:0,coins:0,refPaid:0,led:[],createdAt:new Date().toLocaleString('en-IN'),ts:Date.now()}; }
+        else{
+          var x=d.data();
+          if(typeof x.swBal!=='number') upd.swBal=0;
+          if(typeof x.coins!=='number') upd.coins=0;
+          if(typeof x.refPaid!=='number') upd.refPaid=0;
+          if(!x.led) upd.led=[];
+        }
+        if(Object.keys(upd).length) FS.collection('users').doc(k).set(upd,{merge:true}).catch(function(){});
+        FS.collection('users').doc(k).onSnapshot(function(s){ if(s.exists) wC=Object.assign(wC,s.data()); },function(){});
+      }).catch(function(){});
+    }catch(e){}
+  }
+  function boot44(){ if(window.__c44Boot) return; window.__c44Boot=1; setTimeout(function(){ try{ wEnsure(); wSubRate(); wWatch(); }catch(e){} },1400); }
+  try{ if(firebase.auth&&firebase.auth().currentUser) boot44(); }catch(e){}
+  firebase.auth().onAuthStateChanged(function(u){ if(u) boot44(); });
+  window.addEventListener('load',function(){ if(localStorage.getItem('sw_logged')==='true') setTimeout(boot44,2200); });
+
+  /* ═══ 1) SERVICE RATING — हर service पर real rating (service_ratings collection) ═══ */
+  var rAgg={}; /* 'cat|name' -> {sum,count} */
+  function wSubRate(){
+    try{
+      FS.collection('service_ratings').onSnapshot(function(s){
+        var a={};
+        s.docs.forEach(function(d){ var x=d.data(); var k=String(x.cat||'')+'|'+String(x.sn||''); if(!a[k]) a[k]={sum:0,count:0}; a[k].sum+=Number(x.stars)||0; a[k].count++; });
+        window.__rAgg=a; rAgg=a;
+        try{ reBadge(); }catch(e){}
+      },function(){});
+    }catch(e){}
+  }
+  function reBadge(){ try{ window.dispatchEvent(new Event('sewaastra-rebadge')); }catch(e){} }
+  function cRateGet(cat,nm){ try{ return rAgg[String(cat||'')+'|'+String(nm||'')]||null; }catch(e){ return null; } }
+  function cRateLine(cat,nm){
+    var r=cRateGet(cat,nm);
+    if(r&&r.count) return '<span class="rating-val" style="color:#f5a623;">'+Math.round(r.sum/r.count*10)/10+'</span><span class="review-count"> ('+(r.count===1?'1 रेटिंग':r.count+' रेटिंग')+')</span>';
+    return '<span class="rating-val" style="color:#aaa;">नया</span><span class="review-count"> (पहली रेटिंग का इंतज़ार)</span>';
+  }
+  /* createCard wrap — rating row live */
+  try{
+    var _cCard=window.createCard;
+    if(typeof _cCard==='function'){
+      window.createCard=function(item,uid){
+        var html=_cCard(item,uid);
+        try{
+          var cat=(String(uid||'').split('_')[0])||'general', nm=item&&item.n||'';
+          var okCat=!!(window.categoriesData||[]).find(function(c){return c.key===cat;});
+          if(!okCat){ for(var kk in window.mainData){ if(window.mainData[kk]&&window.mainData[kk].some(function(s){return s&&s.n===nm;})){ cat=kk; break; } } }
+          html=html.replace(/<span class="rating-val">[\s\S]*?<\/span>\s*<span class="review-count">[\s\S]*?<\/span>/, cRateLine(cat,nm));
+        }catch(e){}
+        return html;
+      };
+    }
+  }catch(e){}
+
+  /* ═══ 2) submitProRating — order के हर service/item में rating save + service_ratings ═══ */
+  var _cRate=window.submitProRating;
+  window.submitProRating=function(oid){
+    try{ if(typeof _cRate==='function') _cRate(oid); }catch(e){}
+    try{ wRateSvc(oid); }catch(e){}
+  };
+  function wRateSvc(oid){
+    var stars=Number(window.currentRating)||5;
+    FS.collection('orders').doc(oid).get().then(function(d){
+      if(!d.exists) return;
+      var o=d.data(); if(!o||!o.items) return;
+      var items=(o.items||[]).map(function(i){ return {n:i.n,p:i.p,qty:i.qty||1,cat:i.cat||'',catName:i.catName||'',r:{stars:stars,at:new Date().toLocaleString('en-IN')}}; });
+      FS.collection('orders').doc(oid).update({items:items}).catch(function(){});
+      items.forEach(function(i){
+        FS.collection('service_ratings').add({cat:i.cat,catName:i.catName||'',sn:i.n,stars:stars,orderId:oid,by:(localStorage.getItem('sw_user')||getUID()||'anon'),ts:Date.now(),at:new Date().toLocaleString('en-IN')}).catch(function(){});
+      });
+    }).catch(function(){});
+  };
+
+  /* ═══ 3) LAYOUT — category tile photo/emoji support (#4 की customer side) ═══ */
+  function isEmoji(s){ return /[^\u0000-\u007F]/.test(String(s||'')); }
+  function iconHTML(cat,small){
+    if(cat.img) return '<img src="'+wEsc(cat.img)+'" onerror="this.onerror=null;this.style.display=\'none\'" style="width:100%;height:100%;object-fit:cover;border-radius:'+(small?'10px':'14px')+';position:absolute;inset:0;">';
+    var ic=String(cat.icon||'');
+    if(isEmoji(ic)) return '<span style="font-size:'+(small?'20px':'26px')+';line-height:1;">'+ic+'</span>';
+    return '<i class="fa '+(/^fa-/.test(ic)?ic:('fa-'+ic))+'"></i>';
+  }
+  function patchTiles(){
+    try{
+      var grid=document.getElementById('catGridArea');
+      if(grid){
+        var vis=(window.categoriesData||[]).slice(0,7);
+        var els=grid.querySelectorAll('.cat-item');
+        for(var i=0;i<vis.length&&i<els.length;i++){
+          var c=els[i].querySelector('.cat-icon');
+          if(c) c.innerHTML=iconHTML(vis[i],false);
+        }
+      }
+      var mg=document.getElementById('moreCategoriesGridArea');
+      if(mg){
+        var cats2=(window.categoriesData||[]), e2=mg.querySelectorAll('.cat-item');
+        for(var j=0;j<cats2.length&&j<e2.length;j++){ var c2=e2[j].querySelector('.cat-icon'); if(c2) c2.innerHTML=iconHTML(cats2[j],true); }
+      }
+    }catch(e){}
+  }
+  try{
+    var _cg=window.renderCategoriesGrid; if(typeof _cg==='function') window.renderCategoriesGrid=function(){ _cg(); setTimeout(patchTiles,30); };
+    var _mg=window.renderMoreCategoriesGrid; if(typeof _mg==='function') window.renderMoreCategoriesGrid=function(){ _mg(); setTimeout(patchTiles,30); };
+    window.addEventListener('sewaastra-rebadge',function(){ setTimeout(patchTiles,30); });
+  }catch(e){}
+  /* cat icon override to emoji/image + fa-fallback in original markup — patch old markup too */
+  try{
+    var _load=window.load;
+    if(typeof _load==='function') window.load=function(k){ _load(k); setTimeout(function(){ patchTiles(); },40); };
+  }catch(e){}
+
+  /* ═══ 4) WALLET UI (custReqAction 'Wallet'/'Referral') ═══ */
+  function ledRow(x){
+    var sign=(x.amt||0)>=0?'+':'−';
+    var icon=(x.k==='coin')?'🪙':(x.amt<0?'💸':'💰');
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px dashed #eee;font-size:12px;">'+
+      '<div><span style="font-weight:700;">'+icon+' '+(x.note||'')+'</span><br><span style="font-size:9.5px;color:#999;">'+(x.at||'')+'</span></div>'+
+      '<b style="color:'+((x.amt||0)>=0?'#15a04a':'#e53935')+';">'+sign+' '+(x.k==='coin'?Math.abs(x.amt||0)+' coin':'₹'+Math.abs(x.amt||0))+'</b></div>';
+  }
+  window.c44Wallet=function(tab){
+    if(!wKey()) return showAlert('लॉगिन करें','Wallet देखने के लिए पहले अपने नंबर से लॉगिन करें।');
+    var phone=wKey();
+    FS.collection('users').doc(phone).get().then(function(d){
+      var u=d.exists?d.data():{swBal:0,coins:0,refBy:'',refKind:'',refPaid:0,led:[]};
+      wC=Object.assign(wC,u);
+      var led=(u.led||[]).slice(-18).reverse();
+      var nextM=[100,100,150,150,500], paid=(u.refPaid||0), prog=nextM.slice(0,paid).reduce(function(a,b){return a+b;},0);
+      var code=/^\d{10}$/.test(phone)?phone:phone;
+      var share='https://wa.me/?text='+encodeURIComponent('🤝 SewaAstra पर मुझे refer करो! मेरा refer code: '+code+' — पहले 5 पूरे orders पर referrer को 1000 🪙 coins मिलते हैं (100 coin = ₹10 ऑर्डर पर छूट)। App: ');
+      var rBy=u.refBy?'✔ Refer code applied ('+u.refBy+(u.refKind==='partner'?' — Partner': '')+')':'';
+
+      var html='<div style="max-height:74vh;overflow-y:auto;text-align:left;font-size:12px;line-height:1.6;">'+
+      '<div style="display:flex;gap:10px;">'+
+        '<div style="flex:1;background:linear-gradient(135deg,#0d47a1,#1976d2);color:#fff;border-radius:16px;padding:12px;text-align:center;"><div style="font-size:9px;font-weight:800;opacity:.85;letter-spacing:1px;">💰 SW WALLET (₹)</div><div style="font-size:24px;font-weight:900;margin-top:3px;">₹'+(Number(u.swBal)||0).toLocaleString('en-IN')+'</div><div style="font-size:8.5px;opacity:.85;">हर पूरे order पर +₹5</div></div>'+
+        '<div style="flex:1;background:linear-gradient(135deg,#b07800,#ffb300);color:#fff;border-radius:16px;padding:12px;text-align:center;"><div style="font-size:9px;font-weight:800;opacity:.9;letter-spacing:1px;">🪙 REWARD COINS</div><div style="font-size:24px;font-weight:900;margin-top:3px;">'+(Number(u.coins)||0).toLocaleString('en-IN')+'</div><div style="font-size:8.5px;opacity:.9;">100 coin = ₹10 छूट</div></div>'+
+      '</div>'+
+      '<div style="background:#fff8f0;border:1px dashed #ffb300;border-radius:12px;padding:9px 11px;margin-top:10px;font-size:11px;">💡 Checkout पर wallet & coins <b>अपने आप</b> लग जाते हैं (coupon के बाद)। SW wallet cash-out भी कर सकते हैं।</div>'+
+      '<div style="display:flex;gap:8px;margin-top:10px;">'+
+        '<button onclick="c44Wd()" style="flex:1;border:none;background:linear-gradient(135deg,#0d47a1,#1976d2);color:#fff;padding:11px;border-radius:12px;font-weight:800;font-size:11.5px;cursor:pointer;">💸 SW Cash-Out</button>'+
+        '<button onclick="c44History()" style="flex:1;border:none;background:#0f1626;color:#ffd700;padding:11px;border-radius:12px;font-weight:800;font-size:11.5px;cursor:pointer;">📜 Ledger</button></div>'+
+      '<div style="margin-top:14px;border-top:2px solid #f0f0f0;padding-top:10px;">'+
+        '<div style="font-weight:900;font-size:13px;">🤝 Refer & Earn — 1000 🪙 तक</div>'+
+        '<div style="color:#666;margin-top:3px;">अपना कोड <b style="color:var(--primary);">'+wEsc(code)+'</b> दोस्तों को दो। उनके पूरे orders पर आपको मिलेंगे:</div>'+
+        '<div style="font-size:11px;margin-top:5px;line-height:1.9;">'+[100,100,150,150,500].map(function(v,i){ return (i<paid?'<b style="color:#15a04a;">✓</b> ':'<b style="color:#ccc;">'+ (i+1) +'.</b> ')+'Order #'+(i+1)+' complete → <b style="color:#b07800;">'+v+' coin</b>'; }).join('<br>')+'</div>'+
+        '<div style="font-size:10.5px;color:#15a04a;font-weight:800;margin-top:5px;">अब तक '+(paid||0)+'/5 • कुल '+prog+' coin मिले</div>'+
+        '<a href="'+share+'" target="_blank" style="display:block;text-align:center;margin-top:9px;background:#25d366;color:#fff;text-decoration:none;padding:11px;border-radius:12px;font-weight:800;font-size:12px;">💬 WhatsApp पर share करें</a>'+
+        '<div style="margin-top:12px;background:#f6f6f6;border-radius:12px;padding:9px 11px;">'+(rBy?rBy:'<span style="font-size:11px;">किसी ने आपको <b>refer code</b> भेजा है? नीचे डालें — 1000 coin कमाने का मौका:</span><div style="display:flex;gap:7px;margin-top:7px;"><input id="c44RefI" placeholder="Refer code (मोबाइल नं.)" style="flex:1;border:1px solid #ddd;border-radius:9px;padding:9px;font-size:12px;outline:none;"><button onclick="c44ApplyRef()" style="border:none;background:var(--primary);color:#fff;padding:9px 14px;border-radius:9px;font-weight:800;cursor:pointer;font-size:12px;">लागू करें</button></div>')+'</div>'+
+      '</div></div>';
+      showAlert('💰 Wallet • Coins • Refer', html);
+    }).catch(function(e){ showAlert('त्रुटि', e.message); });
+  };
+  window.c44History=function(){
+    var led=(wC.led||[]).slice(-25).reverse();
+    showAlert('📜 Wallet Ledger', (led.length?led.map(ledRow).join(''):'<div style="text-align:center;color:#888;padding:20px;">अभी कोई entry नहीं</div>'));
+  };
+  window.c44Wd=function(){
+    var bal=Number(wC.swBal)||0;
+    if(bal<10) return showAlert('कम balance','Cash-out के लिए कम से कम ₹10 SW wallet चाहिए (हर पूरे order पर +₹5)।');
+    var html='<div style="text-align:left;font-size:12px;">'+
+      '<div style="background:#eef4ff;border-radius:12px;padding:10px 12px;">उपलब्ध SW wallet: <b style="color:#0d47a1;font-size:15px;">₹'+bal+'</b><br><span style="font-size:10px;color:#666;">Payout UPI पर आएगा — Admin verify करके भेजते हैं।</span></div>'+
+      '<div style="margin-top:10px;font-weight:700;">UPI ID</div><input id="c44WU" placeholder="yourname@upi" style="width:100%;border:1px solid #ddd;border-radius:10px;padding:10px;font-size:13px;margin-top:4px;outline:none;box-sizing:border-box;">'+
+      '<div style="margin-top:9px;font-weight:700;">₹ राशि (max ₹'+bal+')</div><input id="c44WA" type="number" min="10" max="'+bal+'" value="'+bal+'" style="width:100%;border:1px solid #ddd;border-radius:10px;padding:10px;font-size:13px;margin-top:4px;outline:none;box-sizing:border-box;">'+
+      '<button onclick="c44WdGo()" style="width:100%;margin-top:13px;border:none;background:linear-gradient(135deg,#0d47a1,#1976d2);color:#fff;padding:13px;border-radius:13px;font-weight:900;cursor:pointer;">💸 Cash-Out Request भेजें</button></div>';
+    showAlert('💸 SW Wallet Cash-Out', html);
+  };
+  window.c44WdGo=function(){
+    var upi=(document.getElementById('c44WU')||{value:''}).value.trim();
+    var a=parseInt((document.getElementById('c44WA')||{value:'0'}).value,10);
+    if(!/^[\w.\-]{2,}@[a-zA-Z]{2,}$/.test(upi)) return showAlert('UPI गलत','सही UPI ID डालें — जैसे name@okhdfcbank');
+    if(!(a>=10)) return showAlert('राशि','कम से कम ₹10 डालें');
+    if(a>(Number(wC.swBal)||0)) return showAlert('राशि','बैलेंस से ज़्यादा नहीं');
+    closeCustomAlert();
+    FS.collection('users').doc(wKey()).collection('withdrawals').add({amt:a,upi:upi,status:'Requested',kind:'customer',by:wKey(),ts:Date.now(),at:new Date().toLocaleString('en-IN')})
+      .then(function(){ showToast('💸 Request भेज दी! Admin जल्द payout करेंगे'); c44Wallet(); })
+      .catch(function(e){ showAlert('त्रुटि', e.message); });
+  };
+  window.c44ApplyRef=function(){
+    var code=(document.getElementById('c44RefI')||{value:''}).value.trim();
+    if(!code) return;
+    if(wC.refBy) return showAlert('पहले से लगा है','आपका refer code पहले ही लग चुका है।');
+    /* detect partner/customer */
+    Promise.all([
+      FS.collection('partners').doc(code).get().catch(function(){return null;}),
+      FS.collection('users').doc(code).get().catch(function(){return null;})
+    ]).then(function(r){
+      var kind=null;
+      if(r[0]&&r[0].exists) kind='partner';
+      else if(r[1]&&r[1].exists) kind='customer';
+      if(!kind) return showAlert('Code नहीं मिला','यह refer code सही नहीं है। दोबारा जाँच करें।');
+      FS.collection('users').doc(wKey()).set({refBy:code,refKind:kind},{merge:true}).then(function(){
+        wC.refBy=code; wC.refKind=kind;
+        closeCustomAlert();
+        showAlert('🎉 Refer code लग गया!',(kind==='partner'?'Partner':'दोस्त')+' <b>'+wEsc(code)+'</b> से जुड़े!<br><br>अब आपके पूरे orders पर referrer को coins मिलेंगे।');
+        c44Wallet();
+      }).catch(function(e){ showAlert('त्रुटि', e.message); });
+    }).catch(function(e){ showAlert('त्रुटि', e.message); });
+  };
+  var _crA=window.custReqAction;
+  if(typeof _crA==='function'){
+    window.custReqAction=function(type){
+      if(type==='Wallet') return c44Wallet('wallet');
+      if(type==='Referral') return c44Wallet('refer');
+      return _crA(type);
+    };
+  }
+
+  /* ═══ 5) CHECKOUT — wallet/coins auto apply ═══ */
+  var wUse={sw:0,coinU:0,coinV:0};      /* coinU=coins, coinV=₹ value */
+  var wSwOn=true, wCoinOn=true;
+  function wBox(){
+    try{
+      var anchor=document.getElementById('couponMsg');
+      if(!anchor||document.getElementById('c44WBox')) return;
+      var host=anchor.closest('.cart-card');
+      if(!host) return;
+      var card=document.createElement('div');
+      card.className='cart-card'; card.id='c44WBox';
+      card.style.background='#f4f8ff'; card.style.border='1px dashed #1976d2';
+      card.innerHTML=
+      '<label style="font-size:12px;font-weight:800;color:#0d47a1;">💰 SewaAstra Wallet & Coins — छूट अपने आप लागू होगी</label>'+
+      '<div style="margin-top:9px;background:#fff;border:1px solid #e5ecf8;border-radius:11px;padding:9px 11px;">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:12px;">💵 SW Wallet (-₹) <b id="c44SwAv" style="color:#0d47a1;">₹0</b></span>'+
+        '<span style="display:flex;align-items:center;gap:6px;"><span style="font-size:10px;color:#888;">use?</span><input type="checkbox" id="c44SwT" checked></span></div>'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:7px;padding-top:7px;border-top:1px dashed #e5ecf8;"><span style="font-size:12px;">🪙 Coins <b id="c44CoAv" style="color:#b07800;">0</b> <span style="font-size:9px;color:#999;">(100=₹10)</span></span>'+
+        '<span style="display:flex;align-items:center;gap:6px;"><span style="font-size:10px;color:#888;">use?</span><input type="checkbox" id="c44CoT" checked></span></div>'+
+        '<div id="c44WNote" style="font-size:10px;color:#0d47a1;font-weight:700;margin-top:7px;line-height:1.5;">—</div>'+
+      '</div>';
+      host.insertAdjacentElement('afterend',card);
+      var swT=document.getElementById('c44SwT'), coT=document.getElementById('c44CoT');
+      swT.onchange=function(){ wSwOn=swT.checked; wCartRefresh(); };
+      coT.onchange=function(){ wCoinOn=coT.checked; wCartRefresh(); };
+    }catch(e){}
+  }
+  function wBillBase(){
+    try{
+      var sub=0; (typeof cart!=='undefined'?cart:[]).forEach(function(i){ sub+=(Number(i.p)||0)*((i.qty)||1); });
+      return Math.max(0, sub-(Number(window.appliedDiscount)||0));
+    }catch(e){ return 0; }
+  }
+  function wCartRefresh(){
+    try{
+      var b=wBillBase();
+      var swAv=Math.max(0,Math.floor(Number(wC.swBal)||0));
+      var coAv=Math.max(0,Math.floor(Number(wC.coins)||0));
+      var swU=wSwOn?Math.min(swAv,b):0;
+      var rem=Math.max(0,b-swU);
+      var blocks=wCoinOn?Math.min(Math.floor(coAv/100),Math.floor(rem/10)):0;
+      var coU=blocks*100, coV=blocks*10;
+      wUse={sw:swU,coinU:coU,coinV:coV};
+      var fTotal=document.getElementById('fTotal'); var sRow=document.getElementById('wSwRow'), cRow=document.getElementById('wCoinRow');
+      if(!sRow||!cRow){ wInjectBillRows(); sRow=document.getElementById('wSwRow'); cRow=document.getElementById('wCoinRow'); }
+      if(sRow) sRow.innerHTML='<span>SW Wallet छूट</span> <span style="color:#0d47a1;">-₹'+swU+'</span>';
+      if(cRow) cRow.innerHTML='<span>🪙 Coins छूट ('+coU+' coin)</span> <span style="color:#b07800;">-₹'+coV+'</span>';
+      var base=document.getElementById('sTotal');
+      var final=(base?Number((document.getElementById('sTotal')||{innerText:'₹0'}).innerText.replace(/[^0-9]/g,''))||0:0);
+      /* recompute exact */
+      var exact=(wBillBase()+10)-swU-coV;
+      if(exact<10) exact=10;
+      var fTot=document.getElementById('fTotal'); if(fTot) fTot.innerText='₹'+(exact.toLocaleString?exact.toLocaleString('en-IN'):exact);
+      var note=document.getElementById('c44WNote');
+      if(note) note.innerText=(swU||coV)?('इस ऑर्डर पर बचत: '+(swU?('SW ₹'+swU+' '):'')+(coV?('+ Coins ₹'+coV+' ('+coU+' coin)'):'')+' ✅'):'कोई छूट नहीं — पहले wallet/coins कमाएँ (order complete पर +₹5)।';
+      var sAv=document.getElementById('c44SwAv'); if(sAv) sAv.innerText='₹'+(swAv||0);
+      var cAv=document.getElementById('c44CoAv'); if(cAv) cAv.innerText=(coAv||0)+'';
+    }catch(e){}
+  }
+  function wInjectBillRows(){
+    try{
+      var fr=document.getElementById('fTotal');
+      if(!fr||document.getElementById('wSwRow')) return;
+      var bill=fr.closest('.cart-card'); if(!bill) return;
+      var sw=document.createElement('div'); sw.className='bill-row'; sw.style.color='#0d47a1'; sw.id='wSwRow'; sw.innerHTML='<span>SW Wallet छूट</span> <span>-₹0</span>';
+      var co=document.createElement('div'); co.className='bill-row'; co.style.color='#b07800'; co.id='wCoinRow'; co.innerHTML='<span>🪙 Coins छूट (0 coin)</span> <span>-₹0</span>';
+      var tr=fr.closest('.total-amt')||bill.querySelector('.total-amt');
+      bill.insertBefore(sw,tr); bill.insertBefore(co,tr);
+    }catch(e){}
+  }
+  try{
+    var _chk=window.checkout;
+    if(typeof _chk==='function'){
+      window.checkout=function(){ _chk(); setTimeout(function(){ try{ wBox(); FS.collection('users').doc(wKey()).get().then(function(d){ if(d.exists) wC=Object.assign(wC,d.data()); wCartRefresh(); }).catch(function(){ wCartRefresh(); }); }catch(e){} },80); };
+    }
+  }catch(e){}
+  try{
+    var _rc44=window.renderCart;
+    if(typeof _rc44==='function') window.renderCart=function(){ _rc44(); setTimeout(wCartRefresh,20); };
+  }catch(e){}
+
+  /* ═══ 6) handleFinalOrder — wallet/coins डिडक्ट + rewards field ═══ */
+  window.handleFinalOrder=function(){
+    try{
+      var address=(document.getElementById('manualAddr')||{value:''}).value.trim();
+      var mobile=(document.getElementById('altMobile')||{value:''}).value.trim();
+      var date=(document.getElementById('cartDate')||{value:''}).value;
+      var time=(document.getElementById('cartTime')||{value:''}).value;
+      var remark=(document.getElementById('cartRemark')||{value:''}).value.trim();
+      var mapsLink=(document.getElementById('googleMapsLink')||{value:''}).value;
+      if(!address) return showAlert('पता आवश्यक है','कृपया अपनी डिलीवरी लोकेशन या पता दर्ज करें');
+      if(!selectedMode) return showAlert('भुगतान मोड चुनें','कृपया Cash या Online भुगतान का तरीका चुनें');
+      if(typeof cart==='undefined'||!cart.length) return showAlert('कार्ट खाली है','पहले कोई सेवा जोड़ें');
+
+      var subtotal=cart.reduce(function(a,c){ return a+(Number(c.p)||0)*((c.qty)||1); },0);
+      var bill=Math.max(0, subtotal-(Number(window.appliedDiscount)||0));
+      /* caps fresh (UI के state को मान्य करते हुए) */
+      var swU=wSwOn?Math.min(Math.floor(Number(wC.swBal)||0),bill):0;
+      var rem=Math.max(0,bill-swU);
+      var blocks=wCoinOn?Math.min(Math.floor((Number(wC.coins)||0)/100),Math.floor(rem/10)):0;
+      var coU=blocks*100, coV=blocks*10;
+      var finalAmt=Math.max(10,(bill+10)-swU-coV);
+      wUse={sw:swU,coinU:coU,coinV:coV};
+
+      var oid='SW'+Math.floor(100000+Math.random()*900000);
+      var userMobile=mobile||getIdent()||'';
+      var order={
+        id:oid, uid:getUID(), mobile:userMobile,
+        items:cart.map(function(i){ return {n:i.n,p:Number(i.p)||0,qty:(i.qty||1),cat:i.cat||'',catName:i.catName||'',selectedSub:(i.selectedSub||''),custom:!!i.custom}; }),
+        subtotal:subtotal, discount:(Number(window.appliedDiscount)||0), total:finalAmt,
+        address:address, date:date, time:time, remark:remark, mode:selectedMode, maps:mapsLink||'',
+        rewards:{sw:swU,coins:coU,coinVal:coV},
+        cats:(function(){ var s={},out=[]; (typeof cart!=='undefined'?cart:[]).forEach(function(i){ var k=i.cat||'general',nn=i.catName||'General'; if(!s[k]){s[k]=1;out.push({key:k,name:nn});} }); return out; })(),
+        status:'Order Placed', rated:false,
+        loc:(typeof userCoords!=='undefined'?{lat:userCoords.lat,lon:userCoords.lon}:null),
+        createdAt:Date.now(), timestamp:new Date().toLocaleString('hi-IN')
+      };
+      showLoader('ऑर्डर सेव हो रहा है...');
+      FS.collection('orders').doc(oid).set(order).then(function(){
+        hideLoader();
+        /* wallet/coins deduct */
+        try{ wDeduct(oid,swU,coU); }catch(e){}
+        try{
+          var hist=JSON.parse(localStorage.getItem('sw_order_history'))||[]; hist.unshift(order); localStorage.setItem('sw_order_history',JSON.stringify(hist.slice(0,50)));
+        }catch(e){}
+        var waMsg='*🚀 New SewaAstra Booking!*%0A🆔 Order ID: '+oid+'%0A👤 User: '+userMobile+'%0A📦 Items: '+cart.map(function(i){return i.n+' (x'+(i.qty||1)+')';}).join(', ')+'%0A💰 Total: ₹'+finalAmt+' ('+selectedMode+')%0A📍 Address: '+address+'%0A🗺️ Map: '+mapsLink+'%0A📅 '+date+' at '+time+'%0A📝 '+(remark||'None');
+        try{ document.getElementById('fullCartPanel').style.display='none'; }catch(e){}
+        cart=[]; window.cart=cart;
+        try{ document.getElementById('bCount').innerText='0'; }catch(e){}
+        appliedDiscount=0;
+        var extra='';
+        if(selectedMode==='Online'&&CLOUD_CONFIG.upiId){
+          var upi='upi://pay?pa='+encodeURIComponent(CLOUD_CONFIG.upiId)+'&pn=SewaAstra&am='+finalAmt+'&cu=INR&tn='+oid;
+          extra='<br><a href="'+upi+'" style="display:inline-block;margin-top:10px;background:#15a04a;color:#fff;padding:10px 18px;border-radius:10px;text-decoration:none;font-weight:bold;">💳 UPI से ₹'+finalAmt+' Pay करें</a>';
+        }
+        var saved='';
+        if(swU||coU) saved='<br><span style="font-size:11px;color:#0d47a1;font-weight:700;">💰 Wallet/Coins से बचत: '+(swU?'SW ₹'+swU+' ':'')+(coU?('Coins ₹'+coV+' ('+coU+' coin)'):'')+'</span>';
+        showAlert('बुकिंग सफल! 🎉','आपका ऑर्डर <b>'+oid+'</b> ☁️ cloud में सेव हो गया है!'+saved+'<br>स्टेटस अपडेट यहीं मिलेंगे।'+extra+'<br><br>💡 पूरा होने पर +₹5 SW wallet में मिलेगा!');
+        try{ window.startMyOrdersListener&&startMyOrdersListener(); }catch(e){}
+      }).catch(function(e){ hideLoader(); showAlert('त्रुटि','ऑर्डर सेव नहीं हो सका: '+e.message); });
+    }catch(e){ showAlert('त्रुटि', e.message); }
+  };
+  function wDeduct(oid,swU,coU){
+    try{
+      var ref=FS.collection('users').doc(wKey());
+      FS.runTransaction(function(tx){
+        return tx.get(ref).then(function(d){
+          var u=d.exists?d.data():{swBal:0,coins:0,led:[]};
+          var sw=Math.max(0,(Number(u.swBal)||0)-swU);
+          var co=Math.max(0,(Number(u.coins)||0)-coU);
+          var led=u.led||[];
+          var now=new Date().toLocaleString('en-IN');
+          if(swU) led=led.concat([{k:'sw',amt:-swU,note:'Order '+oid+' पर wallet use',at:now}]);
+          if(coU) led=led.concat([{k:'coin',amt:-coU,note:'Order '+oid+' पर coins redeem',at:now}]);
+          led=led.slice(-30);
+          tx.set(ref,{swBal:sw,coins:co,led:led},{merge:true});
+          wC.sw=sw; wC.coins=co; wC.led=led;
+        });
+      }).catch(function(){});
+    }catch(e){}
+  }
+
+  /* ═══ 7) REWARD ENGINE — Completed order → +₹5 SW (+referrer milestone) ═══ */
+  var REW={cs:[100,100,150,150,500], pt:[10,10,15,15,50]};
+  function wReward(oid){
+    try{
+      var myRef=FS.collection('users').doc(wKey());
+      FS.runTransaction(function(tx){
+        return tx.get(FS.collection('orders').doc(oid)).then(function(od){
+          var o=od.exists?od.data():null;
+          if(!o||o.status!=='Completed'||o.swRewarded) return null;
+          return tx.get(myRef).then(function(md){
+            var u=md.exists?md.data():{swBal:0,coins:0,led:[],refBy:'',refKind:''};
+            var sw=Math.max(0,(Number(u.swBal)||0)+5);
+            var led=(u.led||[]).concat([{k:'sw',amt:5,note:'Order '+oid+' complete → +₹5',at:new Date().toLocaleString('en-IN')}]).slice(-30);
+            var upd={swBal:sw,led:led};
+            var refFlag=false;
+            if(u.refBy&&u.refKind){
+              var rref=u.refKind==='partner'?FS.collection('partners').doc(u.refBy):FS.collection('users').doc(u.refBy);
+              return tx.get(rref).then(function(rd){
+                var rdata=rd.exists?rd.data():null;
+                if(rd.exists){
+                  var paid=Number(rdata.refPaid)||0;
+                  if(paid<5){
+                    if(u.refKind==='customer'){
+                      var coin=REW.cs[paid]||0;
+                      var rled=(rdata.led||[]).concat([{k:'coin',amt:coin,note:'Referral order '+oid+' complete',at:new Date().toLocaleString('en-IN')}]).slice(-30);
+                      tx.set(rref,{refPaid:paid+1,coins:Math.max(0,(Number(rdata.coins)||0)+coin),led:rled},{merge:true});
+                    }else{
+                      var rs=REW.pt[paid]||0;
+                      var rled2=(rdata.led||[]).concat([{k:'sw',amt:rs,note:'Referral order '+oid+' complete → +₹'+rs,at:new Date().toLocaleString('en-IN')}]).slice(-30);
+                      tx.set(rref,{refPaid:paid+1,refBonus:Math.max(0,(Number(rdata.refBonus)||0)+rs),led:rled2},{merge:true});
+                    }
+                    refFlag=true;
+                  }
+                }
+                tx.set(myRef,upd,{merge:true});
+                tx.update(FS.collection('orders').doc(oid),{swRewarded:true,swRewardAt:Date.now(),refRewarded:refFlag});
+                return true;
+              });
+            }
+            tx.set(myRef,upd,{merge:true});
+            tx.update(FS.collection('orders').doc(oid),{swRewarded:true,swRewardAt:Date.now(),refRewarded:false});
+            return true;
+          });
+        });
+      }).then(function(done){
+        if(done) setTimeout(function(){ try{ showToast('💰 +₹5 SW wallet में जुड़ गया!'); }catch(e){} },600);
+      }).catch(function(e){});
+    }catch(e){}
+  }
+  var wDone={};
+  function wWatch(){
+    try{
+      if(!window.myOrdersQuery) return;
+      if(!wKey()) return;
+      if(window.__c44Watch) return; window.__c44Watch=1;
+      myOrdersQuery().onSnapshot(function(snap){
+        snap.docs.forEach(function(d){
+          var o=d.data();
+          if(o.status==='Completed'&&!o.swRewarded&&!wDone[o.id]){ wDone[o.id]=1; wReward(d.id); }
+        });
+      },function(){});
+    }catch(e){}
+  }
+
+  /* ═══ 8) EDIT-POPUP — customer को दिखे क्या update हुआ (#8) ═══ */
+  var seenEdits={};
+  try{ seenEdits=JSON.parse(localStorage.getItem('c44seen')||'{}'); }catch(e){ seenEdits={}; }
+  function wEditWatch(){
+    try{
+      if(!window.myOrdersQuery) return;
+      if(window.__c44EW) return; window.__c44EW=1;
+      myOrdersQuery().onSnapshot(function(snap){
+        snap.docs.forEach(function(d){
+          var o=d.data();
+          if(o.wUOtp&&o.wUOtpAt&&(Date.now()-(o.wUOtpAt||0))<60000){
+            if(!seenEdits['otp'+o.id]||seenEdits['otp'+o.id]!==o.wUOtpAt){
+              seenEdits['otp'+o.id]=o.wUOtpAt;
+              try{ localStorage.setItem('c44seen',JSON.stringify(seenEdits)); }catch(e){}
+              showToast('🔐 Partner काम बदलना चाहता है — नया OTP: '+o.wUOtp+' (left-नीचे)');
+            }
+          }
+          if(o.edited&&o.editedAt&&(!seenEdits['e'+o.id]||seenEdits['e'+o.id]!==o.editedAt)){
+            seenEdits['e'+o.id]=o.editedAt;
+            try{ localStorage.setItem('c44seen',JSON.stringify(seenEdits)); }catch(e){}
+            setTimeout(function(){ wEditPopup(o); },600);
+          }
+        });
+      },function(){});
+    }catch(e){}
+  }
+  function wEditPopup(o){
+    try{
+      var its=(o.items||[]).map(function(i){ return '• '+wEsc(i.n)+' ×'+(i.qty||1)+' <span style="color:#0d47a1;">₹'+((Number(i.p)||0)*(i.qty||1))+'</span>'; }).join('<br>');
+      var nv=Number(o.total)||0;
+      showAlert('✏️ ऑर्डर में बदलाव हुआ','<div style="text-align:left;font-size:12px;line-height:1.8;">Order <b>'+wEsc(o.id)+'</b> — Partner (visit पर) ने काम update किया:<br><br>🛠️ <b>नए items:</b><br>'+its+'<br><div style="border-top:1px dashed #ddd;margin:8px 0;"></div>💰 <b>नया Total: ₹'+(nv.toLocaleString?nv.toLocaleString('en-IN'):nv)+'</b>'+(o.editedAt?'<br><span style="font-size:10px;color:#888;">'+new Date(o.editedAt).toLocaleString('en-IN')+' • '+wEsc(o.editedBy||'Partner')+'</span>':'')+'<br><br><span style="color:#0d47a1;font-size:11px;">Bill/history में भी live update हो गया है।</span></div>');
+    }catch(e){}
+  }
+  setTimeout(wEditWatch,3000);
+
+  console.log('%c 💰🪙⭐ CUSTOMER v4.4 — WALLET + COINS + REFER + SERVICE RATING + EDIT-POPUP ✅ ','background:#0d47a1;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+
 </body>
 </html>
