@@ -971,9 +971,9 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
         </div>
 
         <div style="margin-bottom: 15px;">
-            <div style="font-size: 11px; font-weight: bold; color: #888; margin-bottom: 6px;">🌐 पूरी App की भाषा बदलें (Google Translate)</div>
-            <button type="button" onclick="swGtShow()" style="width:100%;border:1.5px dashed var(--primary);background:var(--primary-light);color:var(--primary);padding:11px;border-radius:12px;font-weight:900;font-size:12.5px;cursor:pointer;">🌐 अनुवाद करें / Translate App</button>
-            <div style="font-size:9.5px;color:#888;margin-top:5px;">Google Translate से पूरी app (A–Z) एक साथ बदलती है — कोई भी data reset नहीं होता</div>
+            <div style="font-size: 11px; font-weight: bold; color: #888; margin-bottom: 6px;">🌐Language</div>
+            <button type="button" onclick="swGtShow()" style="width:100%;border:1.5px dashed var(--primary);background:var(--primary-light);color:var(--primary);padding:11px;border-radius:12px;font-weight:900;font-size:12.5px;cursor:pointer;">🌐Language</button>
+            <div style="font-size:9.5px;color:#888;margin-top:5px;">language</div>
             <div id="swGtHost"></div>
         </div>
 
@@ -1038,9 +1038,9 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
 <div id="homePage">
     <header class="app-header">
         <div class="header-top">
-            <div class="brand-text">SEWAASTRA</div>
+            <div class="brand-text">SewaAstra</div>
             <div class="header-actions">
-                <div class="loc-badge" onclick="getLiveLocation()"><i class="fa fa-map-marker-alt"></i> <span id="locTxt">GPS लोकेट करें</span></div>
+                <div class="loc-badge" onclick="getLiveLocation()"><i class="fa fa-map-marker-alt"></i> <span id="locTxt">GPS</span></div>
                 <div id="headerProfile" onclick="toggleProfile()">
                     <img id="headerPic" class="user-pic-circle" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" />
                 </div>
@@ -1277,7 +1277,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
 <footer style="text-align: center; padding: 20px; margin-top: 50px; border-top: 1px solid var(--border-color); font-size: 13px;">
     <p>&copy; 2026 SewaAstra. All rights reserved.</p>
     <div style="margin-top: 8px; display: flex; justify-content: center; gap: 15px;">
-        <a href="privacy.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">Privacy Policy</a>
+        <a href="policy.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">Privacy Policy</a>
         <span style="color: #ccc;">|</span>
         <a href="about.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">About Us</a>
     </div>
@@ -5939,7 +5939,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
         }
         var saved='';
         if(swU||coU) saved='<br><span style="font-size:11px;color:#0d47a1;font-weight:700;">💰 Wallet/Coins से बचत: '+(swU?'SW ₹'+swU+' ':'')+(coU?('Coins ₹'+coV+' ('+coU+' coin)'):'')+'</span>';
-        showAlert('बुकिंग सफल! 🎉','आपका ऑर्डर <b>'+oid+'</b> ☁️ cloud में सेव हो गया है!'+saved+'<br>स्टेटस अपडेट यहीं मिलेंगे।'+extra+'<br><br>💡 पूरा होने पर +₹5 SW wallet में मिलेगा!');
+        showAlert('Booking Successful! 🎉','✅ <b>'+oid+'</b> !'+saved+'<br>Check history'+extra+'<br><br>💡 पूरा होने पर +₹5 SW wallet में मिलेगा!');
         try{ window.startMyOrdersListener&&startMyOrdersListener(); }catch(e){}
       }).catch(function(e){ hideLoader(); showAlert('त्रुटि','ऑर्डर सेव नहीं हो सका: '+e.message); });
     }catch(e){ showAlert('त्रुटि', e.message); }
@@ -6556,6 +6556,59 @@ body.dark-mode .v39mg span{background:#2e2e2e}
     };
   }catch(e){}
   console.log('%c 🌐🗑️ CUSTOMER v4.8 — LANG 1× + DELETE BOX ✅ ','background:#6a1b9a;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+
+
+<script>
+/* ═══════════════ CUSTOMER v4.9 — 🏙️ CITY CHANGE OPTION (Profile) ═══════════════ */
+(function(){
+  if(window.__c49) return; window.__c49=1;
+  var CITIES=['Bhopal','Indore','Gwalior','Jabalpur','Ujjain','Sagar','Dewas','Ratlam','Rewa','Satna','Guna','Hoshangabad','अन्य'];
+  function cCity(){ try{ return localStorage.getItem('sw_city')||'Bhopal'; }catch(e){ return 'Bhopal'; } }
+  function cId(m){ try{ var s=(localStorage.getItem('sw_user')||'').trim(); if(/^\d{10}$/.test(s)) return s; if(s.indexOf('@')>-1) return s; var u=firebase.auth().currentUser; if(u) return u.uid; if(s) return s; }catch(e){} return ''; }
+  window.cSetCity=function(nm){
+    try{ localStorage.setItem('sw_city',nm); }catch(e){}
+    var l=document.getElementById('c49Lbl'); if(l) l.innerHTML='🏙️ मेरा शहर (Service): <b style="color:var(--primary);">'+nm+'</b>';
+    var k=cId();
+    if(k) FS.collection('users').doc(k).set({city:nm,cityAt:Date.now()},{merge:true}).catch(function(){});
+    try{ if(window.showToast) showToast('✅ शहर बदला: '+nm); else if(window.cShowToast) cShowToast('✅ शहर बदला: '+nm); }catch(e){}
+    try{ var o=document.getElementById('c49Ov'); if(o) o.style.display='none'; }catch(e){}
+  };
+  window.cCityShow=function(){
+    var o=document.getElementById('c49Ov');
+    if(!o){ o=document.createElement('div'); o.id='c49Ov'; o.style.cssText='position:fixed;inset:0;z-index:9999996;display:none;align-items:center;justify-content:center;background:rgba(5,10,25,.55);padding:16px;'; document.body.appendChild(o); }
+    var cur=cCity();
+    o.innerHTML='<div style="max-width:430px;width:100%;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.45);">'+
+      '<div style="background:linear-gradient(135deg,#0d47a1,#1976d2);color:#fff;padding:15px 16px;display:flex;justify-content:space-between;align-items:center;"><div><b style="font-size:15px;">🏙️ अपना शहर चुनें</b><br><span style="font-size:9.5px;opacity:.92;">SewaAstra सेवा किस शहर में चाहिए</span></div><span style="font-size:22px;cursor:pointer;" onclick="c49Hide()">✕</span></div>'+
+      '<div style="padding:12px 14px;max-height:58vh;overflow-y:auto;display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">'+
+        CITIES.map(function(c){ return '<button type="button" onclick="cSetCity(\''+c+'\')" style="padding:12px 8px;border-radius:11px;border:1.5px solid '+(c===cur?'var(--primary)':'#e3ecfa')+';background:'+(c===cur?'var(--primary-light)':'#f4f8ff')+';color:#0d3b66;font-weight:800;font-size:12.5px;cursor:pointer;">'+c+(c===cur?' ✓':'')+'</button>'; }).join('')+'</div>'+
+      '<div style="padding:10px 16px 13px;font-size:9.5px;color:#888;border-top:1px dashed #ddd;text-align:center;">आपका चुना शहर आपके profile में save रहता है — नए booking पर सेवा वहीं आधारित दिखेगी।</div></div>';
+    o.style.display='flex';
+  };
+  window.c49Hide=function(){ try{ var o=document.getElementById('c49Ov'); if(o) o.style.display='none'; }catch(e){} };
+  /* Profile sheet में row डालो (GPS row के ठीक ऊपर) */
+  function row(){
+    try{
+      var gps=document.querySelector('[onclick^="getLiveLocation"]');
+      var ref=gps||document.querySelector('.setting-item-row');
+      if(!ref||document.getElementById('c49Row')) return;
+      var d=document.createElement('div');
+      d.id='c49Row';
+      d.className='setting-item-row';
+      d.style.cssText='cursor:pointer;border-color:var(--primary);background:var(--primary-light);';
+      d.setAttribute('onclick','cCityShow()');
+      d.innerHTML='<div id="c49Lbl" style="color:var(--primary);"><i class="fa fa-city"></i> 🏙️ मेरा शहर (Service): <b>'+cCity()+'</b></div> <i class="fa fa-chevron-right" style="font-size:12px;color:var(--primary);"></i>';
+      if(ref&&ref.parentNode) ref.parentNode.insertBefore(d,ref);
+      /* saved city को users doc में भी sync (login हो तो) */
+      var k=cId(); if(k){ FS.collection('users').doc(k).set({city:cCity()},{merge:true}).catch(function(){}); }
+    }catch(e){}
+  }
+  try{ row(); }catch(e){}
+  setTimeout(row,1500);
+  setTimeout(row,4500);
+  console.log('%c 🏙️ CUSTOMER v4.9 — CITY CHANGE ✅ ','background:#0d47a1;color:#fff;font-weight:bold;padding:3px;');
 })();
 
 </script>
