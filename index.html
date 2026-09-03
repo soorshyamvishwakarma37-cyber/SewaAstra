@@ -4794,34 +4794,84 @@ console.log('%c REAL AUTH MODE ✅ (Direct Login removed) ', 'background:#15a04a
 })();
 
 
-/* ═══ CUSTOMER WORK-OTP v3.8 — काम पूरा होने का OTP दिखाओ ═══ */
+/* ═════ CUSTOMER COMPLETE-OTP v3.8N — काम पूरा पर NAYA OTP + 60s LIVE COUNTDOWN ═════ */
 (function(){
-  var started=false;
-  function st(){
-    var ph=localStorage.getItem('sw_user')||'';
-    if(!ph||started) return; started=true;
-    try{
-      firebase.firestore().collection('orders').where('mobile','==',ph).onSnapshot(function(s){
-        var act=null;
-        s.docs.forEach(function(d){
-          var o=d.data();
-          if(o.wOtp&&['Accepted','On the Way','Working'].indexOf(o.status)>-1){
-            if(!act||(o.createdAt||0)>(act.createdAt||0)) act=o;
-          }
-        });
-        var el=document.getElementById('wOtpBar');
-        if(!act){ if(el) el.remove(); return; }
-        if(!el){
-          el=document.createElement('div'); el.id='wOtpBar';
-          el.style.cssText='position:fixed;bottom:150px;left:50%;transform:translateX(-50%);z-index:8000;background:linear-gradient(135deg,#1a1030,#4a2408);color:#fff;border:1.5px solid #ffd700;border-radius:30px;padding:10px 18px;font-size:11.5px;font-weight:800;box-shadow:0 10px 26px rgba(0,0,0,.45);white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;';
-          document.body.appendChild(el);
-        }
-        el.innerHTML='🔐 Work OTP: <span style="color:#ffd700;font-size:16px;letter-spacing:3px;vertical-align:middle;">'+act.wOtp+'</span> — काम पूरा होने पर partner को दें';
-      },function(){});
-    }catch(e){ started=false; }
+  if(window.__c38n) return; window.__c38n=1;
+  var watcher=null, curKey='', ovl=null, tick=null, gone=null, st=null;
+  var stEl=null;
+  if(!document.getElementById('wCmpSty')){
+    st=document.createElement('style'); st.id='wCmpSty'; st.textContent=
+      '@keyframes wcmpIn{from{transform:translate(-50%,16px);opacity:0}to{transform:translate(-50%,0);opacity:1}}'+
+      '@keyframes wcmpPu{0%{transform:scale(1)}45%{transform:scale(1.05)}100%{transform:scale(1)}}';
+    document.head.appendChild(st);
   }
-  setInterval(st,4000);
-  window.addEventListener('load',function(){ setTimeout(st,2500); });
+  function killOld(){
+    if(tick){ clearInterval(tick); tick=null; }
+    if(gone){ clearTimeout(gone); gone=null; }
+    if(ovl){ try{ ovl.remove(); }catch(e){} ovl=null; }
+  }
+  function card(code,dl){
+    killOld(); curKey='';
+    ovl=document.createElement('div'); ovl.id='wOtpBar';
+    ovl.style.cssText='position:fixed;bottom:168px;left:50%;transform:translateX(-50%);z-index:8250;width:min(94vw,430px);background:linear-gradient(135deg,#12091f,#3a2008);border:1.5px solid #ffd60a;border-radius:22px;padding:14px 16px 13px;color:#fff;box-shadow:0 18px 48px rgba(0,0,0,.6);box-sizing:border-box;text-align:center;font-family:inherit;';
+    ovl.style.animation='wcmpIn .3s ease';
+    ovl.innerHTML=
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;">'+
+        '<b style="font-size:12.5px;color:#ffe9b8;">🔐 काम पूरा — नया Completion OTP</b>'+
+        '<span id="wCmpT" style="font-size:10px;font-weight:900;color:#ffd60a;border:1px solid #ffd60a;border-radius:20px;padding:3px 9px;white-space:nowrap;flex:0 0 auto;background:rgba(255,214,10,.08);">⏳ 1:00</span></div>'+
+      '<div style="text-align:center;"><span id="wCmpN" style="font-size:36px;font-weight:900;letter-spacing:9px;color:#ffd60a;line-height:1.25;text-shadow:0 0 16px rgba(255,214,10,.4);animation:wcmpPu 1s ease infinite;">'+String(code).replace(/[^0-9]/g,'')+'</span></div>'+
+      '<div style="height:8px;border-radius:10px;background:rgba(255,255,255,.14);overflow:hidden;margin:6px 0 9px;"><div id="wCmpB" style="height:100%;width:100%;border-radius:10px;background:linear-gradient(90deg,#2bc96e,#ffd60a,#ff6b00);"></div></div>'+
+      '<div style="font-size:10px;color:#d9c9a8;font-weight:700;line-height:1.7;">यह OTP सिर्फ <b style="color:#ffd60a;">1 मिनट</b> valid है (timer गिन रहा है)। अपने काम वाले <b>partner को यह नंबर बताएँ</b> — वही इसे डालकर काम <b>"पूरा"</b> करेगा।<br>'+
+      '<span style="color:#8a94ab;font-weight:600;">⏱ समय खत्म होगा तो partner दोबारा "काम पूरा" दबाकर नया OTP लेगा।</span></div>';
+    document.body.appendChild(ovl);
+    var num=document.getElementById('wCmpN'), tt=document.getElementById('wCmpT'), bb=document.getElementById('wCmpB');
+    function paint(){
+      var r=dl-Date.now();
+      if(r<=0){
+        if(tick){ clearInterval(tick); tick=null; }
+        if(ovl&&ovl.isConnected){
+          ovl.innerHTML='<div style="font-size:12px;font-weight:900;color:#ffb74d;line-height:1.8;">⌛ यह OTP <b>expire</b> हो गया (60s पूरे)<br><span style="font-size:9.5px;color:#aaa;font-weight:600;">partner "काम पूरा" दोबारा दबाएगा तो नया OTP आएगा</span></div>';
+        }
+        curKey='exp';
+        if(!gone){ gone=setTimeout(function(){ if(ovl&&curKey==='exp'){ try{ ovl.remove(); }catch(e){} ovl=null; } gone=null; },7000); }
+        return;
+      }
+      var s=Math.ceil(r/1000), mm=Math.floor(s/60), ss=s-mm*60;
+      if(tt) tt.innerText='⏳ '+mm+':'+(ss<10?'0':'')+ss;
+      if(bb) bb.style.width=Math.max(0,(r/60000)*100)+'%';
+    }
+    paint(); tick=setInterval(paint,500);
+  }
+  function resolve(snap){
+    var cm=null, pw=null;
+    snap.docs.forEach(function(d){
+      var o=d.data();
+      var active=['Accepted','On the Way','Working'].indexOf(o.status)>-1;
+      if(o.cOtp&&o.status==='Working'){
+        var at=Number(o.cOtpAt)||0;
+        if(!cm||at>(cm.at||0)) cm={code:String(o.cOtp),at:at||Date.now(),oid:o.id||d.id};
+      } else if(active&&o.wOtp&&!o.cOtp){
+        if(!pw||(o.createdAt||0)>(pw.createdAt||0)) pw=o;
+      }
+    });
+    if(cm){
+      if(curKey!=='x'+cm.at){ curKey='x'+cm.at; card(cm.code,(cm.at||Date.now())+60000); }
+      else if(curKey==='x'+cm.at&&tick){ /* already live */ }
+      return;
+    }
+    killOld(); curKey='';
+  }
+  function boot(){
+    var ph=localStorage.getItem('sw_user')||'';
+    if(!ph){ setTimeout(boot,1500); return; }
+    if(watcher) return;
+    try{
+      watcher=firebase.firestore().collection('orders').where('mobile','==',ph).onSnapshot(resolve,function(){ setTimeout(boot,3000); watcher=null; });
+    }catch(e){ setTimeout(boot,2000); }
+  }
+  setTimeout(boot,900);
+  window.addEventListener('load',function(){ setTimeout(boot,1800); });
+  console.log('%c 🔐 CUSTOMER v3.8N — COMPLETE OTP + 60s COUNTDOWN ✅ ','background:#8a5a00;color:#fff;font-weight:bold;padding:3px;');
 })();
 </script>
 
