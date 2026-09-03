@@ -4501,5 +4501,360 @@ window.addEventListener('load', function(){
 console.log('%c SewaAstra v3.3 📍 live area | auto PIN | extra address ', 'background:#0d6efd;color:#fff;font-weight:bold;padding:4px;');
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a34e147898982062',t:'MTc4ODM2ODUyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>
+/* v3.4 — customer ONLINE presence (partner app ko dikhta hai) */
+function proHeartbeat(on){
+  try{
+    var id = (localStorage.getItem('sw_user')||'').trim();
+    if(!id || localStorage.getItem('sw_logged')!=='true') return;
+    FS.collection('users').doc(id).set({lastSeen: Date.now(), online: on!==false}, {merge:true}).catch(function(){});
+  }catch(e){}
+}
+window.addEventListener('load', function(){ setTimeout(function(){ proHeartbeat(true); }, 3000); });
+setInterval(function(){ if(document.visibilityState==='visible') proHeartbeat(true); }, 45000);
+document.addEventListener('visibilitychange', function(){ proHeartbeat(document.visibilityState==='visible'); });
+window.addEventListener('pagehide', function(){ proHeartbeat(false); });
+</script>
+<script>
+/* ═══════════ CUSTOMER LOGIN FIX v3.5 ═══════════ */
+function proAuthErr(e){
+  var c = (e && e.code) || '';
+  var host = location.hostname || '(file)';
+  var M = {
+    'auth/unauthorized-domain': '🌐 यह domain Firebase में allowed नहीं!<br><br>Console → Authentication → Settings → <b>Authorized domains</b> में add करें:<br><b>' + host + '</b>',
+    'auth/billing-not-enabled': '💳 Phone OTP के लिए Blaze plan चाहिए।<br><br>✅ <b>FREE तरीका:</b> Console → Authentication → Phone → <b>"Phone numbers for testing"</b> में नंबर + fixed OTP डालें — बिना SMS login!',
+    'auth/invalid-app-credential': '🤖 reCAPTCHA fail — page reload करें, domain authorized check करें।',
+    'auth/captcha-check-failed': '🤖 reCAPTCHA verify नहीं हुआ — domain authorize करके reload करें।',
+    'auth/too-many-requests': '⏳ बहुत कोशिशें — थोड़ी देर बाद try करें।',
+    'auth/operation-not-allowed': '⚙️ Console में यह provider (Phone/Google) enable नहीं है।',
+    'auth/operation-not-supported-in-this-environment': '🌐 यह browser/preview login support नहीं करता — https hosting पर खोलें।',
+    'auth/network-request-failed': '📶 Internet problem।'
+  };
+  return (M[c] || proEsc(e.message || String(e))) + '<br><small>(code: ' + c + ')</small>';
+}
+
+/* GOOGLE: popup block → redirect fallback */
+function proGoogleDone(user){
+  localStorage.setItem('sw_logged', 'true');
+  var identifier = user.email || user.phoneNumber || 'Google User';
+  localStorage.setItem('sw_user', identifier);
+  checkAdminAccess(user.email || '');
+  if (user.photoURL){
+    localStorage.setItem('sw_user_photo', user.photoURL);
+    document.getElementById('headerPic').src = user.photoURL;
+    document.getElementById('sheetPic').src = user.photoURL;
+  }
+  document.getElementById('authOverlay').style.display = 'none';
+  document.getElementById('googlePhonePromptOverlay').style.display = 'flex';
+  checkAndShowInstallModalAfterLogin();
+  showToast('Google से लॉगिन सफल! अब मोबाइल नंबर दर्ज करें।');
+}
+window.loginWithGoogle = function(){
+  showLoader('Google से लॉगिन हो रहा है...');
+  var prov = new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(prov).then(function(r){
+    hideLoader(); proGoogleDone(r.user);
+  }).catch(function(e){
+    hideLoader();
+    var c = e.code || '';
+    if (['auth/popup-blocked','auth/cancelled-popup-request','auth/operation-not-supported-in-this-environment','auth/web-storage-unsupported'].indexOf(c) > -1){
+      showToast('Popup block — redirect से login हो रहा है...');
+      firebase.auth().signInWithRedirect(prov).catch(function(e2){ showAlert('लॉगिन त्रुटि', proAuthErr(e2)); });
+    } else showAlert('लॉगिन त्रुटि', proAuthErr(e));
+  });
+};
+firebase.auth().getRedirectResult().then(function(r){
+  if (r && r.user) proGoogleDone(r.user);
+}).catch(function(e){ if (e.code) showAlert('लॉगिन त्रुटि', proAuthErr(e)); });
+
+/* PHONE OTP: robust + friendly errors */
+window.sendRealPhoneOTP = function(){
+  var phoneInput = document.getElementById('userPhone').value.trim();
+  if (phoneInput.length !== 10) return showAlert('अमान्य नंबर', 'कृपया सही 10-अंकों का मोबाइल नंबर दर्ज करें');
+  if (!window.recaptchaVerifier){
+    try{ window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { size:'invisible' }); }
+    catch(e){ return showAlert('reCAPTCHA त्रुटि', proAuthErr(e)); }
+  }
+  showLoader('OTP भेजा जा रहा है...');
+  firebase.auth().signInWithPhoneNumber('+91' + phoneInput, window.recaptchaVerifier)
+    .then(function(confirmationResult){
+      hideLoader();
+      windowConfirmationResult = confirmationResult;
+      localStorage.setItem('sw_user', phoneInput);
+      document.getElementById('profilePhoneDisplay').innerText = '+91 ' + phoneInput;
+      document.getElementById('phoneAuthSection').style.display = 'none';
+      document.getElementById('otpAuthSection').style.display = 'block';
+      showToast('मोबाइल पर असली OTP भेज दिया गया है! 📩');
+    }).catch(function(e){
+      hideLoader();
+      try{ window.recaptchaVerifier.clear(); window.recaptchaVerifier = null; }catch(x){}
+      showAlert('SMS OTP त्रुटि', proAuthErr(e));
+    });
+};
+
+if (location.protocol === 'file:'){
+  setTimeout(function(){
+    showAlert('⚠️ File से खोला गया है', 'Login (OTP/Google) के लिए app को <b>hosting</b> पर खोलें:<br>• Firebase Hosting (free, सबसे सही)<br>• या localhost server<br><br>file:// पर Firebase login काम नहीं करता।');
+  }, 2500);
+}
+console.log('%c CUSTOMER LOGIN FIX v3.5 ✅ ', 'background:#e53935;color:#fff;font-weight:bold;');
+</script>
+
+<script>
+/* v3.6 removed — REAL login only (OTP / Google). सब data Firebase realtime से। */
+console.log('%c REAL AUTH MODE ✅ (Direct Login removed) ', 'background:#15a04a;color:#fff;font-weight:bold;');
+
+/* ═══ CUSTOMER COMPLAINT v3.7 — 🆘 शिकायत button ═══ */
+(function(){
+  function mk(){
+    if(document.getElementById('cmpBtn')) return;
+    var b=document.createElement('div'); b.id='cmpBtn'; b.title='शिकायत करें';
+    b.style.cssText='position:fixed;left:14px;bottom:92px;z-index:8000;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#e53935,#ff7043);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 8px 20px rgba(229,57,53,.45);cursor:pointer;';
+    b.innerHTML='🆘';
+    b.onclick=function(){
+      var ph=localStorage.getItem('sw_user')||'';
+      if(!ph) return alert('पहले login करें');
+      var m=prompt('अपनी शिकायत लिखें (Order ID भी लिखें तो जल्दी resolve होगी):');
+      if(!m||m.trim().length<10) return alert('कृपया थोड़ा detail में लिखें');
+      firebase.firestore().collection('tickets').add({
+        from:'customer', phone:ph, name:'', cat:'🛒 Customer शिकायत',
+        msg:m.trim(), status:'Open', ts:Date.now(), at:new Date().toLocaleString('en-IN')
+      }).then(function(){ alert('✅ शिकायत दर्ज हो गई!\nAdmin जल्द resolve करेंगे।'); })
+      .catch(function(e){ alert('❌ '+e.message); });
+    };
+    document.body.appendChild(b);
+  }
+  window.addEventListener('load',function(){ setTimeout(mk,1500); });
+})();
+
+/* ═══ CUSTOMER WORK-OTP v3.8 — काम पूरा होने का OTP दिखाओ ═══ */
+(function(){
+  var started=false;
+  function st(){
+    var ph=localStorage.getItem('sw_user')||'';
+    if(!ph||started) return; started=true;
+    try{
+      firebase.firestore().collection('orders').where('mobile','==',ph).onSnapshot(function(s){
+        var act=null;
+        s.docs.forEach(function(d){
+          var o=d.data();
+          if(o.wOtp&&['Accepted','On the Way','Working'].indexOf(o.status)>-1){
+            if(!act||(o.createdAt||0)>(act.createdAt||0)) act=o;
+          }
+        });
+        var el=document.getElementById('wOtpBar');
+        if(!act){ if(el) el.remove(); return; }
+        if(!el){
+          el=document.createElement('div'); el.id='wOtpBar';
+          el.style.cssText='position:fixed;bottom:150px;left:50%;transform:translateX(-50%);z-index:8000;background:linear-gradient(135deg,#1a1030,#4a2408);color:#fff;border:1.5px solid #ffd700;border-radius:30px;padding:10px 18px;font-size:11.5px;font-weight:800;box-shadow:0 10px 26px rgba(0,0,0,.45);white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;';
+          document.body.appendChild(el);
+        }
+        el.innerHTML='🔐 Work OTP: <span style="color:#ffd700;font-size:16px;letter-spacing:3px;vertical-align:middle;">'+act.wOtp+'</span> — काम पूरा होने पर partner को दें';
+      },function(){});
+    }catch(e){ started=false; }
+  }
+  setInterval(st,4000);
+  window.addEventListener('load',function(){ setTimeout(st,2500); });
+})();
+</script>
+
+<style>
+#v39Bell{position:relative;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;cursor:pointer;backdrop-filter:blur(6px);flex:0 0 36px}
+#v39Bell:active{transform:scale(.9)}
+#v39Bd{position:absolute;top:-5px;right:-6px;min-width:17px;height:17px;border-radius:20px;background:#ffd60a;color:#241a00;font-size:9.5px;font-weight:900;display:none;align-items:center;justify-content:center;padding:0 4px;z-index:9;animation:v39p 1.3s infinite;box-shadow:0 0 0 2px rgba(13,18,32,.5)}
+@keyframes v39p{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+.v39r{display:flex;gap:11px;overflow-x:auto;padding:13px 14px 4px;scrollbar-width:none}
+.v39r::-webkit-scrollbar{display:none}
+.v39c{flex:0 0 220px;border-radius:20px;padding:16px 14px;color:#fff;position:relative;overflow:hidden;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.14);min-height:96px;display:flex;flex-direction:column;justify-content:flex-end}
+.v39c::after{content:"";position:absolute;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.15);top:-52px;right:-44px}
+.v39c .e{font-size:26px;margin-bottom:5px;line-height:1}
+.v39c .t{font-size:14px;font-weight:900;line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.35);position:relative}
+.v39c .s{font-size:10.5px;opacity:.94;margin-top:3px;font-weight:700;position:relative;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.v39c .k{font-size:8px;font-weight:900;letter-spacing:1px;opacity:.95;margin-top:7px;text-transform:uppercase;position:relative}
+#v39Ov{position:fixed;inset:0;z-index:290000;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+#v39Ov.open{display:flex}
+.v39sh{width:100%;max-width:560px;max-height:82vh;background:#fff;color:#222;border-radius:24px 24px 0 0;display:flex;flex-direction:column;overflow:hidden;animation:v39up .28s cubic-bezier(.2,.9,.3,1)}
+body.dark-mode .v39sh{background:#1f1f1f;color:#eee}
+@keyframes v39up{from{transform:translateY(60%)}to{transform:none}}
+.v39hh{display:flex;align-items:center;gap:10px;padding:15px 16px;border-bottom:1px solid #eee;font-weight:900;font-size:15px}
+body.dark-mode .v39hh{border-color:#333}
+.v39list{padding:8px 14px 24px;overflow-y:auto}
+.v39it{display:flex;gap:11px;align-items:center;padding:11px 4px;border-bottom:1px dashed #eee;cursor:pointer}
+body.dark-mode .v39it{border-color:#2e2e2e}
+.v39it:last-child{border-bottom:none}
+.v39ic{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:19px;color:#fff;flex:0 0 42px}
+.v39it b{font-size:13px;display:block}
+.v39it span{font-size:10.5px;color:#888;font-weight:600;display:block;margin-top:2px}
+body.dark-mode .v39it span{color:#aaa}
+#v39Bx{position:fixed;inset:0;z-index:295000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.6);backdrop-filter:blur(5px)}
+#v39Bx.open{display:flex}
+.v39bx{width:100%;max-width:430px;border-radius:26px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5);animation:v39p2 .3s cubic-bezier(.2,.9,.3,1);background:#fff}
+body.dark-mode .v39bx{background:#1f1f1f}
+@keyframes v39p2{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}
+.v39bh{padding:26px 18px 20px;text-align:center;color:#fff;position:relative}
+.v39bh .big{font-size:52px;line-height:1}
+.v39bh button{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.25);border:none;color:#fff;font-size:15px;cursor:pointer;font-weight:900}
+.v39bb{padding:18px 20px 22px}
+.v39bb h3{margin:0 0 8px;font-size:19px}
+.v39bb p{font-size:13px;line-height:1.75;color:#666;font-weight:600;white-space:pre-wrap;margin:0}
+body.dark-mode .v39bb p{color:#bbb}
+.v39mg{font-size:10px;color:#999;font-weight:800;margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.v39mg span{background:#f2f2f2;border-radius:20px;padding:3px 9px}
+body.dark-mode .v39mg span{background:#2e2e2e}
+.v39go{width:100%;border:none;border-radius:13px;padding:12px;font-weight:900;font-size:13px;color:#fff;cursor:pointer;margin-top:14px}
+#v39Pill{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:280000;display:none;align-items:center;gap:9px;background:linear-gradient(120deg,#0d2a52,#0b1220);border:1.5px solid #1976d2;color:#fff;border-radius:40px;padding:9px 16px;font-size:12px;font-weight:900;cursor:pointer;box-shadow:0 12px 34px rgba(0,0,0,.5);white-space:nowrap;max-width:94vw;animation:v39pup .3s;overflow:hidden}
+#v39Pill.open{display:flex}
+@keyframes v39pup{from{transform:translate(-50%,16px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+#v39Pill .dot{width:10px;height:10px;border-radius:50%;background:#ff3b3b;flex:0 0 10px;animation:v39p 1.2s infinite;box-shadow:0 0 0 3px rgba(255,59,59,.25)}
+
+</style>
+<script>
+/* ═══════════════ CUSTOMER v3.9 — ADMIN BANNERS/NOTICE + BELL + CHAT ALERT DOT ═══════════════ */
+(function(){
+  if(window.__v39C) return; window.__v39C=1;
+  var VG=['linear-gradient(135deg,#ff6b00,#ffa53d)','linear-gradient(135deg,#7b1fa2,#e91e63)','linear-gradient(135deg,#0d47a1,#00bcd4)','linear-gradient(135deg,#0f9d45,#2bc96e)','linear-gradient(135deg,#1a1030,#4a2408)','linear-gradient(135deg,#e53935,#ff9800)'];
+  var VEM={'banner':'📢','offer':'🏷️','incentive':'🎁','notice':'📣','update':'🆕'};
+  var VTX={'banner':'🪧 Banner','offer':'🛍️ Offer','incentive':'💰 Incentive','notice':'📣 Notice','update':'🆕 Update'};
+  var v39B=[], v39Prev={}, v39Seen={}, v39U={}, v39Fs={};
+  function es(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function ldS(){ try{ v39Seen=JSON.parse(localStorage.getItem('swc_bseen')||'{}'); }catch(e){ v39Seen={}; } }
+  function svS(){ try{ localStorage.setItem('swc_bseen',JSON.stringify(v39Seen)); }catch(e){} }
+  function gd(b){ var i=(b&&b.grad!=null)?Number(b.grad):0; return VG[i%VG.length]; }
+  function em(b){ return (b&&b.emoji)?b.emoji:(VEM[b.type]||'📢'); }
+  function rd(){ var d=document.getElementById('v39Bd'); if(!d) return;
+    var n=0; v39B.forEach(function(b){ if(!v39Seen[b._id]) n++; });
+    if(n>0){ d.style.display='flex'; d.innerText=n>9?'9+':n; } else d.style.display='none';
+  }
+  /* ─── DOM: bell + rail + sheets ─── */
+  function mk(){
+    if(document.getElementById('v39Bell')) return;
+    var hp=document.getElementById('headerProfile');
+    if(hp){ var bl=document.createElement('div'); bl.id='v39Bell'; bl.innerHTML='<i class="fa fa-bell"></i><span id="v39Bd"></span>'; bl.addEventListener('click',function(){ v39Open(); }); hp.parentNode.insertBefore(bl,hp); }
+    var bc=document.getElementById('bannerCarouselArea');
+    if(bc&&!document.getElementById('v39Rail')) bc.insertAdjacentHTML('beforebegin','<div id="v39Rail" class="v39r"></div>');
+    if(!document.getElementById('v39Ov')){
+      var ov=document.createElement('div'); ov.id='v39Ov';
+      ov.innerHTML='<div class="v39sh"><div class="v39hh" style="justify-content:space-between;"><span>🔔 सूचनाएँ <span style="font-size:10px;color:#999;">(Admin से)</span></span><div><button onclick="v39AllRead()" style="border:1px solid #ddd;background:#f5f5f5;color:#333;border-radius:20px;padding:6px 13px;font-size:10.5px;font-weight:800;cursor:pointer;margin-right:6px;">सब पढ़ लिया</button><button onclick="v39CloseOv()" style="border:none;background:none;font-size:20px;cursor:pointer;color:#999;">✕</button></div></div><div class="v39list" id="v39List"></div></div>';
+      document.body.appendChild(ov);
+    }
+    if(!document.getElementById('v39Bx')){
+      var bx=document.createElement('div'); bx.id='v39Bx';
+      bx.innerHTML='<div class="v39bx"><div class="v39bh" id="v39BxH" style="background:linear-gradient(135deg,#ff6b00,#ffa53d);"><button onclick="v39BxClose()">✕</button><div class="big" id="v39BxE">📢</div></div><div class="v39bb"><h3 id="v39BxT"></h3><p id="v39BxM"></p><div class="v39mg" id="v39BxMeta"></div><button class="v39go" style="background:linear-gradient(135deg,#ff6b00,#ffa53d);" onclick="v39BxClose()">ठीक है 👍</button></div></div>';
+      document.body.appendChild(bx);
+    }
+    if(!document.getElementById('v39Pill')){
+      var pl=document.createElement('div'); pl.id='v39Pill';
+      pl.innerHTML='<span class="dot"></span><span id="v39PillT">💬 नया मैसेज — खोलें</span>';
+      document.body.appendChild(pl);
+    }
+  }
+  mk();
+  function rail(){
+    var r=document.getElementById('v39Rail'); if(!r) return;
+    if(!v39B.length){ r.style.display='none'; return; }
+    r.style.display='flex';
+    r.innerHTML=v39B.slice(0,12).map(function(b){
+      return '<div class="v39c" style="background:'+gd(b)+';" onclick="v39View(\''+b._id+'\')"><div class="e">'+em(b)+'</div><div class="t">'+es(b.title||'')+'</div><div class="s">'+es(String(b.msg||'').slice(0,100))+'</div><div class="k">'+es(VTX[b.type]||'Notice')+'</div></div>';
+    }).join('');
+  }
+  /* ─── Listener ─── */
+  var v39L=false;
+  function listen(){
+    if(v39L) return; v39L=true;
+    try{
+      firebase.firestore().collection('broadcasts').where('active','==',true).onSnapshot(function(s){
+        v39B=s.docs.map(function(d){ var b=d.data(); b._id=d.id; return b; }).filter(function(b){ var t=b.to||'all'; return t==='all'||t==='customer'; }).sort(function(a,b2){ return (b2.ts||0)-(a.ts||0); });
+        v39B.forEach(function(b){
+          if(!v39Prev[b._id]&&!v39Seen[b._id]){ try{ var t=document.getElementById('welcomeToast'); if(t){ t.innerText='📢 '+em(b)+' '+(b.title||'नया update!'); t.style.display='block'; setTimeout(function(){ t.style.display='none'; },3200); } }catch(e){} }
+          v39Prev[b._id]=1;
+        });
+        rail(); rd(); v39List();
+      },function(){});
+    }catch(e){}
+  }
+  /* ─── Bell sheet ─── */
+  function openList(){ v39List(); var ov=document.getElementById('v39Ov'); if(ov) ov.classList.add('open'); }
+  function v39List(){
+    var l=document.getElementById('v39List'); if(!l) return;
+    if(!v39B.length){ l.innerHTML='<div style="text-align:center;color:#999;padding:40px 10px;font-weight:700;">अभी कोई सूचना नहीं 📭<br><span style="font-size:11px;">Admin जब भेजेंगे यहाँ दिखेगी</span></div>'; return; }
+    l.innerHTML=v39B.map(function(b){
+      return '<div class="v39it" onclick="v39View(\''+b._id+'\')"><div class="v39ic" style="background:'+gd(b)+';">'+em(b)+'</div><div style="flex:1;min-width:0;"><b>'+es(b.title||'')+'</b><span>'+es(String(b.msg||'').slice(0,64))+'</span></div>'+(v39Seen[b._id]?'<span style="color:#bbb;font-size:9px;">पढ़ा</span>':'<span style="width:8px;height:8px;border-radius:50%;background:#ff3b3b;flex:0 0 8px;"></span>')+'</div>';
+    }).join('');
+  }
+  function open(){ v39Open(); }
+  function markAll(){ v39B.forEach(function(b){ v39Seen[b._id]=1; }); svS(); rd(); v39List(); }
+  function closeOv(){ var ov=document.getElementById('v39Ov'); if(ov) ov.classList.remove('open'); }
+  function view(id){
+    var b=null; v39B.forEach(function(x){ if(x._id===id) b=x; });
+    if(!b) return;
+    document.getElementById('v39BxH').style.background=gd(b);
+    document.getElementById('v39BxE').innerText=em(b);
+    document.getElementById('v39BxT').innerText=b.title||'SewaAstra Update';
+    document.getElementById('v39BxM').innerText=b.msg||'';
+    document.getElementById('v39BxMeta').innerHTML='<span>'+es(VTX[b.type]||'Notice')+'</span><span>🕐 '+es(b.at||'')+'</span>';
+    document.getElementById('v39Bx').classList.add('open');
+    if(!v39Seen[id]){ v39Seen[id]=1; svS(); rd(); }
+  }
+  function bxClose(){ document.getElementById('v39Bx').classList.remove('open'); }
+  window.v39View=view; window.v39Open=openList; window.v39CloseOv=closeOv; window.v39BxClose=bxClose; window.v39AllRead=markAll;
+  /* ─── Chat unread dot (pill) ─── */
+  function myUid(){ try{ return firebase.auth().currentUser? firebase.auth().currentUser.uid:''; }catch(e){ return ''; } }
+  function myPh(){ try{ return localStorage.getItem('sw_user')||''; }catch(e){ return ''; } }
+  function chatOpenNow(){ try{ var m=document.getElementById('chatCallModal'); return m&&m.style.display==='flex'; }catch(e){ return false; } }
+  function scan(){
+    if(chatOpenNow()){ hidePill(); }
+    var uid=myUid(), ph=myPh();
+    if(!uid&&!ph) return;
+    try{
+      var q=uid? FS.collection('orders').where('uid','==',uid) : FS.collection('orders').where('mobile','==',ph);
+      q.get().then(function(s){
+        s.docs.forEach(function(d){
+          var o=d.data(); var oid=o.id||d.id;
+          if(['Accepted','On the Way','Working'].indexOf(o.status)<0) return;
+          var key='swc_rd_'+oid, lr=0;
+          try{ lr=parseInt(localStorage.getItem(key)||'0',10); }catch(e){}
+          if(!lr){ try{ localStorage.setItem(key,String(Date.now())); }catch(e){} return; }
+          FS.collection('orders').doc(oid).collection('chats').where('sender','in',['partner','admin']).where('ts','>',lr).get().then(function(cn){
+            var n=cn.size||0;
+            if(v39U[oid]!==n){ v39U[oid]=n; pill(); }
+          }).catch(function(){});
+        });
+      }).catch(function(){});
+    }catch(e){}
+  }
+  function pill(){
+    if(chatOpenNow()){ hidePill(); return; }
+    var el=document.getElementById('v39Pill'); if(!el) return;
+    var ids=Object.keys(v39U).filter(function(k){ return v39U[k]>0; });
+    if(!ids.length){ hidePill(); return; }
+    ids.sort(function(a,b2){ return (v39U[b2]||0)-(v39U[a]||0); });
+    var n=0; ids.forEach(function(k){ n+=v39U[k]||0; });
+    el._oid=ids[0];
+    document.getElementById('v39PillT').innerText='💬 '+n+' नया मैसेज — खोलें';
+    el.classList.add('open');
+  }
+  function hidePill(){ var el=document.getElementById('v39Pill'); if(el){ el.classList.remove('open'); } }
+  document.addEventListener('click',function(e){ if(e.target&&e.target.closest&&e.target.closest('#v39Pill')){ try{ var oid=document.getElementById('v39Pill')._oid; if(oid&&window.openOrderChat) window.openOrderChat(oid); }catch(x){} } });
+  /* mark read on open */
+  var _oc39=window.openOrderChat||function(){};
+  window.openOrderChat=function(oid){
+    try{ if(typeof _oc39==='function') _oc39(oid); }catch(e){}
+    try{ localStorage.setItem('swc_rd_'+oid,String(Date.now())); v39U[oid]=0; hidePill(); }catch(e){}
+  };
+  var _ioc39=window.openInAppChat||function(){};
+  window.openInAppChat=function(){
+    try{ if(typeof _ioc39==='function') _ioc39(); }catch(e){}
+    try{ var a=window.activeChatOrderId; if(a){ localStorage.setItem('swc_rd_'+a,String(Date.now())); v39U[a]=0; hidePill(); } }catch(e){}
+  };
+  /* ─── START ─── */
+  ldS();
+  listen();
+  setInterval(function(){ try{ scan(); }catch(e){} },8000);
+  setTimeout(function(){ try{ scan(); rail(); rd(); }catch(e){} },2500);
+  window.addEventListener('load',function(){ setTimeout(function(){ try{ mk(); rail(); }catch(e){} },400); });
+  console.log('%c 📢🔔💬 CUSTOMER v3.9 — ADMIN BROADCAST + CHAT DOT ✅ ','background:#15a04a;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3509939af6048e9',t:'MTc4ODM5NDkzMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
