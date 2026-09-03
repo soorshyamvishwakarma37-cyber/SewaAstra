@@ -2378,11 +2378,25 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
       }
 
       let finalPrice = basePrice + extra;
+      /* 🏷️ CATEGORY attach — jis category ka card, cart item me wahi category */
+      let cat='', catName='';
+      try{
+        var ui=String(uniqueId||''), pos=ui.lastIndexOf('_'), ck=pos>0?ui.slice(0,pos):'';
+        var co=categoriesData.find(function(c){ return c.key===ck; });
+        if(co){ cat=co.key; catName=co.name; }
+        else{
+          var fk='';
+          for(var k in mainData){ if(mainData[k] && mainData[k].some(function(s){ return s && s.n===name; })){ fk=k; break; } }
+          if(fk){ var co2=categoriesData.find(function(c){ return c.key===fk; }); cat=fk; catName=co2?co2.name:fk; }
+        }
+        if(!cat){ cat='general'; catName='General'; }
+      }catch(e){ cat='general'; catName='General'; }
       let existing = cart.find(i => i.n === name && i.selectedSub === selectedSub);
       if (existing) {
           existing.qty = (existing.qty || 1) + 1;
+          if(!existing.cat){ existing.cat=cat; existing.catName=catName; }
       } else {
-          cart.push({ n: name, p: finalPrice, selectedSub: selectedSub, qty: 1 });
+          cart.push({ n: name, p: finalPrice, selectedSub: selectedSub, qty: 1, cat: cat, catName: catName });
       }
 
       let btn = document.getElementById(`btn_${uniqueId}`);
@@ -2536,9 +2550,10 @@ window.handleFinalOrder = function () {
     id: oid,
     uid: getUID(),
     mobile: userMobile,
-    items: cart.map(i => ({ n: i.n, p: i.p, qty: i.qty || 1 })),
+    items: cart.map(i => ({ n: i.n, p: i.p, qty: i.qty || 1, cat: i.cat || '', catName: i.catName || '' })),
     subtotal, discount: appliedDiscount, total: finalAmt,
     address, date, time, remark, mode: selectedMode, maps: mapsLink || '',
+      cats: (function(){ var s={},out=[]; (cart||[]).forEach(function(i){ var k=i.cat||'general', nn=i.catName||'General'; if(!s[k]){s[k]=1; out.push({key:k,name:nn});} }); return out; })(),
     status: 'Order Placed', rated: false,
     loc: (typeof userCoords !== 'undefined' ? {lat: userCoords.lat, lon: userCoords.lon} : null),
     createdAt: Date.now(),
@@ -3930,41 +3945,61 @@ window.proShowBill = function(oid, thenRate){
     document.body.insertAdjacentHTML('beforeend', '<div id="proBillModal" onclick="if(event.target===this)proCloseBill()"><div class="pro-bill" id="proBillInner"></div></div>');
     m = document.getElementById('proBillModal');
   }
-  FS.collection('orders').doc(oid).get().then(function(d){
+  var pO = FS.collection('orders').doc(oid).get();
+  var pC = FS.collection('config').doc('global').get().catch(function(){ return null; });
+  Promise.all([pO, pC]).then(function(r){
+    var d = r[0];
     if (!d.exists) return showAlert('त्रुटि', 'ऑर्डर नहीं मिला');
     var o = d.data();
+    var cfg = (r[1] && r[1].exists) ? r[1].data() : {};
+    var gstPct = Math.max(0, Number(cfg.gstPct) || 0);
     var paid = !!(o.payment && (o.payment.verified || /^paid/i.test(o.payment.status || '')));
     var verifying = !!(o.payment && !paid && /verifying/i.test(o.payment.status || ''));
+    var isCash = /cash|cod|नकद/i.test(o.mode || '');
+    var cashCol = !!(o.payment && o.payment.cash);
+    var sub = Number(o.subtotal) || (o.items || []).reduce(function(s, it){ return s + (Number(it.p)||0) * (it.qty||1); }, 0);
+    var disc = Number(o.discount) || 0;
+    var base = Math.max(0, sub - disc);
+    var gstAmt = Math.round(base * gstPct / 100);
     var rows = (o.items || []).map(function(it){
-      return '<tr><td>' + proEsc(it.n) + ' × ' + (it.qty||1) + '</td><td class="tr">₹' + (it.p*(it.qty||1)) + '</td></tr>';
+      return '<tr><td>' + proEsc(it.n) + ' × ' + (it.qty||1) + '</td><td class="tr">₹' + ((Number(it.p)||0)*(it.qty||1)) + '</td></tr>';
     }).join('');
-    window.__proBillTxt = '🧾 *SewaAstra Bill*%0A🆔 ' + oid + '%0A' + (o.items||[]).map(function(i){ return '• ' + i.n + ' x' + (i.qty||1) + ' = ₹' + (i.p*(i.qty||1)); }).join('%0A') + '%0A💰 Total: ₹' + o.total + '%0A' + (paid ? '✅ PAID' : '⏳ Payment Due — UPI: ' + proUpiId());
+    window.__proBillTxt = '🧾 *SewaAstra Bill*%0A🆔 ' + oid + '%0A' + (o.items||[]).map(function(i){ return '• ' + i.n + ' x' + (i.qty||1) + ' = ₹' + ((Number(i.p)||0)*(i.qty||1)); }).join('%0A') + (gstPct>0 ? ('%0AGST (' + gstPct + '%): ₹' + gstAmt) : '') + '%0A💰 Total: ₹' + o.total + '%0A' + (paid ? '✅ PAID' : '⏳ Payment Due');
+    /* payment status block */
+    var payBlock = '';
+    if (paid){
+      if (isCash && cashCol) payBlock = '<div style="text-align:center;background:#e6f7ed;border:1px solid #a8e6c2;border-radius:12px;padding:11px;margin-top:10px;font-weight:900;color:#0f7a37;font-size:13px;">💵 Cash ले लिया गया — धन्यवाद!</div>';
+      else payBlock = '<div style="text-align:center;background:#e6f7ed;border:1px solid #a8e6c2;border-radius:12px;padding:11px;margin-top:10px;font-weight:900;color:#0f7a37;font-size:13px;">✅ भुगतान हो चुका है' + (o.payment && o.payment.ref ? '<br><span style="font-size:10px;font-weight:700;">Ref: ' + proEsc(o.payment.ref) + '</span>' : '') + '</div>';
+    } else if (verifying){
+      payBlock = '<div style="text-align:center;background:#fff8e6;border:1px solid #ffe1a0;border-radius:12px;padding:13px;margin-top:10px;font-weight:900;color:#b07800;font-size:12.5px;">⏳ Payment Verification में है' + (o.payment && o.payment.ref ? '<br><span style="font-size:10px;font-weight:700;">UTR: ' + proEsc(o.payment.ref) + '</span>' : '') + '<br><span style="font-size:10px;font-weight:700;">Admin जल्द confirm करेंगे ✅</span></div>';
+    } else if (isCash){
+      payBlock = '<div style="text-align:center;background:#fff8e6;border:1.5px solid #ffd970;border-radius:12px;padding:12px;margin-top:10px;font-weight:900;color:#8a6100;font-size:12.5px;">💵 Cash (COD) — भुगतान partner को service के बाद दें<br><span style="font-size:10px;font-weight:700;">यह ऑर्डर cash का है — QR/UPI ज़रूरी नहीं</span></div>';
+    } else {
+      payBlock = '<div style="text-align:center;margin-top:8px;">' +
+        '<div style="font-size:12px;font-weight:900;color:#ff6b00;">📲 UPI से भुगतान करें — Scan QR</div>' +
+        '<div id="proQrBox"></div>' +
+        '<div style="font-size:11px;color:#888;">UPI ID: <b>' + proEsc(proUpiId()) + '</b></div>' +
+        '<a href="' + proUpiLink(o.total, oid, 'phonepe') + '" style="display:inline-block;margin:8px 3px 0;background:linear-gradient(90deg,#5f259f,#7b3fc4);color:#fff;padding:11px 18px;border-radius:12px;text-decoration:none;font-weight:900;font-size:12.5px;">💜 PhonePe ₹' + o.total + '</a>' +
+        '<a href="' + proUpiLink(o.total, oid) + '" style="display:inline-block;margin:8px 3px 0;background:linear-gradient(90deg,#15a04a,#1fc25e);color:#fff;padding:11px 18px;border-radius:12px;text-decoration:none;font-weight:900;font-size:12.5px;">💳 अन्य UPI</a>' +
+      '</div>';
+    }
     document.getElementById('proBillInner').innerHTML =
       '<div class="pro-bill-head">' +
-        '<span class="st" style="background:' + (paid?'#1fc25e':(verifying?'#b07800':'#f5a623')) + ';color:#fff;">' + (paid?'✅ PAID':(verifying?'⏳ VERIFYING':'⏳ DUE')) + '</span>' +
+        '<span class="st" style="background:' + (paid?'#1fc25e':(verifying?'#b07800':(isCash?'#e58600':'#f5a623'))) + ';color:#fff;">' + (paid?'✅ PAID':(verifying?'⏳ VERIFYING':(isCash?'💵 CASH':'⏳ DUE'))) + '</span>' +
         '<div style="font-size:19px;font-weight:900;">🛠️ SewaAstra</div>' +
         '<div style="font-size:11px;opacity:.85;">TAX INVOICE / BILL</div>' +
-        '<div style="font-size:11px;margin-top:6px;">🆔 <b>' + proEsc(oid) + '</b> &nbsp;•&nbsp; 📅 ' + proEsc(o.timestamp||'') + '</div>' +
+        '<div style="font-size:11px;margin-top:6px;">🆔 <b>' + proEsc(oid) + '</b> &nbsp;•&nbsp; 📅 ' + proEsc(o.timestamp || (o.date + ' ' + (o.time||''))) + '</div>' +
         '<div style="font-size:11px;">👤 ' + proEsc(o.mobile||'') + '</div>' +
       '</div>' +
       '<div style="padding:14px 16px;">' +
         '<table>' + rows +
-          '<tr><td>Subtotal</td><td class="tr">₹' + (o.subtotal||0) + '</td></tr>' +
-          (o.discount ? '<tr><td style="color:#15a04a;">छूट (Coupon)</td><td class="tr" style="color:#15a04a;">−₹' + o.discount + '</td></tr>' : '') +
+          '<tr><td>Subtotal</td><td class="tr">₹' + sub + '</td></tr>' +
+          (gstPct > 0 ? '<tr><td>GST (' + gstPct + '%) <span style="color:#999;font-weight:700;">(included)</span></td><td class="tr" style="color:#7b1fa2;">₹' + gstAmt + '</td></tr>' : '') +
+          (disc ? '<tr><td style="color:#15a04a;">छूट (Coupon)</td><td class="tr" style="color:#15a04a;">−₹' + disc + '</td></tr>' : '') +
           '<tr><td>Visit Charge</td><td class="tr">₹10</td></tr>' +
-          '<tr><td style="font-size:15px;font-weight:900;border:none;">कुल (Total)</td><td class="tr" style="font-size:17px;color:#15a04a;border:none;">₹' + o.total + '</td></tr>' +
+          '<tr><td style="font-size:15px;font-weight:900;border:none;">कुल (Total' + (gstPct>0?' • GST incl':'') + ')</td><td class="tr" style="font-size:17px;color:#15a04a;border:none;">₹' + o.total + '</td></tr>' +
         '</table>' +
-        (paid
-          ? '<div style="text-align:center;background:#e6f7ed;border:1px solid #a8e6c2;border-radius:12px;padding:11px;margin-top:10px;font-weight:900;color:#0f7a37;font-size:13px;">✅ भुगतान हो चुका है' + (o.payment && o.payment.ref ? '<br><span style="font-size:10px;font-weight:700;">Ref: ' + proEsc(o.payment.ref) + '</span>' : '') + '</div>'
-          : (verifying
-          ? '<div style="text-align:center;background:#fff8e6;border:1px solid #ffe1a0;border-radius:12px;padding:13px;margin-top:10px;font-weight:900;color:#b07800;font-size:12.5px;">⏳ Payment Verification में है' + (o.payment && o.payment.ref ? '<br><span style="font-size:10px;font-weight:700;">UTR: ' + proEsc(o.payment.ref) + '</span>' : '') + '<br><span style="font-size:10px;font-weight:700;">Admin जल्द confirm करेंगे ✅</span></div>'
-          : '<div style="text-align:center;margin-top:8px;">' +
-              '<div style="font-size:12px;font-weight:900;color:#ff6b00;">📲 UPI से भुगतान करें — Scan QR</div>' +
-              '<div id="proQrBox"></div>' +
-              '<div style="font-size:11px;color:#888;">UPI ID: <b>' + proEsc(proUpiId()) + '</b></div>' +
-              '<a href="' + proUpiLink(o.total, oid, 'phonepe') + '" style="display:inline-block;margin:8px 3px 0;background:linear-gradient(90deg,#5f259f,#7b3fc4);color:#fff;padding:11px 18px;border-radius:12px;text-decoration:none;font-weight:900;font-size:12.5px;">💜 PhonePe ₹' + o.total + '</a>' +
-              '<a href="' + proUpiLink(o.total, oid) + '" style="display:inline-block;margin:8px 3px 0;background:linear-gradient(90deg,#15a04a,#1fc25e);color:#fff;padding:11px 18px;border-radius:12px;text-decoration:none;font-weight:900;font-size:12.5px;">💳 अन्य UPI</a>' +
-            '</div>')) +
+        payBlock +
         '<div style="display:flex;gap:8px;margin-top:14px;">' +
           '<button class="pro-bill-btn" style="background:#0d6efd;color:#fff;" onclick="proPrintBill(\'' + oid + '\')">🖨️ Print / PDF</button>' +
           '<button class="pro-bill-btn" style="background:#25d366;color:#fff;" onclick="window.open(\'https://wa.me/?text=\'+window.__proBillTxt,\'_blank\')">📤 Share</button>' +
@@ -3972,12 +4007,14 @@ window.proShowBill = function(oid, thenRate){
         '</div>' +
       '</div>';
     m.classList.add('open');
-    if (!paid){
+    var showQr = !paid && !isCash;
+    if (showQr){
       var qb = document.getElementById('proQrBox');
       if (qb) proMakeQR(qb, proUpiLink(o.total, oid));
     }
   }).catch(function(e){ showAlert('त्रुटि', e.message); });
 };
+
 window.proCloseBill = function(){
   document.getElementById('proBillModal').classList.remove('open');
   if (window.__proBillRate){
@@ -4131,10 +4168,11 @@ window.handleFinalOrder = function(){
     var userMobile = mobile || getIdent() || '';
     var order = {
       id: oid, uid: getUID(), mobile: userMobile,
-      items: cart.map(function(i){ return { n:i.n, p:i.p, qty:i.qty||1 }; }),
+      items: cart.map(function(i){ return { n:i.n, p:i.p, qty:i.qty||1, cat:i.cat||'', catName:i.catName||'' }; }),
       subtotal: subtotal, discount: appliedDiscount, total: finalAmt,
       address: address, date: date, time: time, remark: remark,
       mode: selectedMode, maps: mapsLink || '',
+      cats: (function(){ var s={},out=[]; (cart||[]).forEach(function(i){ var k=i.cat||'general', nn=i.catName||'General'; if(!s[k]){s[k]=1; out.push({key:k,name:nn});} }); return out; })(),
       status: 'Order Placed', rated: false, payment: payment,
       loc: (typeof userCoords !== 'undefined' ? { lat:userCoords.lat, lon:userCoords.lon } : null),
       createdAt: Date.now(), timestamp: new Date().toLocaleString('hi-IN')
@@ -4602,28 +4640,102 @@ console.log('%c CUSTOMER LOGIN FIX v3.5 ✅ ', 'background:#e53935;color:#fff;fo
 /* v3.6 removed — REAL login only (OTP / Google). सब data Firebase realtime से। */
 console.log('%c REAL AUTH MODE ✅ (Direct Login removed) ', 'background:#15a04a;color:#fff;font-weight:bold;');
 
-/* ═══ CUSTOMER COMPLAINT v3.7 — 🆘 शिकायत button ═══ */
+/* ═══ CUSTOMER SOS v4.1 — 🆘 Emergency (112 / 108) + शिकायत — SUNDER POPUP ═══ */
 (function(){
-  function mk(){
-    if(document.getElementById('cmpBtn')) return;
-    var b=document.createElement('div'); b.id='cmpBtn'; b.title='शिकायत करें';
-    b.style.cssText='position:fixed;left:14px;bottom:92px;z-index:8000;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#e53935,#ff7043);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 8px 20px rgba(229,57,53,.45);cursor:pointer;';
+  if(window.__sos41) return; window.__sos41=1;
+  var st=document.createElement('style');
+  st.innerText=
+  '#soSOv{position:fixed;inset:0;z-index:480000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(40,4,4,.72);backdrop-filter:blur(6px)}'+
+  '#soSOv.on{display:flex}'+
+  '.sosb{width:100%;max-width:410px;border-radius:30px;overflow:hidden;background:#fff;color:#222;box-shadow:0 34px 110px rgba(0,0,0,.6);animation:sosIn .3s cubic-bezier(.2,1.25,.4,1)}'+
+  'body.dark-mode .sosb{background:#221a16;color:#eee}'+
+  '@keyframes sosIn{from{transform:scale(.9) translateY(16px);opacity:0}to{transform:none;opacity:1}}'+
+  '.sosTop{background:linear-gradient(135deg,#c62828,#ff7043);color:#fff;text-align:center;padding:24px 14px 18px;position:relative}'+
+  '.sosTop .ic{font-size:52px;line-height:1;filter:drop-shadow(0 5px 9px rgba(0,0,0,.4))}'+
+  '.sosTop .t1{font-size:21px;font-weight:900;margin-top:8px;letter-spacing:.3px}'+
+  '.sosTop .t2{font-size:11px;opacity:.95;font-weight:700;margin-top:3px}'+
+  '.sosX{position:absolute;top:10px;right:12px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.25);border:none;color:#fff;font-size:16px;font-weight:900;cursor:pointer}'+
+  '.sosBody{padding:16px 16px 20px}'+
+  '.sosCall{display:flex;gap:10px;margin-bottom:6px}'+
+  '.sosCall a{flex:1;text-decoration:none;border-radius:18px;padding:14px 8px;color:#fff;text-align:center;font-weight:900;display:block}'+
+  '.sosCall .c1{background:linear-gradient(135deg,#0d47a1,#1e88e5);box-shadow:0 8px 20px rgba(13,71,161,.35)}'+
+  '.sosCall .c2{background:linear-gradient(135deg,#b71c1c,#e53935);box-shadow:0 8px 20px rgba(183,28,28,.35)}'+
+  '.sosCall a i{display:block;font-size:26px;font-style:normal;line-height:1}'+
+  '.sosCall a b{display:block;font-size:22px;margin:4px 0 2px;letter-spacing:1px}'+
+  '.sosCall a span{font-size:9.5px;opacity:.95;font-weight:800}'+
+  '.sosInfo{font-size:10.5px;color:#b07800;background:#fff6e0;border:1px solid #ffe1a0;border-radius:12px;padding:8px 10px;margin:8px 0 14px;font-weight:800;line-height:1.6}'+
+  'body.dark-mode .sosInfo{background:#3a2e14;color:#ffd970}'+
+  '.sosDiv{display:flex;align-items:center;gap:8px;margin:12px 0 10px;color:#999;font-size:11px;font-weight:800}'+
+  '.sosDiv::before,.sosDiv::after{content:"";flex:1;height:1px;background:#eee} body.dark-mode .sosDiv::before,body.dark-mode .sosDiv::after{background:#3a2f28}'+
+  '.sosTA{width:100%;border:1.5px solid #eee;background:#fafafa;color:#222;border-radius:14px;padding:11px 12px;font-size:13px;min-height:74px;resize:none;outline:none;font-weight:600;box-sizing:border-box}'+
+  'body.dark-mode .sosTA{background:#2b221c;color:#eee;border-color:#3a2f28}'+
+  '.sosTA:focus{border-color:#e53935}'+
+  '.sosSend{width:100%;border:none;border-radius:14px;padding:13px;background:linear-gradient(135deg,#ff6b00,#ff9a3d);color:#fff;font-weight:900;font-size:13px;cursor:pointer;margin-top:10px}'+
+  '.sosSend:active{transform:scale(.98)}'+
+  '.sosCls{width:100%;border:none;background:none;color:#999;font-weight:800;font-size:12px;padding:11px;cursor:pointer}'+
+  '#cCOv{z-index:9999990!important}#cCeb{z-index:9999991!important}';
+  document.head.appendChild(st);
+
+  var ov=null;
+  function ovr(){
+    if(ov) return ov;
+    ov=document.createElement('div'); ov.id='soSOv';
+    ov.innerHTML=
+      '<div class="sosb">'+
+        '<div class="sosTop"><button class="sosX" onclick="cSosClose()">✕</button><div class="ic">🆘</div><div class="t1">Emergency / SOS</div><div class="t2">आपात स्थिति में तुरंत कॉल करें</div></div>'+
+        '<div class="sosBody">'+
+          '<div class="sosCall">'+
+            '<a class="c1" href="tel:112"><i>🚓</i><b>112</b><span>Police / सभी आपात</span></a>'+
+            '<a class="c2" href="tel:108"><i>🚑</i><b>108</b><span>Ambulance / Medical</span></a>'+
+          '</div>'+
+          '<div class="sosInfo">ℹ️ <b>112</b> — पुलिस/फायर/मेडिकल सभी आपात<br>ℹ️ <b>108</b> — एम्बुलेंस (बीमारी/दुर्घटना)</div>'+
+          '<div class="sosDiv">या ऐप से शिकायत दर्ज करें</div>'+
+          '<textarea class="sosTA" id="sosMsg" placeholder="शिकायत लिखें (Order ID भी लिखें तो जल्दी resolve होगी)..."></textarea>'+
+          '<button class="sosSend" onclick="cSosSend()">📨 शिकायत भेजें</button>'+
+          '<button class="sosCls" onclick="cSosClose()">✕ बंद करें</button>'+
+        '</div>'+
+      '</div>';
+    document.body.appendChild(ov);
+    return ov;
+  }
+  window.cSosOpen=function(){
+    var o=ovr(); o.classList.add('on');
+    var ta=document.getElementById('sosMsg'); if(ta) ta.value='';
+  };
+  window.cSosClose=function(){ var o=ovr(); o.classList.remove('on'); };
+  window.cSosSend=function(){
+    var ph=localStorage.getItem('sw_user')||'';
+    if(!ph) return alert('पहले login करें');
+    var ta=document.getElementById('sosMsg'); if(!ta) return;
+    var m=(ta.value||'').trim();
+    if(m.length<10) return alert('कृपया शिकायत थोड़ा detail में लिखें');
+    var btn=document.querySelector('#soSOv .sosSend'); if(btn){ btn.disabled=true; btn.innerText='भेज रहे हैं...'; }
+    firebase.firestore().collection('tickets').add({
+      from:'customer', phone:ph, name:'', cat:'🛒 Customer शिकायत',
+      msg:m, status:'Open', ts:Date.now(), at:new Date().toLocaleString('en-IN')
+    }).then(function(){
+      alert('✅ शिकायत दर्ज हो गई!\nAdmin जल्द resolve करेंगे।');
+      window.cSosClose();
+    }).catch(function(e){
+      alert('❌ '+e.message);
+    }).finally(function(){
+      var b2=document.querySelector('#soSOv .sosSend'); if(b2){ b2.disabled=false; b2.innerText='📨 शिकायत भेजें'; }
+    });
+  };
+  function mkBtn(){
+    if(document.getElementById('cmpBtn')){ var old=document.getElementById('cmpBtn'); old.onclick=function(){ window.cSosOpen(); }; return; }
+    var b=document.createElement('div'); b.id='cmpBtn'; b.title='SOS / शिकायत';
+    b.style.cssText='position:fixed;left:14px;bottom:92px;z-index:8000;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#c62828,#ff7043);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 8px 20px rgba(229,57,53,.5);cursor:pointer;border:1.5px solid rgba(255,255,255,.35);';
     b.innerHTML='🆘';
-    b.onclick=function(){
-      var ph=localStorage.getItem('sw_user')||'';
-      if(!ph) return alert('पहले login करें');
-      var m=prompt('अपनी शिकायत लिखें (Order ID भी लिखें तो जल्दी resolve होगी):');
-      if(!m||m.trim().length<10) return alert('कृपया थोड़ा detail में लिखें');
-      firebase.firestore().collection('tickets').add({
-        from:'customer', phone:ph, name:'', cat:'🛒 Customer शिकायत',
-        msg:m.trim(), status:'Open', ts:Date.now(), at:new Date().toLocaleString('en-IN')
-      }).then(function(){ alert('✅ शिकायत दर्ज हो गई!\nAdmin जल्द resolve करेंगे।'); })
-      .catch(function(e){ alert('❌ '+e.message); });
-    };
+    b.onclick=function(){ window.cSosOpen(); };
     document.body.appendChild(b);
   }
-  window.addEventListener('load',function(){ setTimeout(mk,1500); });
+  window.addEventListener('load',function(){ setTimeout(mkBtn,1200); });
+  /* purana onclick bhi baad me re-bind (agar pehle se button bana ho) */
+  setTimeout(function(){ try{ if(document.getElementById('cmpBtn')) document.getElementById('cmpBtn').onclick=function(){ window.cSosOpen(); }; }catch(e){} },4000);
+  console.log('%c 🆘 CUSTOMER SOS v4.1 — 112/108 SUNDER ✅ ','background:#c62828;color:#fff;font-weight:bold;padding:3px;');
 })();
+
 
 /* ═══ CUSTOMER WORK-OTP v3.8 — काम पूरा होने का OTP दिखाओ ═══ */
 (function(){
@@ -5088,5 +5200,249 @@ body.dark-mode .v39mg span{background:#2e2e2e}
   console.log('%c 🔔 CUSTOMER v4.0C — ALERT SUNDER ✅ ','background:#ff6b00;color:#fff;font-weight:bold;padding:3px;');
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3512cd82b982a99',t:'MTc4ODQwMDk3Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+<script>
+/* ═══════════════ CUSTOMER v4.2 — URBAN-STYLE ITEM DETAIL (photo + rate + qty + add) ═══════════════ */
+(function(){
+  if(window.__c42C) return; window.__c42C=1;
+  var ST=document.createElement('style');
+  ST.innerText=
+  '#cIM{position:fixed;inset:0;z-index:260000;display:none;align-items:flex-end;justify-content:center;background:rgba(10,6,2,.62);backdrop-filter:blur(5px)}'+
+  '#cIM.on{display:flex}'+
+  '.cimsh{width:100%;max-width:540px;max-height:92vh;background:#fff;color:#222;border-radius:26px 26px 0 0;overflow:hidden;display:flex;flex-direction:column;animation:cimUp .3s cubic-bezier(.2,.9,.3,1)}'+
+  'body.dark-mode .cimsh{background:#1e1a16;color:#eee}'+
+  '@keyframes cimUp{from{transform:translateY(70%)}to{transform:none}}'+
+  '.cimimg{width:100%;height:210px;object-fit:cover;background:#eee;position:relative}'+
+  '.cimx{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.45);border:none;color:#fff;font-size:17px;cursor:pointer;backdrop-filter:blur(4px)}'+
+  '.cimb{padding:16px 18px 24px;overflow-y:auto}'+
+  '.cimh{font-size:20px;font-weight:900;margin:0}'+
+  '.cimsub{font-size:11px;color:#999;font-weight:700;margin:3px 0 0}'+
+  '.cimrt{display:inline-block;margin-top:10px;background:#fff3e6;color:#b45300;border:1px solid #ffd9b3;border-radius:20px;padding:5px 13px;font-weight:900;font-size:13px}'+
+  '.cimopt{margin-top:14px}'+
+  '.cimopt .lb{font-size:12px;font-weight:900;margin-bottom:7px}'+
+  '.optt{display:flex;flex-wrap:wrap;gap:7px}'+
+  '.optt label{border:1.6px solid #e5ded6;border-radius:12px;padding:8px 11px;font-size:11.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px}'+
+  'body.dark-mode .optt label{border-color:#3a3128;color:#d9cfc2}'+
+  '.optt input{accent-color:var(--primary,#ff6b00)}'+
+  '.optt label.on{border-color:var(--primary,#ff6b00);background:#fff3e6;color:#b45300}'+
+  'body.dark-mode .optt label.on{background:#3a2a16;color:#ffc08a}'+
+  '.cimqty{display:flex;align-items:center;gap:16px;margin-top:16px}'+
+  '.cimqty .lb{font-size:12px;font-weight:900}'+
+  '.stp{display:flex;align-items:center;gap:0;border:1.6px solid #ddd;border-radius:30px;overflow:hidden}'+
+  '.stp button{width:42px;height:42px;border:none;background:#f6f3ef;font-size:19px;font-weight:900;cursor:pointer}'+
+  'body.dark-mode .stp button{background:#2c241d;color:#eee}'+
+  '.stp b{min-width:44px;text-align:center;font-size:16px}'+
+  '.cimadd{margin-top:14px;width:100%;border:none;border-radius:16px;padding:15px;background:linear-gradient(135deg,var(--primary,#ff6b00),#ff9a3d);color:#fff;font-weight:900;font-size:14px;cursor:pointer}'+
+  '.cimnote{font-size:10px;color:#999;font-weight:700;text-align:center;margin-top:9px;line-height:1.5}';
+  document.head.appendChild(ST);
+
+  var ov=null;
+  function ovr(){
+    if(ov) return ov;
+    ov=document.createElement('div'); ov.id='cIM';
+    ov.onclick=function(e){ if(e.target===ov) cImClose(); };
+    document.body.appendChild(ov);
+    return ov;
+  }
+  function fmtN(v){ return '₹'+Number(v||0).toLocaleString('en-IN'); }
+  window.cImClose=function(){ var o=document.getElementById('cIM'); if(o) o.classList.remove('on'); };
+
+  window.cShow=function(cat,idx){
+    try{
+      var svc=(mainData[cat]||[])[idx]; if(!svc) return;
+      var opts=svc.subOptions||[];
+      ovr();
+      ov.innerHTML='<div class="cimsh"><div style="position:relative;"><img class="cimimg" src="'+svc.i+'" onerror="this.src=\'https://cdn-icons-png.flaticon.com/512/1046/1046784.png\'"><button class="cimx" onclick="cImClose()">✕</button></div>'+
+        '<div class="cimb">'+
+          '<h3 class="cimh">'+svc.n+'</h3>'+
+          '<div class="cimsub">⭐ 4.8 • 320+ सेवाएँ • '+catNameOf(cat)+'</div>'+
+          '<div><span class="cimrt" id="cimRate">'+fmtN(svc.p)+' से शुरू</span></div>'+
+          '<div class="cimopt" '+(opts.length?'':'style="display:none"')+'><div class="lb">विकल्प चुनें (मेहनत/material जोड़ें):</div><div class="optt" id="cimOpts">'+
+          opts.map(function(o,i){
+            return '<label '+(i===0?'class="on"':'')+'><input type="radio" name="cimO" '+(i===0?'checked':'')+' onchange="cImPick('+i+',\''+escName(cat)+'\','+idx+')"> '+o+'</label>';
+          }).join('')+'</div></div>'+
+          '<div class="cimqty"><span class="lb">कितने?</span><div class="stp"><button onclick="cImQ(-1)">−</button><b id="cimQ">1</b><button onclick="cImQ(1)">+</button></div></div>'+
+          '<button class="cimadd" id="cimAddB">🛒 ADD — '+(opts.length?fmtN(svc.p+extraOf(opts[0])):fmtN(svc.p))+'</button>'+
+          '<div class="cimnote">🧑‍🔧 Partner घर visit करेगा • Visit fee + सामान का rate bill में साफ़ लिखा मिलेगा</div>'+
+        '</div></div>';
+      ov.classList.add('on');
+      window.__cim={cat:cat,idx:idx,svc:svc,q:1,opt:0};
+    }catch(e){}
+  };
+  function catNameOf(k){ try{ var c=categoriesData.find(function(x){return x.key===k;}); return c?c.name:k; }catch(e){ return k; } }
+  function escName(k){ return String(k).replace(/['"\\]/g,''); }
+  function extraOf(o){ var m=String(o||'').match(/\+₹(\d+)/); return m?parseInt(m[1],10):0; }
+  function priceNow(){
+    var s=window.__cim; if(!s) return 0;
+    var o=(s.svc.subOptions||[])[s.opt]||'';
+    return (Number(s.svc.p)||0)+extraOf(o);
+  }
+  window.cImPick=function(i,cat,idx){ try{ window.__cim.opt=i; document.querySelectorAll('#cIM .optt label').forEach(function(l,x){ l.classList.toggle('on',x===i); }); cImSync(); }catch(e){} };
+  window.cImQ=function(d){ try{ window.__cim.q=Math.max(1,(window.__cim.q||1)+d); cImSync(); }catch(e){} };
+  function cImSync(){
+    var s=window.__cim; if(!s) return;
+    document.getElementById('cimQ').innerText=s.q;
+    var el=document.getElementById('cimAddB');
+    if(el) el.innerText='🛒 ADD ×'+s.q+' — '+fmtN(priceNow()*s.q);
+  }
+  /* ADD → cart (qty×) */
+  window.cImAddQty=function(){
+    var s=window.__cim; if(!s) return;
+    var n=s.svc.n, p=priceNow();
+    var o=(s.svc.subOptions||[])[s.opt]||'';
+    for(var i=0;i<(s.q||1);i++){
+      var ex=(function(){ var c=cart.find(function(x){ return x.n===n && (x.selectedSub||'')===(o||''); }); if(c){ c.qty=(c.qty||1)+1; } else cart.push({n:n,p:p,selectedSub:o,qty:1,cat:s.cat,catName:catNameOf(s.cat)}); })();
+    }
+    try{ var tc=cart.reduce(function(a,c){return a+(c.qty||1);},0); document.getElementById('bCount').innerText=tc; }catch(e){}
+    try{ showToast((s.svc.n)+' ×'+s.q+' कार्ट में जोड़ दिया! 🛒'); }catch(e){}
+    try{ if(typeof renderCart==='function') renderCart(); }catch(e){}
+    try{ if(typeof closeCart==='function'){} }catch(e){}
+    cImClose();
+  };
+  /* override createCard so image/naam modal खोलें + ADD button नया flow */
+  try{
+    var _cc=window.createCard;
+    window.createCard=function(item, uniqueId){
+      var pos=String(uniqueId).lastIndexOf('_'), cat=pos>0?String(uniqueId).slice(0,pos):'general';
+      var subOptionsHtml='';
+      if(item.subOptions && item.subOptions.length>0){
+        subOptionsHtml='<div class="service-sub-options" id="subOpt_'+uniqueId+'" style="display:flex;">'+
+          '<div style="font-size:11px;font-weight:bold;color:var(--primary);margin-bottom:4px;">विकल्प चुनें (Select Option):</div>';
+        item.subOptions.forEach(function(opt,idx){
+          var checkedAttr=(idx===0)?'checked':'';
+          subOptionsHtml+='<label><input type="radio" name="sub_'+uniqueId+'" value="'+opt+'" '+checkedAttr+' onchange="updateCardPrice(\''+uniqueId+'\', '+item.p+')"> '+opt+'</label>';
+        });
+        subOptionsHtml+='</div>';
+      }
+      return '<div class="card" style="cursor:pointer;">'+
+        '<div class="card-top">'+
+          '<img loading="lazy" decoding="async" src="'+item.i+'" style="cursor:pointer;" onclick="cShow(\''+cat+'\','+String(uniqueId).slice(pos+1)+')" onerror="this.src=\'https://cdn-icons-png.flaticon.com/512/1046/1046784.png\'" />'+
+          '<div class="card-info">'+
+            '<h4 onclick="cShow(\''+cat+'\','+String(uniqueId).slice(pos+1)+')">'+item.n+'</h4>'+
+            '<div class="rating-row"><i class="fa fa-star"></i><span class="rating-val">4.8</span><span class="review-count">(320+ reviews)</span></div>'+
+            '<div class="price-row"><b id="priceDisplay_'+uniqueId+'">₹'+item.p+'</b>'+
+            '<button class="add-btn" id="btn_'+uniqueId+'" onclick="addToCart(\''+item.n+'\', '+item.p+', \''+uniqueId+'\')">ADD</button></div>'+
+          '</div></div>'+
+        subOptionsHtml+'</div>';
+    };
+  }catch(e){}
+  window.cImAddQty2=window.cImAddQty;
+  /* ADD button in modal attaches once */
+  function bindModalAdd(){
+    var b=document.getElementById('cimAddB');
+    if(b && !b._c42){ b._c42=1; b.onclick=window.cImAddQty; }
+    setTimeout(bindModalAdd,500);
+  }
+  bindModalAdd();
+  console.log('%c 🛒 CUSTOMER v4.2 — ITEM PHOTO+RATE+QTY MODAL ✅ ','background:#ff6b00;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+
+<script>
+/* ═══════════════ CUSTOMER v4.3 — PARTNER VISIT MOVING POPUP + WORK-EDIT OTP ═══════════════ */
+(function(){
+  if(window.__c43) return; window.__c43=1;
+  var ST=document.createElement('style');
+  ST.innerText=
+  '#v43Vis{position:fixed;right:10px;bottom:118px;z-index:280000;display:none;flex-direction:column;gap:7px;width:150px}'+
+  '#v43Vis.on{display:flex}'+
+  '.v43pill{position:relative;border-radius:20px;padding:10px 12px;color:#fff;font-weight:900;font-size:11px;line-height:1.35;cursor:pointer;box-shadow:0 12px 30px rgba(13,71,161,.4);overflow:hidden;background:linear-gradient(135deg,#0d47a1,#1e88e5);animation:v43mv 1.6s ease-in-out infinite;text-align:left}'+
+  '.v43pill.green{background:linear-gradient(135deg,#0f9d45,#2bc96e);animation-delay:.15s;box-shadow:0 12px 30px rgba(15,157,69,.4)}'+
+  '.v43pill.org{background:linear-gradient(135deg,#e65100,#ff9800);animation-delay:.3s;box-shadow:0 12px 30px rgba(230,81,0,.4)}'+
+  '@keyframes v43mv{0%,100%{transform:translateY(0) translateX(0)}25%{transform:translateY(-5px) translateX(2px)}50%{transform:translateY(-9px) translateX(0)}75%{transform:translateY(-5px) translateX(-2px)}}'+
+  '.v43dot{width:9px;height:9px;border-radius:50%;background:#ffd60a;display:inline-block;margin-right:5px;animation:v43blink 1s infinite}'+
+  '@keyframes v43blink{0%,100%{opacity:1}50%{opacity:.2}}'+
+  '.v43close{position:absolute;top:3px;right:7px;color:rgba(255,255,255,.85);font-size:13px;cursor:pointer;z-index:3}'+
+  '.v43pill b{display:block;font-size:11.5px;text-shadow:0 1px 2px rgba(0,0,0,.3)}'+
+  '.v43pill span{font-size:9px;opacity:.95;font-weight:800}'+
+  '.v43act{display:flex;gap:6px}'+
+  '.v43act button{flex:1;border:none;border-radius:13px;padding:9px 4px;font-weight:900;font-size:10px;cursor:pointer}'+
+  '.v43act .t{background:#fff;color:#0d47a1}'+
+  '.v43act .c{background:rgba(255,255,255,.25);color:#fff}'+
+  /* edit OTP bar (left, niche) */
+  '#wUOtpBar{position:fixed;bottom:150px;left:14px;z-index:8000;max-width:66vw;background:linear-gradient(135deg,#3a1c0a,#1a1030);color:#fff;border:1.5px solid #ff9a3d;border-radius:18px;padding:9px 13px;font-size:10.5px;font-weight:800;box-shadow:0 10px 26px rgba(0,0,0,.45);line-height:1.55}'+
+  '#wUOtpBar b{color:#ffd700;font-size:15px;letter-spacing:2px;margin-left:4px}'+
+  '#wUOtpBar .x{float:right;color:rgba(255,255,255,.6);margin-left:8px;cursor:pointer;font-size:12px}';
+  document.head.appendChild(ST);
+
+  var act={};  /* oid -> status/ts */
+  var hid=null;
+  function esc3(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+
+  /* 1) moving visit pill */
+  function paintVis(o){
+    var w=document.getElementById('v43Vis');
+    if(!o){ if(w) w.classList.remove('on'); return; }
+    if(hid===o.id){ if(w) w.classList.remove('on'); return; }
+    if(!w){ w=document.createElement('div'); w.id='v43Vis'; document.body.appendChild(w); }
+    var st=o.status, pn=o.partnerName||'Partner';
+    var icon='🧑‍🔧', line, cls='';
+    if(st==='Accepted'){ icon='🧑‍🔧'; line='Partner आपके लिए visit पर आ रहा है'; }
+    else if(st==='On the Way'){ icon='🛵'; line='Partner आपके घर के रास्ते में है — visit'; cls='green'; }
+    else { icon='🔧'; line='Partner आपके घर काम कर रहा है'; cls='org'; }
+    var total=o.items?o.items.length:0;
+    w.className=''; void w.offsetWidth; w.classList.add('on');
+    w.innerHTML=
+      '<div class="v43pill '+cls+'" onclick="c43Go(\''+esc3(o.id)+'\')"><span class="v43close" onclick="event.stopPropagation();c43Hide()">✕</span>'+
+        '<span class="v43dot"></span>'+icon+' <b>'+esc3(pn)+'</b>'+
+        '<span>'+esc3(line)+' • '+(st==='Working'?'काम चालू':'Visit')+'</span></div>'+
+      '<div class="v43act">'+
+        '<button class="t" onclick="c43Track(\''+esc3(o.id)+'\')">🗺️ Track</button>'+
+        '<button class="c" onclick="c43Chat(\''+esc3(o.id)+'\')">💬 Chat</button>'+
+      '</div>';
+  }
+  window.c43Hide=function(){ var w=document.getElementById('v43Vis'); if(w) w.classList.remove('on'); };
+  window.c43Go=function(oid){ try{ if(window.openLiveTracking) window.openLiveTracking(oid); }catch(e){ c43Track(oid); } };
+  window.c43Track=function(oid){ try{ if(window.openLiveTracking) window.openLiveTracking(oid); }catch(e){} };
+  window.c43Chat=function(oid){ try{ if(window.openOrderChat) window.openOrderChat(oid); }catch(e){} };
+
+  function watcher(){
+    try{
+      if(typeof window.myOrdersQuery!=='function') return;
+      if(window.__c43Sub) return;
+      window.__c43Sub=myOrdersQuery().onSnapshot(function(snap){
+        act={};
+        var latest=null;
+        snap.docs.forEach(function(d){
+          var o=d.data(); var oid=o.id||d.id;
+          if(['Accepted','On the Way','Working'].indexOf(o.status)>-1){
+            act[oid]=o.status;
+            if(!latest || (o.createdAt||0)>(latest.createdAt||0)) latest=o;
+          }
+        });
+        if(latest) hid=null;   /* naya active → phir dikhao */
+        paintVis(latest);
+      },function(){});
+    }catch(e){}
+  }
+
+  /* 2) Work-EDIT OTP display */
+  function editWatch(){
+    try{
+      if(!window.myOrdersQuery) return;
+      if(window.__c43EditSub) return;
+      window.__c43EditSub=myOrdersQuery().onSnapshot(function(snap){
+        var ew=null;
+        snap.docs.forEach(function(d){
+          var o=d.data(); var oid=o.id||d.id;
+          if(o.wUOtp && ['Accepted','On the Way','Working'].indexOf(o.status)>-1){
+            if(!ew || (o.createdAt||0)>(ew.createdAt||0)) ew=o;
+          }
+        });
+        var el=document.getElementById('wUOtpBar');
+        if(!ew){ if(el) el.remove(); return; }
+        if(!el){ el=document.createElement('div'); el.id='wUOtpBar'; el.style.cssText=''; document.body.appendChild(el); }
+        el.innerHTML='<span class="x" onclick="this.parentNode.remove()">✕</span>✏️ Partner काम बढ़ाना/बदलना चाहता है — नया OTP: <b>'+esc3(ew.wUOtp)+'</b><br><span style="font-size:9px;opacity:.85;">यह OTP partner को बताएँ — वही आपके order में update करेगा</span>';
+      },function(){});
+    }catch(e){}
+  }
+
+  setTimeout(function(){ watcher(); editWatch(); },900);
+  setTimeout(function(){ try{ watcher(); editWatch(); }catch(e){} },6000);
+  console.log('%c 🧑‍🔧 CUSTOMER v4.3 — VISIT POPUP + EDIT OTP ✅ ','background:#0d47a1;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+</body>
 </html>
