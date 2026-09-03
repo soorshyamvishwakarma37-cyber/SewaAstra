@@ -6137,7 +6137,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
   /* header quick chip */
   try{
     var hp=document.getElementById('headerProfile');
-    if(hp&&!document.getElementById('hdGt')){
+    if(false&&hp&&!document.getElementById('hdGt')){
       var g=document.createElement('div'); g.id='hdGt';
       g.title='🌐 Translate / भाषा';
       g.style.cssText='width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;background:var(--primary-light);border:1px solid var(--primary);';
@@ -6284,7 +6284,8 @@ body.dark-mode .v39mg span{background:#2e2e2e}
   window.uAppLang=function(code){
     try{ localStorage.setItem('sw_uilang',code); }catch(e){}
     _stored=code;
-    if(code==='hi'){ dictOff(); try{ gApply('hi'); }catch(e){} try{ showToast('🌐 Original (हिन्दी)'); }catch(e){} return; }
+    dictOff();  /* ek baar me sirf ek language — पहले original restore */
+    if(code==='hi'){ try{ gApply('hi'); }catch(e){} try{ showToast('🌐 Original (हिन्दी)'); }catch(e){} return; }
     if(code==='en'){ dictOn(); }
     var go=gApply(code);
     try{ if(go) showToast('🌐 पूरी App translate हो रही है...'); else showToast('🌐 English basic apply — internet पर पूरा होगा'); }catch(e){}
@@ -6488,6 +6489,73 @@ body.dark-mode .v39mg span{background:#2e2e2e}
   document.head.appendChild(st);
 
   console.log('%c 🌐🧾🆘 CUSTOMER v4.7 — REAL TRANSLATE + ORIGINAL BILL + SOS CLOSE ✅ ','background:#0d47a1;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+
+
+<script>
+/* ═══════════════ CUSTOMER v4.8 — LANGUAGE 1-at-a-time + PROFILE-only + DELETE BOX ═══════════════ */
+(function(){
+  if(window.__c48) return; window.__c48=1;
+
+  /* 1) TOP (header) वाला 🌐 हटाओ — language अब सिर्फ Profile → Settings में */
+  try{ var hd=document.getElementById('hdGt'); if(hd&&hd.parentNode) hd.parentNode.removeChild(hd); }catch(e){}
+
+  /* 2) Language: एक बार में सिर्फ एक — पहले original (hi) पर लौटो, फिर नई भाषा लगाओ */
+  window.swGtSet=function(code){
+    var t=code||'hi';
+    if(t!=='hi'){ try{ if(window.uAppLang) window.uAppLang('hi'); }catch(e){} }
+    setTimeout(function(){
+      try{ if(window.uAppLang) window.uAppLang(t); }catch(e){}
+      try{ if(window.swGtHide) window.swGtHide(); }catch(e){}
+    }, t==='hi'?50:340);
+  };
+  /* boot par sirf saved वाली ek language (अगर hi नहीं) */
+  try{
+    var saved=localStorage.getItem('sw_uilang')||'hi';
+    if(saved!=='hi') setTimeout(function(){ try{ if(window.uAppLang) window.uAppLang(saved); }catch(e){} },1600);
+  }catch(e){}
+
+  /* 3) History DELETE / CANCEL — सुंदर box history के ऊपर (popup), नीचे cancel पर बस बंद */
+  var cs=document.createElement('style'); cs.id='c48st'; cs.textContent=
+    '#cCOv{background:rgba(12,8,2,.42)!important;backdrop-filter:blur(5px)!important;align-items:flex-start!important;padding:12vh 16px 16px!important;z-index:9999998!important}'+
+    '#cCOv.on{display:flex}'+
+    '#cCOv .ccard{max-width:380px!important;width:100%!important;border-radius:24px!important;border:1px solid rgba(255,255,255,.22)!important;box-shadow:0 30px 80px rgba(0,0,0,.5)!important;animation:c48in .26s cubic-bezier(.2,1.2,.35,1)!important;overflow:hidden!important}'+
+    '@keyframes c48in{from{transform:scale(.92) translateY(16px);opacity:0}to{transform:none;opacity:1}}'+
+    '#cCOv .cch{background:linear-gradient(135deg,#7a2a14,#c0392b)!important;padding:20px 16px 14px!important}'+
+    '#cCOv .ccb{padding:4px 18px 20px!important}'+
+    '#cCOv .rwc{display:flex!important;gap:9px!important;margin-top:15px!important}'+
+    '#cCOv .rwc button{flex:1!important;border:none!important;border-radius:13px!important;padding:13px!important;font-weight:900!important;font-size:12.5px!important;cursor:pointer!important}'+
+    '#cCYes{background:linear-gradient(135deg,#d32f2f,#ff6b5a)!important;color:#fff!important}'+
+    '#cCOv .yes:not(.danger){background:linear-gradient(135deg,#0d6efd,#4d9bff)!important;color:#fff!important}'+
+    '#cCNo{background:#f1f3f5!important;color:#4a4f5a!important}'+
+    'body.dark-mode #cCNo{background:#262b36!important;color:#ccd3e0!important}'+
+    '#cCOv .ccmsg{font-size:12.5px!important;line-height:1.75!important;color:#333!important;font-weight:600!important}'+
+    'body.dark-mode #cCOv .ccmsg{color:#dfe4ee!important}'+
+    'body.dark-mode #cCOv .ccard{background:#1e2330!important}'+
+    'body.dark-mode #cCOv .cch{background:linear-gradient(135deg,#7a2a14,#b03a2b)!important}';
+  document.head.appendChild(cs);
+
+  /* agar kisi jagah native confirm बचा हो तो उसे भी सुंदर box से रोकें (delete/cancel path) */
+  try{
+    window.c48cf=function(oid,kind){
+      if(!window.cConfirm) return false;
+      var msg,ic,tt;
+      if(kind==='del'){ msg='ऑर्डर '+oid+' को history से हमेशा के लिए delete करना है?'; ic='🗑️'; tt='Delete Order'; }
+      else { msg='ऑर्डर '+oid+' रद्द करना है?\n\nक्या आपको पक्का यह order cancel करना है?'; ic='❌'; tt='Cancel Order'; }
+      window.cConfirm(msg,{ic:ic,title:tt,ok:kind==='del'?'हाँ, delete करें':'हाँ, रद्द करें',danger:true}).then(function(ok){
+        if(!ok) return;
+        var p=FS.collection('orders').doc(oid);
+        if(kind==='del'){ p.delete().then(done).catch(er); }
+        else { p.update({status:'Cancelled',cancelledBy:'customer',cancelledAt:Date.now()}).then(done).catch(er); }
+        function done(){ try{ showToast(kind==='del'?'🗑️ ऑर्डर delete हो गया':'❌ ऑर्डर रद्द हो गया'); }catch(e){} try{ closeCustomAlert(); }catch(e){} setTimeout(function(){ try{ window.showHistory&&window.showHistory(); }catch(e){} },350); }
+        function er(e){ try{ showAlert('त्रुटि', e.message); }catch(x){} }
+      });
+      return true;
+    };
+  }catch(e){}
+  console.log('%c 🌐🗑️ CUSTOMER v4.8 — LANG 1× + DELETE BOX ✅ ','background:#6a1b9a;color:#fff;font-weight:bold;padding:3px;');
 })();
 
 </script>
