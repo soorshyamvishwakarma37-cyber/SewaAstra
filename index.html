@@ -1450,18 +1450,16 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
   }
 
   function checkAdminAccess(identifier) {
-      const adminEmail = "soorshyamvishwakarma37@gmail.com";
-      const adminPhone = "7869969190";
-      
-      if (identifier === adminEmail || identifier === adminPhone) {
-          localStorage.setItem('sw_is_admin', 'true');
-          const adminBtn = document.getElementById('adminPanelMenuBtn');
-          if(adminBtn) adminBtn.style.display = 'flex';
-      } else {
-          localStorage.removeItem('sw_is_admin');
-          const adminBtn = document.getElementById('adminPanelMenuBtn');
-          if(adminBtn) adminBtn.style.display = 'none';
-      }
+      // 🔐 ADMIN PANEL सिर्फ REAL Firebase email check — phone/localStorage से नहीं
+      var ok = false;
+      try{
+        var cu = firebase.auth().currentUser;
+        if(cu && cu.email && String(cu.email).trim().toLowerCase() === "soorshyamvishwakarma37@gmail.com") ok = true;
+      }catch(e){}
+      if(ok){ localStorage.setItem('sw_is_admin', 'true'); }
+      else { localStorage.removeItem('sw_is_admin'); }
+      var adminBtn = document.getElementById('adminPanelMenuBtn');
+      if(adminBtn) adminBtn.style.display = ok ? 'flex' : 'none';
   }
 
   function renderCategoriesGrid() {
@@ -4856,5 +4854,239 @@ body.dark-mode .v39mg span{background:#2e2e2e}
 })();
 
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3509939af6048e9',t:'MTc4ODM5NDkzMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+<script>
+/* ═══════════════ CUSTOMER v4.0 — SUNDER CONFIRM + काम-पूरा 🎉 CELEBRATION + ADMIN EMAIL LOCK ═══════════════ */
+(function(){
+  if(window.__c40C) return; window.__c40C=1;
+  /* ─── CSS ─── */
+  var st=document.createElement('style');
+  st.innerText=
+  '#cCOv{position:fixed;inset:0;z-index:500000;display:none;align-items:center;justify-content:center;background:rgba(15,10,5,.5);backdrop-filter:blur(5px);padding:22px}'+
+  '#cCOv.on{display:flex}'+
+  '.ccard{width:100%;max-width:400px;border-radius:26px;overflow:hidden;background:#fff;color:#222;box-shadow:0 30px 90px rgba(0,0,0,.45);animation:c40in .28s cubic-bezier(.2,1.25,.4,1)}'+
+  'body.dark-mode .ccard{background:#201a14;color:#eee}'+
+  '@keyframes c40in{from{transform:scale(.9) translateY(14px);opacity:0}to{transform:none;opacity:1}}'+
+  '.cch{background:linear-gradient(135deg,var(--primary,#ff6b00),#ff9a3d);padding:24px 16px 16px;text-align:center;color:#fff}'+
+  '.cch .ic{font-size:50px;line-height:1}'+
+  '.cch .tt{font-weight:900;font-size:16px;margin-top:8px}'+
+  '.ccb{padding:16px 18px 20px}'+
+  '.ccmsg{font-size:13px;line-height:1.7;color:#444;font-weight:600;white-space:pre-wrap;word-break:break-word;max-height:38vh;overflow:auto}'+
+  'body.dark-mode .ccmsg{color:#cfc6ba}'+
+  '.ccb .rwc{display:flex;gap:9px;margin-top:15px}'+
+  '.ccb button{flex:1;border:none;border-radius:13px;padding:13px;font-weight:900;font-size:12.5px;cursor:pointer}'+
+  '.ccb .no{background:#f2f2f2;color:#666} body.dark-mode .ccb .no{background:#33291f;color:#b8ae9e}'+
+  '.ccb .yes{background:linear-gradient(135deg,var(--primary,#ff6b00),#ff9a3d);color:#fff}'+
+  '.ccb .yes.danger{background:linear-gradient(135deg,#e53935,#ff6b5a)}'+
+  /* celebration */
+  '#cCeb{position:fixed;inset:0;z-index:500001;display:none;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 50% 20%,rgba(255,180,40,.35),rgba(20,10,2,.72))}'+
+  '#cCeb.on{display:flex}'+
+  '.cceb{width:100%;max-width:430px;border-radius:30px;overflow:hidden;box-shadow:0 34px 100px rgba(0,0,0,.5);animation:c40in .34s cubic-bezier(.2,1.3,.4,1)}'+
+  '.ccebh{background:linear-gradient(135deg,#0f9d45,#2bc96e);color:#fff;text-align:center;padding:26px 16px 20px;position:relative}'+
+  '.ccebh .conf{position:absolute;inset:0;overflow:hidden;pointer-events:none}'+
+  '.ccebh .conf i{position:absolute;width:6px;height:6px;border-radius:50%;animation:c40cf 1s ease-out forwards}'+
+  '@keyframes c40cf{from{transform:translateY(0) scale(1);opacity:1}to{transform:translateY(-130px) scale(.2);opacity:0}}'+
+  '.ring{position:relative;width:104px;height:104px;margin:0 auto 10px}'+
+  '.ring span{position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top-color:#fff;animation:c40sp 1s linear infinite}'+
+  '.ring span:nth-child(2){inset:7px;border-top-color:#ffd700;animation-duration:1.3s;animation-direction:reverse}'+
+  '@keyframes c40sp{to{transform:rotate(360deg)}}'+
+  '.ring b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:52px}'+
+  '.ccebh .t1{font-size:22px;font-weight:900}'+
+  '.ccebh .t2{font-size:11.5px;opacity:.95;font-weight:700;margin-top:4px}'+
+  '.ccebb{background:#fff;color:#222;padding:18px 18px 22px}'+
+  'body.dark-mode .ccebb{background:#201a14;color:#eee}'+
+  '.ccebb .amt{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin-bottom:14px}'+
+  '.ccebb .amt div{background:#f4f6f8;border-radius:15px;padding:10px 15px;min-width:108px;text-align:center}'+
+  'body.dark-mode .ccebb .amt div{background:#2a221a}'+
+  '.ccebb .amt b{display:block;font-size:19px;color:var(--primary,#ff6b00)}'+
+  '.ccebb .amt span{font-size:9.5px;font-weight:800;color:#999}'+
+  '.ccebb .rwc{display:flex;gap:9px}'+
+  '.ccebb .rwc button{flex:1;border:none;border-radius:14px;padding:13px;font-weight:900;font-size:12.5px;cursor:pointer}'+
+  '.ccebb .ok{background:linear-gradient(135deg,var(--primary,#ff6b00),#ff9a3d);color:#fff}'+
+  '.ccebb .rt{background:linear-gradient(135deg,#f5a623,#ffc94d);color:#5a3a00}'+
+  '.ccebb .ch{background:#eef1f4;color:#555} body.dark-mode .ccebb .ch{background:#33291f;color:#c0b6a6}'+
+  '#cCeb .ct{font-size:12.5px;font-weight:800;color:#444;line-height:1.65;text-align:center}'+
+  'body.dark-mode #cCeb .ct{color:#cfc6ba}'+
+  '#cCeb .ct b{color:var(--primary,#ff6b00)}';
+  document.head.appendChild(st);
+  /* ─── CONFIRM ─── */
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function cConfirm(msg,opts){
+    opts=opts||{};
+    var ov=document.getElementById('cCOv');
+    if(!ov){ ov=document.createElement('div'); ov.id='cCOv'; document.body.appendChild(ov); }
+    ov.innerHTML='<div class="ccard"><div class="cch"><div class="ic">'+esc(opts.ic||'❓')+'</div><div class="tt">'+esc(opts.title||'पक्का?')+'</div></div><div class="ccb"><div class="ccmsg">'+esc(String(msg==null?'':msg)).replace(/\n/g,'<br>')+'</div><div class="rwc"><button class="no" id="cCNo">✕ '+(opts.no||'नहीं')+'</button><button class="yes '+(opts.danger?'danger':'')+'" id="cCYes">'+(opts.ok||'✅ हाँ')+'</button></div></div></div>';
+    ov.classList.add('on');
+    return new Promise(function(res){
+      document.getElementById('cCYes').onclick=function(){ ov.classList.remove('on'); res(true); };
+      document.getElementById('cCNo').onclick=function(){ ov.classList.remove('on'); res(false); };
+    });
+  }
+  window.cConfirm=cConfirm;
+  /* ─── CELEBRATION ─── */
+  function confetti(){
+    var el=document.querySelector('#cCeb .conf'); if(!el) return;
+    var colors=['#ffd700','#ff6b00','#fff','#2bc96e','#ff5252'];
+    el.innerHTML='';
+    for(var i=0;i<18;i++){
+      var d=document.createElement('i');
+      d.style.left=(10+Math.random()*80)+'%'; d.style.top=(6+Math.random()*30)+'%';
+      d.style.background=colors[i%colors.length];
+      d.style.animationDelay=(Math.random()*.5)+'s';
+      el.appendChild(d);
+    }
+    setTimeout(function(){ el.innerHTML=''; },1500);
+  }
+  function cCeleb(o,oid){
+    var el=document.getElementById('cCeb');
+    if(!el){ el=document.createElement('div'); el.id='cCeb'; document.body.appendChild(el); }
+    var items=(o.items||[]).map(function(i){ return (i.n||''); }).join(', ').slice(0,60);
+    el.innerHTML='<div class="cceb"><div class="ccebh"><div class="conf"></div><div class="ring"><span></span><span></span><b>✅</b></div><div class="t1">काम पूरा हो गया! 🎉</div><div class="t2">Order '+esc(oid||'')+' • शानदार काम 👏</div></div><div class="ccebb"><div class="amt"><div><b>₹'+(o.total||0).toLocaleString('en-IN')+'</b><span>भुगतान</span></div><div><b>'+(o.mode?esc(o.mode):'—')+'</b><span>माध्यम</span></div></div><div class="ct">🛠️ '+(items?'<b>'+items+'</b>':'-')+'<br>🧑‍🔧 '+(o.partnerName?esc(o.partnerName):'Partner')+(o.partnerPhone?' • +91 '+esc(o.partnerPhone):'')+'</div><div class="rwc" style="margin-top:14px;"><button class="ok" id="cCebOk">ठीक है 👍</button><button class="rt" id="cCebRt" style="display:none;">⭐ रेटिंग दें</button></div></div></div>';
+    el.classList.add('on');
+    confetti();
+    try{ if(navigator.vibrate) navigator.vibrate([80,50,80,50,200]); }catch(e){}
+    document.getElementById('cCebOk').onclick=function(){ el.classList.remove('on'); };
+    var rt=document.getElementById('cCebRt');
+    if(typeof window.openRateModal==='function'){
+      rt.style.display='';
+      rt.onclick=function(){ el.classList.remove('on'); try{ window.openRateModal(oid); }catch(e){} };
+    }
+  }
+  window.cCeleb=cCeleb;
+  /* ─── WATCHER: sirf LIVE transition to Completed ─── */
+  function watch(){
+    if(window.__c40W) return; window.__c40W=1;
+    var prev={}, fired={};
+    try{
+      if(typeof window.myOrdersQuery!=='function') return;
+      myOrdersQuery().onSnapshot(function(snap){
+        snap.docChanges().forEach(function(ch){
+          var d=ch.doc, o=d.data(), oid=o.id||d.id;
+          var p=prev[oid];
+          prev[oid]=o.status;
+          if(o.status==='Completed'&&p&&p!=='Completed'&&!fired[oid]&&ch.type==='modified'){ fired[oid]=1; cCeleb(o,oid); }
+        });
+      },function(){});
+    }catch(e){}
+  }
+  var tw=0;
+  function tryW(){
+    try{
+      if(window.firebase&&firebase.auth().currentUser&&typeof window.myOrdersQuery==='function'){ clearInterval(tw); setTimeout(watch,1200); }
+    }catch(e){}
+  }
+  tw=setInterval(tryW,800);
+  /* ─── ADMIN LOCK resync (real Firebase email) ─── */
+  try{
+    firebase.auth().onAuthStateChanged(function(u){
+      var em=(u&&u.email)?u.email:'';
+      if(window.checkAdminAccess) window.checkAdminAccess(em);
+    });
+  }catch(e){}
+  console.log('%c 🎉🔔🔐 CUSTOMER v4.0 — SUNDER + CELEBRATION + ADMIN EMAIL LOCK ✅ ','background:#15a04a;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+<script>
+/* ═══════════════ CUSTOMER v4.0B — सारे confirm → SUNDER box ═══════════════ */
+(function(){
+  if(window.__c40B) return; window.__c40B=1;
+
+  window.cancelMyOrder = function(oid){
+    window.cConfirm('ऑर्डर '+oid+' रद्द करना है?',{ic:'❌',title:'Order Cancel',ok:'हाँ, रद्द करें'}).then(function(ok){
+      if(!ok) return;
+      FS.collection('orders').doc(oid).update({ status:'Cancelled' })
+        .then(function(){
+          showToast('❌ ऑर्डर रद्द हो गया');
+          try{ closeCustomAlert(); }catch(e){}
+          setTimeout(function(){ try{ window.showHistory(); }catch(e){} },400);
+        })
+        .catch(function(e){ showAlert('त्रुटि', e.message); });
+    });
+  };
+
+  window.deleteMyOrder = function(oid){
+    window.cConfirm('ऑर्डर '+oid+' को history से हमेशा के लिए delete करना है?',{ic:'🗑️',title:'Delete Order',ok:'हाँ, delete करें',danger:true}).then(function(ok){
+      if(!ok) return;
+      FS.collection('orders').doc(oid).delete()
+        .then(function(){
+          showToast('🗑️ ऑर्डर delete हो गया');
+          try{ closeCustomAlert(); }catch(e){}
+          setTimeout(function(){ try{ window.showHistory(); }catch(e){} },350);
+        })
+        .catch(function(e){ showAlert('त्रुटि', e.message); });
+    });
+  };
+
+  window.clearMyHistory = function(){
+    window.cConfirm('सभी पूर्ण/रद्द ऑर्डर history से delete हो जाएंगे। पक्का?',{ic:'🧹',title:'History साफ़ करें',ok:'हाँ, सब delete करें',danger:true}).then(function(ok){
+      if(!ok) return;
+      showLoader('History साफ़ हो रही है...');
+      myOrdersQuery().get().then(function(snap){
+        var batch=FS.batch(); var n=0;
+        snap.docs.forEach(function(d){
+          var s=d.data().status;
+          if(s==='Completed'||s==='Cancelled'){ batch.delete(d.ref); n++; }
+        });
+        return batch.commit().then(function(){ return n; });
+      }).then(function(n){
+        hideLoader();
+        try{ closeCustomAlert(); }catch(e){}
+        showToast(n?('🗑️ '+n+' ऑर्डर delete हो गए'):'कोई पूर्ण/रद्द ऑर्डर नहीं मिला');
+        setTimeout(function(){ try{ window.showHistory(); }catch(e){} },400);
+      }).catch(function(e){ hideLoader(); showAlert('त्रुटि', e.message); });
+    });
+  };
+
+  window.adminDeleteOrder = function(oid){
+    window.cConfirm('ऑर्डर '+oid+' को हमेशा के लिए delete करना है?\n(Chat history भी हट जाएगी)',{ic:'🗑️',title:'Delete Order',ok:'हाँ, delete करें',danger:true}).then(function(ok){
+      if(!ok) return;
+      FS.collection('orders').doc(oid).delete()
+        .then(function(){ showToast('🗑️ ऑर्डर '+oid+' delete हो गया'); })
+        .catch(function(e){ showAlert('त्रुटि', e.message); });
+    });
+  };
+
+  window.adminVerifyPayment = function(oid, ref){
+    window.cConfirm('PhonePe Business app me check kiya?\nUTR: '+(ref||'—')+'\n\nPayment VERIFY karein?',{ic:'💜',title:'UTR Verify',ok:'✅ VERIFY करें'}).then(function(ok){
+      if(!ok) return;
+      FS.collection('orders').doc(oid).update({
+        'payment.verified':true,
+        'payment.status':'PAID (Admin Verified)',
+        'payment.verifiedAt':Date.now()
+      }).then(function(){ showToast('✅ Payment verified — '+oid); })
+        .catch(function(e){ showAlert('त्रुटि', e.message); });
+    });
+  };
+
+  /* customer-side admin: category delete */
+  window.deleteAdminCategory = function(key){
+    window.cConfirm("क्या आप वाकई कैटेगरी '"+key+"' और उसके अंतर्गत सभी सर्विसेज को हटाना चाहते हैं?",{ic:'🗑️',title:'Category Delete',ok:'हाँ, हटाएँ',danger:true}).then(function(ok){
+      if(!ok) return;
+      try{ categoriesData = categoriesData.filter(function(c){ return c.key!==key; }); }catch(e){}
+      try{ delete mainData[key]; }catch(e){}
+      try{ localStorage.setItem('sw_custom_categories', JSON.stringify(categoriesData)); }catch(e){}
+      try{ localStorage.setItem('sw_custom_services', JSON.stringify(mainData)); }catch(e){}
+      try{ renderCategoriesGrid(); }catch(e){}
+      try{ populateAdminCatDropdown(); }catch(e){}
+      try{ renderAdminCategoriesList(); }catch(e){}
+      showToast('कैटेगरी सफलतापूर्वक हटा दी गई!');
+    });
+  };
+  console.log('%c 🔔 CUSTOMER v4.0B — ALL CONFIRMS SUNDER ✅ ','background:#1976d2;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+
+<script>
+/* सभी native alert() → SUNDER (Customer) */
+(function(){
+  if(window.__c40A) return; window.__c40A=1;
+  window.alert=function(m){
+    try{ if(typeof showAlert==='function'){ showAlert('सूचना', String(m==null?'':m).replace(/\n/g,'<br>')); return; } }catch(e){}
+  };
+  console.log('%c 🔔 CUSTOMER v4.0C — ALERT SUNDER ✅ ','background:#ff6b00;color:#fff;font-weight:bold;padding:3px;');
+})();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3512cd82b982a99',t:'MTc4ODQwMDk3Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
