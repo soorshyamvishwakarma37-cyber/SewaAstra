@@ -971,13 +971,10 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
         </div>
 
         <div style="margin-bottom: 15px;">
-            <div style="font-size: 11px; font-weight: bold; color: #888; margin-bottom: 6px;">भाषा चुनें / App Language</div>
-            <div class="lang-box">
-                <button id="btnHi" class="lang-btn" onclick="setLang('hi', event)">हिन्दी</button>
-                <button id="btnEn" class="lang-btn" onclick="setLang('en', event)">English</button>
-                <button id="btnBh" class="lang-btn" onclick="setLang('bh', event)">भोजपुरी</button>
-                <button id="btnPb" class="lang-btn" onclick="setLang('pb', event)">ਪੰਜਾਬੀ</button>
-            </div>
+            <div style="font-size: 11px; font-weight: bold; color: #888; margin-bottom: 6px;">🌐 पूरी App की भाषा बदलें (Google Translate)</div>
+            <button type="button" onclick="swGtShow()" style="width:100%;border:1.5px dashed var(--primary);background:var(--primary-light);color:var(--primary);padding:11px;border-radius:12px;font-weight:900;font-size:12.5px;cursor:pointer;">🌐 अनुवाद करें / Translate App</button>
+            <div style="font-size:9.5px;color:#888;margin-top:5px;">Google Translate से पूरी app (A–Z) एक साथ बदलती है — कोई भी data reset नहीं होता</div>
+            <div id="swGtHost"></div>
         </div>
 
         <div class="settings-section-title">Preferences & App</div>
@@ -2780,11 +2777,21 @@ window.saveAdminUpi = function () {
 };
 
 function startAllOrdersListener() {
-  if (unsubAllOrders) return;   // already live
-  unsubAllOrders = FS.collection('orders').onSnapshot(snap => {
-    const orders = snap.docs.map(d => d.data()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    renderAdminOrders(orders.slice(0, 100));
-  }, e => { const el = document.getElementById('admOrdersList'); if (el) el.innerHTML = 'Error: ' + proEsc(e.message); });
+  /* SCALE: पूरी orders collection नहीं — LIVE active + हाल के 150 (bounded) */
+  if (window.__scAllO) return; window.__scAllO = 1;
+  var seen = {};
+  function pushOrders(snap) {
+    snap.docs.forEach(function(d){ var o=d.data(); if(o&&(o.id||d.id)) seen[o.id||d.id]=o; });
+    var list = [];
+    for (var k in seen) list.push(seen[k]);
+    list.sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
+    try { renderAdminOrders(list.slice(0,100)); } catch(err) {}
+  }
+  var errH = function(e){ var el=document.getElementById('admOrdersList'); if(el) el.innerHTML='Error: '+proEsc(e.message); };
+  try {
+    FS.collection('orders').where('status','in',['Order Placed','Accepted','On the Way','Working']).onSnapshot(pushOrders, errH);
+    FS.collection('orders').orderBy('createdAt','desc').limit(150).onSnapshot(pushOrders, errH);
+  } catch(e) { errH(e); }
 }
 
 function renderAdminOrders(orders) {
@@ -2981,6 +2988,21 @@ function subscribeTrack(oid) {
     const curIdx = TRACK_STEPS.findIndex(t => t.s === o.status);
     const isCancelled = o.status === 'Cancelled';
     const freshLoc = pLoc && o.partnerLoc.ts && (Date.now() - o.partnerLoc.ts < 120000);
+    /* 📏 दूरी + ⏱️ ETA + 🕐 last update (feature: partner map time के साथ) */
+    let dTxt='—', etaTxt='—', lastTxt='—', navLn='';
+    if (pLoc && Array.isArray(pLoc) && pLoc.length>=2) {
+      try {
+        const R=6371, dLa=(pLoc[0]-custLoc[0])*Math.PI/180, dLo=(pLoc[1]-custLoc[1])*Math.PI/180;
+        const a2=Math.sin(dLa/2)*Math.sin(dLa/2)+Math.cos(custLoc[0]*Math.PI/180)*Math.cos(pLoc[0]*Math.PI/180)*Math.sin(dLo/2)*Math.sin(dLo/2);
+        const km=2*R*Math.asin(Math.sqrt(a2));
+        dTxt = km<1 ? Math.round(km*1000)+' m' : km.toFixed(1)+' km';
+        const mins = Math.max(1, Math.ceil(km/18*60));      // ~18 km/h avg city speed
+        etaTxt = mins+' min';
+        const age = Math.max(0, Math.round((Date.now()-(o.partnerLoc.ts||0))/1000));
+        lastTxt = (age<60? age+' sec' : Math.round(age/60)+' min')+' पहले';
+        navLn = 'https://www.google.com/maps/dir/'+custLoc[0]+','+custLoc[1]+'/'+pLoc[0]+','+pLoc[1];
+      } catch(e) {}
+    }
     if (infoEl) {
       infoEl.innerHTML = `
         <div style="font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center;">
@@ -2996,7 +3018,13 @@ function subscribeTrack(oid) {
         </div>
         <div style="font-size:12px;color:${freshLoc ? '#15a04a' : '#888'};font-weight:700;margin:6px 0;">
           ${freshLoc ? '🟢 पार्टनर की LIVE लोकेशन दिख रही है' : pLoc ? '🟡 पार्टनर की आखिरी लोकेशन' : '⏳ पार्टनर की लोकेशन का इंतज़ार — काम शुरू होते ही यहाँ दिखेगी'}
-        </div>`}
+        </div>
+        ${pLoc ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 6px;">
+          <span style="background:rgba(21,160,74,.12);color:#0f7a37;border-radius:12px;padding:5px 10px;font-size:10.5px;font-weight:900;">📏 दूरी: ${dTxt}</span>
+          <span style="background:rgba(13,110,253,.12);color:#0d6efd;border-radius:12px;padding:5px 10px;font-size:10.5px;font-weight:900;">⏱️ ETA: ~${etaTxt}</span>
+          <span style="background:rgba(176,120,0,.14);color:#8a5a00;border-radius:12px;padding:5px 10px;font-size:10.5px;font-weight:900;">🕐 last ${lastTxt}</span>
+        </div>
+        <a href="${navLn}" target="_blank" style="display:block;text-align:center;background:#0d47a1;color:#fff;text-decoration:none;border-radius:11px;padding:9px;font-size:11.5px;font-weight:900;margin-bottom:6px;">🧭 Partner तक Navigation (Google Maps)</a>` : ''}`}
         <div style="display:flex;gap:10px;margin-top:8px;">
           <button onclick="openMaskCall()" style="flex:1;background:#15a04a;color:#fff;border:none;padding:11px;border-radius:12px;font-weight:800;cursor:pointer;"><i class="fa fa-phone-alt"></i> Call</button>
           <button onclick="closeLiveTracking();openOrderChat('${oid}')" style="flex:1;background:#ff6b00;color:#fff;border:none;padding:11px;border-radius:12px;font-weight:800;cursor:pointer;"><i class="fa fa-comment-dots"></i> Live Chat</button>
@@ -3235,13 +3263,13 @@ firebase.auth().onAuthStateChanged(u=>{ if(u) setTimeout(proSaveProfile, 1500); 
 /* ---------- 2. ADMIN: 👥 USERS TAB + LIST ---------- */
 window.openCustomersList = function(){
   showLoader('Customers लोड हो रहे हैं...');
-  FS.collection('users').get().then(snap=>{
+  FS.collection('users').orderBy('lastLogin','desc').limit(150).get().then(snap=>{
     hideLoader();
     if(snap.empty) return showAlert('👥 Customers', 'अभी तक कोई customer login नहीं हुआ है।');
     let users = snap.docs.map(d=>({id:d.id, ...d.data()}));
     users.sort((a,b)=>(b.lastLogin||0)-(a.lastLogin||0));
     let html = `<div style="text-align:left;max-height:65vh;overflow-y:auto;">
-      <div style="font-size:12px;font-weight:800;color:#888;margin-bottom:10px;">कुल ${users.length} customers (mobile/gmail के आधार पर)</div>`;
+      <div style="font-size:12px;font-weight:800;color:#888;margin-bottom:10px;">हाल के ${users.length} customers (सब लाखों हों तो Cloud console से पूरा export)</div>`;
     users.forEach(c=>{
       const ph = c.phone ? String(c.phone) : '';
       html += `<div class="pro-cust-card">
@@ -4671,6 +4699,8 @@ console.log('%c REAL AUTH MODE ✅ (Direct Login removed) ', 'background:#15a04a
   'body.dark-mode .sosTA{background:#2b221c;color:#eee;border-color:#3a2f28}'+
   '.sosTA:focus{border-color:#e53935}'+
   '.sosSend{width:100%;border:none;border-radius:14px;padding:13px;background:linear-gradient(135deg,#ff6b00,#ff9a3d);color:#fff;font-weight:900;font-size:13px;cursor:pointer;margin-top:10px}'+
+  '.sosPanic{width:100%;border:none;border-radius:14px;padding:14px;background:linear-gradient(135deg,#b71c1c,#ff5252);color:#fff;font-weight:900;font-size:13.5px;cursor:pointer;margin-top:6px;box-shadow:0 8px 20px rgba(229,57,53,.45);animation:sosBlink 1s infinite}'+
+  '@keyframes sosBlink{50%{opacity:.72}}'
   '.sosSend:active{transform:scale(.98)}'+
   '.sosCls{width:100%;border:none;background:none;color:#999;font-weight:800;font-size:12px;padding:11px;cursor:pointer}'+
   '#cCOv{z-index:9999990!important}#cCeb{z-index:9999991!important}';
@@ -4689,9 +4719,10 @@ console.log('%c REAL AUTH MODE ✅ (Direct Login removed) ', 'background:#15a04a
             '<a class="c2" href="tel:108"><i>🚑</i><b>108</b><span>Ambulance / Medical</span></a>'+
           '</div>'+
           '<div class="sosInfo">ℹ️ <b>112</b> — पुलिस/फायर/मेडिकल सभी आपात<br>ℹ️ <b>108</b> — एम्बुलेंस (बीमारी/दुर्घटना)</div>'+
-          '<div class="sosDiv">या ऐप से शिकायत दर्ज करें</div>'+
-          '<textarea class="sosTA" id="sosMsg" placeholder="शिकायत लिखें (Order ID भी लिखें तो जल्दी resolve होगी)..."></textarea>'+
-          '<button class="sosSend" onclick="cSosSend()">📨 शिकायत भेजें</button>'+
+          '<div class="sosDiv">या ऐप से मदद माँगें</div>'+
+          '<textarea class="sosTA" id="sosMsg" placeholder="क्या हुआ? (जगह/समस्या लिखें) — Location अपने आप जुड़ जाएगी"></textarea>'+
+          '<button class="sosPanic" onclick="cSosPanic()">🚨 EMERGENCY ALERT भेजें (Admin तक)</button>'+
+          '<button class="sosSend" onclick="cSosSend()">📨 शिकायत / सुझाव दर्ज करें</button>'+
           '<button class="sosCls" onclick="cSosClose()">✕ बंद करें</button>'+
         '</div>'+
       '</div>';
@@ -4703,6 +4734,32 @@ console.log('%c REAL AUTH MODE ✅ (Direct Login removed) ', 'background:#15a04a
     var ta=document.getElementById('sosMsg'); if(ta) ta.value='';
   };
   window.cSosClose=function(){ var o=ovr(); o.classList.remove('on'); };
+  window.cSosPanic=function(){
+    var ph=localStorage.getItem('sw_user')||'';
+    if(!ph) return alert('पहले login करें — तभी alert आपके नंबर से जाएगा');
+    var ta=document.getElementById('sosMsg');
+    var m=(ta?ta.value:'').trim();
+    if(m.length<4) m='🆘 Emergency — तुरंत मदद चाहिए';
+    var nm='';
+    try{ nm=localStorage.getItem('sw_user_name')||''; }catch(e){}
+    var uid=''; try{ uid=firebase.auth().currentUser?firebase.auth().currentUser.uid:''; }catch(e){}
+    var lastOrder=''; try{ var h=JSON.parse(localStorage.getItem('sw_order_history')||'[]'); if(h.length) lastOrder=h[0].id||''; }catch(e){}
+    function fire(loc){
+      var rec={type:'sos',kind:'emergency',phone:ph,name:nm,uid:uid,msg:m,
+        orderId:lastOrder||'',ts:Date.now(),at:new Date().toLocaleString('en-IN'),status:'active'};
+      if(loc) rec.loc={lat:loc.lat,lon:loc.lon};
+      firebase.firestore().collection('sos_alerts').add(rec).then(function(d){
+        window.cSosClose();
+        showAlert('🚨 EMERGENCY ALERT भेज दिया गया!','Admin dashboard पर तुरंत 🔴 red alert + sound के साथ दिखेगा। वे आपको तुरंत कॉल करेंगे।<br><br>🆘 बहुत गंभीर हो तो <b>112</b> पर भी कॉल करें।');
+        try{ window.open('https://wa.me/917869969190?text='+encodeURIComponent('🚨 SEWAASTRA EMERGENCY\n📱 '+ph+(nm?('\n👤 '+nm):'')+'\n📍 '+(loc?('lat:'+loc.lat+',lon:'+loc.lon):'GPS off')+'\n🗒️ '+m+'\n🧾 Last order: '+(lastOrder||'-')),'_blank'); }catch(e){}
+      }).catch(function(e){ showAlert('त्रुटि', e.message); });
+    }
+    try{
+      navigator.geolocation.getCurrentPosition(function(p){ fire({lat:p.coords.latitude,lon:p.coords.longitude}); },
+        function(){ fire(null); },{timeout:6000});
+      setTimeout(function(){ },7000);
+    }catch(e){ fire(null); }
+  };
   window.cSosSend=function(){
     var ph=localStorage.getItem('sw_user')||'';
     if(!ph) return alert('पहले login करें');
@@ -5494,12 +5551,26 @@ body.dark-mode .v39mg span{background:#2e2e2e}
   var rAgg={}; /* 'cat|name' -> {sum,count} */
   function wSubRate(){
     try{
-      FS.collection('service_ratings').onSnapshot(function(s){
+      /* SCALE: service_ratings (हर rating की row — अनबाउंड) की जगह ab svc_stats
+         (हर service का 1 aggregate doc — bounded, chhota) subscribe होता है */
+      FS.collection('svc_stats').onSnapshot(function(s){
         var a={};
-        s.docs.forEach(function(d){ var x=d.data(); var k=String(x.cat||'')+'|'+String(x.sn||''); if(!a[k]) a[k]={sum:0,count:0}; a[k].sum+=Number(x.stars)||0; a[k].count++; });
+        s.docs.forEach(function(d){ var x=d.data(); var k=String(x.cat||'')+'|'+String(x.sn||''); if(!a[k]) a[k]={sum:0,count:0}; a[k].sum+=Number(x.sum)||0; a[k].count+=Number(x.count)||0; });
         window.__rAgg=a; rAgg=a;
         try{ reBadge(); }catch(e){}
       },function(){});
+      /* पुराने ratings (svc_stats बनने से पहले) — एक बार सीमित backfill */
+      try{
+        FS.collection('svc_stats').get().then(function(st){
+          if(st.empty){
+            return FS.collection('service_ratings').limit(400).get().then(function(rs){
+              var a2={};
+              rs.docs.forEach(function(d){ var x=d.data(); var k=String(x.cat||'')+'|'+String(x.sn||''); if(!a2[k]) a2[k]={sum:0,count:0}; a2[k].sum+=Number(x.stars)||0; a2[k].count++; });
+              rAgg=a2; try{ reBadge(); }catch(e){}
+            }).catch(function(){});
+          }
+        }).catch(function(){});
+      }catch(e){}
     }catch(e){}
   }
   function reBadge(){ try{ window.dispatchEvent(new Event('sewaastra-rebadge')); }catch(e){} }
@@ -5541,6 +5612,10 @@ body.dark-mode .v39mg span{background:#2e2e2e}
       FS.collection('orders').doc(oid).update({items:items}).catch(function(){});
       items.forEach(function(i){
         FS.collection('service_ratings').add({cat:i.cat,catName:i.catName||'',sn:i.n,stars:stars,orderId:oid,by:(localStorage.getItem('sw_user')||getUID()||'anon'),ts:Date.now(),at:new Date().toLocaleString('en-IN')}).catch(function(){});
+        try{
+          var key=String(i.cat||'')+'__'+String(i.n||'').replace(/[^A-Za-z0-9]/g,'_');
+          FS.collection('svc_stats').doc(key).set({cat:i.cat||'',catName:i.catName||'',sn:i.n||'',sum:firebase.firestore.FieldValue.increment(stars),count:firebase.firestore.FieldValue.increment(1),lastAt:Date.now()},{merge:true}).catch(function(){});
+        }catch(e){}
       });
     }).catch(function(){});
   };
@@ -5939,6 +6014,111 @@ body.dark-mode .v39mg span{background:#2e2e2e}
   setTimeout(wEditWatch,3000);
 
   console.log('%c 💰🪙⭐ CUSTOMER v4.4 — WALLET + COINS + REFER + SERVICE RATING + EDIT-POPUP ✅ ','background:#0d47a1;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+
+
+<script>
+/* ═══════════════ CUSTOMER v4.6 — 🌐 GOOGLE TRANSLATE (A–Z पूरी App) + ⚡ 5-sec AUTO REFRESH (data reset नहीं) ═══════════════ */
+(function(){
+  if(window.__c46) return; window.__c46=1;
+  var LGS=[['hi','हिन्दी (Original)'],['en','English'],['bn','বাংলা'],['gu','ગુજરાતી'],['kn','ಕನ್ನಡ'],['ml','മലയാളം'],['mr','मराठी'],['pa','ਪੰਜਾਬੀ'],['ta','தமிழ்'],['te','తెలుగు'],['ur','اردو'],['ne','नेपाली'],['as','অসমীয়া'],['or','ଓଡ଼ିଆ']];
+  var _ready=false,_loading=false;
+
+  function host(){
+    var h=document.getElementById('swGtEl');
+    if(!h){ h=document.createElement('div'); h.id='swGtEl';
+      h.style.cssText='position:absolute;top:-9999px;left:-9999px;width:8px;height:8px;opacity:.01;overflow:hidden;pointer-events:none;';
+      document.body.appendChild(h); }
+    return h;
+  }
+  function load(){
+    if(_loading) return; _loading=true;
+    try{
+      window.swGtCb=function(){ try{ if(window.google&&google.translate){ new google.translate.TranslateElement({pageLanguage:'hi',autoDisplay:false,includedLanguages:'hi,en,bn,gu,kn,ml,mr,pa,ta,te,ur,ne,as,or',layout:google.translate.TranslateElement.InlineLayout.SIMPLE},'swGtEl'); _ready=true; } }catch(e){} };
+      if(document.querySelector('script[src*="translate_a/element.js"]')){ _loading=false; return; }
+      var sc=document.createElement('script');
+      sc.src='https://translate.google.com/translate_a/element.js?cb=swGtCb';
+      sc.onerror=function(){ _loading=false; try{ showToast('🌐 Translate load नहीं हुआ — internet check करें'); }catch(e){} };
+      document.head.appendChild(sc);
+    }catch(e){ _loading=false; }
+  }
+  function combo(){ try{ var el=host(); var c=el.querySelector('.goog-te-combo'); return c; }catch(e){ return null; } }
+  function panelHTML(){
+    return '<div style="max-width:430px;margin:0 auto;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.45);animation:ain46 .22s">'+
+    '<div style="background:linear-gradient(135deg,#0d47a1,#1976d2);color:#fff;padding:16px;display:flex;justify-content:space-between;align-items:center;"><div><b style="font-size:15px;">🌐 पूरी App को भाषा में बदलें</b><br><span style="font-size:10px;opacity:.9;">Google Translate — A to Z सब बदलता है</span></div><span style="font-size:22px;cursor:pointer;" onclick="swGtHide()">✕</span></div>'+
+    '<div style="padding:12px 14px;max-height:62vh;overflow-y:auto;">'+
+      '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">'+
+        LGS.map(function(l){ return '<button type="button" onclick="swGtSet(\''+l[0]+'\')" style="padding:12px 8px;border-radius:11px;border:1.5px solid #e3ecfa;background:#f4f8ff;color:#0d3b66;font-weight:800;font-size:12.5px;cursor:pointer;">'+l[1]+'</button>'; }).join('')+
+      '</div>'+
+    '</div>'+
+    '<div style="padding:10px 16px 14px;font-size:9.5px;color:#888;border-top:1px dashed #ddd;text-align:center;">💡 कोई भी बनाया हुआ data (cart/order/forms) reset नहीं होता — सिर्फ भाषा बदलती है</div>'+
+    '</div>';
+  }
+  function ovr(){
+    var o=document.getElementById('swGtOv');
+    if(!o){ o=document.createElement('div'); o.id='swGtOv';
+      o.style.cssText='position:fixed;inset:0;z-index:9999992;display:none;align-items:center;justify-content:center;background:rgba(5,10,25,.55);padding:16px;';
+      document.body.appendChild(o);
+      var st=document.createElement('style'); st.id='swGtSt';
+      st.textContent='@keyframes ain46{from{transform:scale(.92) translateY(18px);opacity:0}to{transform:none;opacity:1}}';
+      document.head.appendChild(st);
+    }
+    return o;
+  }
+  window.swGtShow=function(){
+    try{ if(!_ready) load(); var o=ovr(); o.innerHTML='<div style="width:100%;">'+panelHTML()+'</div>'; o.style.display='flex';
+      if(!_ready){ try{ showToast('🌐 Translate तैयार हो रहा है... थोड़ी देर में दोबारा चुनें'); }catch(e){} }
+    }catch(e){}
+  };
+  window.swGtHide=function(){ try{ var o=ovr(); o.style.display='none'; }catch(e){} };
+  ovr();
+  window.swGtSet=function(code){
+    try{
+      var c=combo();
+      if(!c){ load(); try{ showToast('🌐 Google Translate load हो रहा है — 2 सेकंड में दोबारा दबाएँ'); }catch(e){} return; }
+      c.value=code;
+      try{ c.dispatchEvent(new Event('change',{bubbles:true})); }catch(e){}
+      swGtHide();
+      try{ showToast('🌐 भाषा बदली गई — पूरी App translate हो रही है'); }catch(e){}
+    }catch(e){}
+  };
+  /* header quick chip */
+  try{
+    var hp=document.getElementById('headerProfile');
+    if(hp&&!document.getElementById('hdGt')){
+      var g=document.createElement('div'); g.id='hdGt';
+      g.title='🌐 Translate / भाषा';
+      g.style.cssText='width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;background:var(--primary-light);border:1px solid var(--primary);';
+      g.innerHTML='🌐';
+      g.onclick=function(){ swGtShow(); };
+      hp.parentNode.insertBefore(g,hp);
+    }
+  }catch(e){}
+
+  /* ═══ ⚡ 5-SEC AUTO REFRESH — admin/catalogue live, par भरा data नहीं मिटता ═══ */
+  try{ var _ld46=window.load; if(typeof _ld46==='function') window.load=function(k){ try{ window.__curCat=k; }catch(e){} _ld46(k); }; }catch(e){}
+  function softRefresh(){
+    try{
+      if(document.hidden) return;
+      FS.collection('app_config').doc('main').get().then(function(d){
+        if(!d.exists) return;
+        var x=d.data(), u=Number(x.updatedAt)||0;
+        if(u && window.__cfgT && u<=window.__cfgT) return;
+        window.__cfgT=u;
+        try{ if(typeof applyCloudConfig==='function') applyCloudConfig(x); }catch(e){}
+        /* reload catalog sirf तभी जब search खाली हो (user का typing/search reset न हो) */
+        var srchEl=document.getElementById('srch');
+        var busy=!!(srchEl&&srchEl.value&&srchEl.value.trim().length);
+        var k=window.__curCat;
+        if(k&&!busy){ try{ if(typeof window.load==='function') window.load(k); }catch(e){} }
+      }).catch(function(){});
+    }catch(e){}
+  }
+  setInterval(softRefresh,5000);
+  setTimeout(function(){ try{ FS.collection('app_config').doc('main').get().then(function(d){ if(d.exists) window.__cfgT=Number((d.data().updatedAt)||0); }).catch(function(){}); }catch(e){} },3000);
+  console.log('%c 🌐⚡ CUSTOMER v4.6 — GOOGLE TRANSLATE + AUTO REFRESH ✅ ','background:#0d47a1;color:#fff;font-weight:bold;padding:3px;');
 })();
 
 </script>
