@@ -971,9 +971,9 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
         </div>
 
         <div style="margin-bottom: 15px;">
-            <div style="font-size: 11px; font-weight: bold; color: #888; margin-bottom: 6px;">🌐Language</div>
-            <button type="button" onclick="swGtShow()" style="width:100%;border:1.5px dashed var(--primary);background:var(--primary-light);color:var(--primary);padding:11px;border-radius:12px;font-weight:900;font-size:12.5px;cursor:pointer;">🌐Language</button>
-            <div style="font-size:9.5px;color:#888;margin-top:5px;">language</div>
+            <div style="font-size: 11px; font-weight: bold; color: #888; margin-bottom: 6px;">🌐 पूरी App की भाषा बदलें (Google Translate)</div>
+            <button type="button" onclick="swGtShow()" style="width:100%;border:1.5px dashed var(--primary);background:var(--primary-light);color:var(--primary);padding:11px;border-radius:12px;font-weight:900;font-size:12.5px;cursor:pointer;">🌐 अनुवाद करें / Translate App</button>
+            <div style="font-size:9.5px;color:#888;margin-top:5px;">Google Translate से पूरी app (A–Z) एक साथ बदलती है — कोई भी data reset नहीं होता</div>
             <div id="swGtHost"></div>
         </div>
 
@@ -1038,9 +1038,9 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
 <div id="homePage">
     <header class="app-header">
         <div class="header-top">
-            <div class="brand-text">SewaAstra</div>
+            <div class="brand-text">❤️SewaAstra</div>
             <div class="header-actions">
-                <div class="loc-badge" onclick="getLiveLocation()"><i class="fa fa-map-marker-alt"></i> <span id="locTxt">GPS</span></div>
+                <div class="loc-badge" onclick="getLiveLocation()"><i class="fa fa-map-marker-alt"></i> <span id="locTxt">GPS लोकेट करें</span></div>
                 <div id="headerProfile" onclick="toggleProfile()">
                     <img id="headerPic" class="user-pic-circle" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" />
                 </div>
@@ -2578,7 +2578,7 @@ window.handleFinalOrder = function () {
       const upi = `upi://pay?pa=${encodeURIComponent(CLOUD_CONFIG.upiId)}&pn=SewaAstra&am=${finalAmt}&cu=INR&tn=${oid}`;
       extra = `<br><a href="${upi}" style="display:inline-block;margin-top:10px;background:#15a04a;color:#fff;padding:10px 18px;border-radius:10px;text-decoration:none;font-weight:bold;">💳 UPI से ₹${finalAmt} Pay करें</a>`;
     }
-    showAlert('बुकिंग सफल! 🎉', `आपका ऑर्डर <b>${oid}</b> ☁️ cloud में सेव हो गया है!<br>स्टेटस अपडेट आपको यहीं मिलेंगे (📋 History में देखें)।${extra}<br><br>WhatsApp पर विवरण भेजा जा रहा है...`);
+    showAlert('Booking Successful! 🎉', `आपका ऑर्डर <b>${oid}</b> History में सेव हो गया है!<br>स्टेटस अपडेट आपको History  मिलेंगे (📋 History में देखें)।${extra}<br><br>WhatsApp पर विवरण भेजा जा रहा है...`);
     setTimeout(() => { window.open(`https://wa.me/917869969190?text=${waMsg}`, '_blank'); }, 1800);
     startMyOrdersListener();
   }).catch(e => {
@@ -4224,7 +4224,7 @@ window.handleFinalOrder = function(){
         : (payment && /verifying/i.test(payment.status||''))
         ? '<br><span style="color:#b07800;font-weight:800;">⏳ Payment verification में — UTR: ' + proEsc(payment.ref||'') + '<br>Admin जल्द confirm करेंगे</span>'
         : '';
-      showAlert('बुकिंग सफल! 🎉', 'आपका ऑर्डर <b>' + oid + '</b> ☁️ cloud में सेव हो गया है!' + payLine + '<br>स्टेटस अपडेट 📋 History में मिलेंगे।<br><br>WhatsApp पर विवरण भेजा जा रहा है...');
+      showAlert('Booking Successful! 🎉', 'आपका ऑर्डर <b>' + oid + '</b> History में सेव हो गया है!' + payLine + '<br>स्टेटस अपडेट 📋 History में मिलेंगे।<br><br>WhatsApp पर विवरण भेजा जा रहा है...');
       setTimeout(function(){ window.open('https://wa.me/917869969190?text=' + waMsg, '_blank'); }, 1800);
       startMyOrdersListener();
       proStartRatingWatcher();
@@ -5939,7 +5939,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
         }
         var saved='';
         if(swU||coU) saved='<br><span style="font-size:11px;color:#0d47a1;font-weight:700;">💰 Wallet/Coins से बचत: '+(swU?'SW ₹'+swU+' ':'')+(coU?('Coins ₹'+coV+' ('+coU+' coin)'):'')+'</span>';
-        showAlert('Booking Successful! 🎉','✅ <b>'+oid+'</b> !'+saved+'<br>Check history'+extra+'<br><br>💡 पूरा होने पर +₹5 SW wallet में मिलेगा!');
+        showAlert('बुकिंग सफल! 🎉','आपका ऑर्डर <b>'+oid+'</b> ☁️ cloud में सेव हो गया है!'+saved+'<br>स्टेटस अपडेट यहीं मिलेंगे।'+extra+'<br><br>💡 पूरा होने पर +₹5 SW wallet में मिलेगा!');
         try{ window.startMyOrdersListener&&startMyOrdersListener(); }catch(e){}
       }).catch(function(e){ hideLoader(); showAlert('त्रुटि','ऑर्डर सेव नहीं हो सका: '+e.message); });
     }catch(e){ showAlert('त्रुटि', e.message); }
@@ -6175,7 +6175,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
 
 
 <script>
-/* ═══════════════ CUSTOMER v4.7 — REAL FULL-APP TRANSLATE + ORIGINAL COMPANY BILL (SewaAstra Steel Pvt Ltd) + SOS CLOSE ═══════════════ */
+/* ═══════════════ CUSTOMER v4.7 — REAL FULL-APP TRANSLATE + ORIGINAL COMPANY BILL (SewaAstra ) + SOS CLOSE ═══════════════ */
 (function(){
   if(window.__c47) return; window.__c47=1;
 
@@ -6319,8 +6319,8 @@ body.dark-mode .v39mg span{background:#2e2e2e}
 
   /* header translate chip highlight if en */
   /* ─────────────────────── 2) ORIGINAL COMPANY BILL ───────────────────────
-     SewaAstra Steel Pvt Ltd — authorised sign + हर item/service photo सहित पूरी जानकारी */
-  var CO={name:'SewaAstra Steel Pvt Ltd',tag:'Home Services • Steel • Appliances',gstin:'23ABCDE1234F1Z5',addr:'Shop 12, Service Road, Bhopal, Madhya Pradesh 462001',ph:'7869969190',city:'Bhopal'};
+     SewaAstra  — authorised sign + हर item/service photo सहित पूरी जानकारी */
+  var CO={name:'SewaAstra ',tag:'Home Services •  • Appliances',gstin:'23ABCDE1234F1Z5',addr:'misrod , Service Road, Bhopal, Madhya Pradesh 462001',ph:'7869969190',city:'Bhopal'};
   function billLookup(items){
     var map={};
     FS.collection('app_config').doc('main').get().then(function(d){
@@ -6366,7 +6366,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
         '<a href="'+proUpiLink(o.total,o.id)+'" style="display:inline-block;margin:8px 4px 0;background:linear-gradient(90deg,#15a04a,#1fc25e);color:#fff;padding:11px 18px;border-radius:12px;text-decoration:none;font-weight:900;font-size:12px;">📲 अन्य UPI</a></div>'; }
     }
     var rows=(o.items||[]).map(rowFn).join('')||'<div style="color:#999;">—</div>';
-    var stamp='<div style="display:inline-block;border:2.5px solid #c62828;color:#c62828;border-radius:8px;padding:5px 12px;font-size:9.5px;font-weight:900;letter-spacing:1.5px;text-align:center;line-height:1.5;">✓ AUTHORISED<br>SEWAASTRA STEEL<br>PVT LTD</div>';
+    var stamp='<div style="display:inline-block;border:2.5px solid #c62828;color:#c62828;border-radius:8px;padding:5px 12px;font-size:9.5px;font-weight:900;letter-spacing:1.5px;text-align:center;line-height:1.5;">✓ AUTHORISED<br>SEWAASTRA <br>Home Services</div>';
     document.getElementById('proBillInner').innerHTML=
       '<div style="background:linear-gradient(135deg,#10233f,#1b3a66);color:#fff;padding:16px 18px;border-radius:0;">'+
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'+
