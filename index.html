@@ -6123,5 +6123,324 @@ body.dark-mode .v39mg span{background:#2e2e2e}
 
 </script>
 
+
+<script>
+/* ═══════════════ CUSTOMER v4.7 — REAL FULL-APP TRANSLATE + ORIGINAL COMPANY BILL (SewaAstra Steel Pvt Ltd) + SOS CLOSE ═══════════════ */
+(function(){
+  if(window.__c47) return; window.__c47=1;
+
+  /* ─────────────────────── 1) REAL TRANSLATE ENGINE ───────────────────────
+     Google Translate (पूरी app) + बिल्ट-इन dictionary scan (offline भी A–Z scan).
+     Har DOM change पर फिर scan होता है → नया content भी translate दिखे। */
+  var DICT={
+    'नया ऑर्डर':'New Order','मेरे Active काम':'My Active Jobs','मेरे काम':'My Jobs','काम पूरा हुआ':'Work Completed','काम शुरू किया':'Work Started',
+    'ऑर्डर प्लेस':'Place Order','ऑर्डर कैंसिल':'Cancel Order','सेवा रद्द':'Service Cancelled','बुकिंग सफल':'Booking Successful','ऑर्डर सफलतापूर्वक':'Order Successfully',
+    'आपका ऑर्डर':'Your Order','ऑर्डर आईडी':'Order ID','कार्ट खाली है':'Cart is empty','कार्ट में जोड़ा':'Added to cart','चेकआउट करें':'Checkout','भुगतान करें':'Pay Now',
+    'ऑर्डर इतिहास':'Order History','स्टेटस अपडेट':'Status Update','लाइव ट्रैकिंग':'Live Tracking','रास्ते में':'On the Way','स्वीकृत':'Accepted','पूर्ण':'Completed','रद्द':'Cancelled',
+    'ऑर्डर':'Order','सेवा':'Service','सर्विस':'Service','सर्विसेज':'Services','कार्ट':'Cart','इतिहास':'History','काम':'Job/Work','बिल':'Bill','भुगतान':'Payment','पेमेंट':'Payment',
+    'मोबाइल नंबर':'Mobile Number','नंबर':'Number','पता':'Address','तारीख':'Date','समय':'Time','कुल':'Total','छूट':'Discount','कूपन':'Coupon','राशि':'Amount','कीमत':'Price',
+    'प्रोफ़ाइल':'Profile','प्रोफाइल':'Profile','सेटिंग्स':'Settings','मदद':'Help','सहायता':'Support','भाषा':'Language','अनुवाद':'Translate','ऐप':'App','धन्यवाद':'Thank You',
+    'रद्द करें':'Cancel','सेव करें':'Save','जोड़ें':'Add','हटाएँ':'Remove','देखें':'View','खोलें':'Open','बंद करें':'Close','लॉगिन':'Login','लॉगआउट':'Logout','रजिस्टर':'Register',
+    'एक बार फिर':'Retry','फिर से':'Again','जारी रखें':'Continue','पहले':'Before/First','बाद में':'Later','कम':'Less','ज्यादा':'More','हाँ':'Yes','नहीं':'No','खोजें':'Search',
+    'आज':'Today','कल':'Tomorrow','आपका':'Your','आपकी':'Your','मेरा':'My','मेरी':'My','हमारा':'Our','कृपया':'Please','त्रुटि':'Error','सफल':'Success','नया':'New',
+    'ऑनलाइन':'Online','ऑफलाइन':'Offline','स्वीकार करें':'Accept','अस्वीकार करें':'Reject','कन्फर्म करें':'Confirm','कोड':'Code','उपलब्ध':'Available','बटन':'Button',
+    'पैसे':'Money','रुपये':'Rupees','वॉलेट':'Wallet','सिक्के':'Coins','कमाई':'Earnings','निकालें':'Withdraw','जमा':'Deposit','बैलेंस':'Balance','रेफर':'Refer','दोस्त':'Friend',
+    'शेयर करें':'Share','रेटिंग':'Rating','समीक्षा':'Review','टिप्पणी':'Comment','अनुभव':'Experience','स्टार':'Star','तुरंत':'Immediately','कॉल करें':'Call','चैट':'Chat',
+    'सूचना':'Notice','नोटिफिकेशन':'Notification','सुरक्षा':'Security','सहमत':'Agree','नियम':'Rules','शर्तें':'Terms','नीति':'Policy','पढ़ें':'Read','कमीशन':'Commission','कमिशन':'Commission',
+    'जीएसटी':'GST','टैक्स':'Tax','इनवॉइस':'Invoice','शहर':'City','पिन कोड':'PIN Code','क्षेत्र':'Area','दूरी':'Distance','नज़दीक':'Nearby','मिनट':'Minutes','घंटे':'Hours',
+    'किलोमीटर':'Kilometer','वाहन':'Vehicle','कौशल':'Skill','अनुभव':'Experience','दस्तावेज़':'Documents','अपलोड':'Upload','फोटो':'Photo','गैलरी':'Gallery','नाम':'Name',
+    'आधार':'Aadhaar','सबमिट करें':'Submit','मंज़ूरी':'Approval','लंबित':'Pending','अनुमोदित':'Approved','वेरिफाई':'Verify','ओटीपी':'OTP','लाइव':'Live','जीपीएस':'GPS',
+    'अलर्ट':'Alert','काम बदलें':'Change Work','अतिरिक्त':'Extra','बदलाव':'Update','हैंडलिंग':'Handling','चार्ज':'Charge','डिलीवरी':'Delivery','निर्देश':'Instructions',
+    'रिमार्क':'Remark','कैटेगरी':'Category','आइटम':'Item','मूल्य':'Rate','रेट':'Rate','विकल्प':'Options','चुनें':'Choose','स्टेटस':'Status','और':'and','या':'or',
+    'लोकेशन':'Location','जगह':'Place','एरिया':'Area','पूरा पता':'Full Address','स्पेशल':'Special','सब':'All','सबसे':'Most','अच्छा':'Good','बढ़िया':'Great','शानदार':'Excellent',
+    'साइन':'Sign','हस्ताक्षर':'Signature','अधिकृत':'Authorised','कंपनी':'Company','पता':'Address','संपर्क':'Contact','ईमेल':'Email','फोन':'Phone','सहायक':'Helper',
+    'समस्या':'Problem','शिकायत':'Complaint','इमरजेंसी':'Emergency','खतरा':'Danger','मदद माँगें':'Request Help','भेजें':'Send','प्रतीक्षा':'Please Wait','लोड हो रहा':'Loading',
+    'कृपया प्रतीक्षा करें':'Please Wait','सूचित करें':'Notify','चालू':'ON','बंद':'OFF','चालू है':'Running','बंद है':'Off','रेटिंग दें':'Rate Now','धन्यवाद!':'Thank You!'
+  };
+  var _keys=Object.keys(DICT).sort(function(a,b){ return b.length-a.length; });
+  var _stored='hi';
+  try{ _stored=localStorage.getItem('sw_uilang')||'hi'; }catch(e){}
+  var _orig=new WeakMap();   /* node -> original text */
+  var _trOn=false;
+
+  function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+  var _lbOk=true; try{ new RegExp('(?<=a)b'); }catch(e){ _lbOk=false; }
+  function trText(txt){
+    if(!txt) return txt;
+    _keys.forEach(function(k){
+      var kw=escRe(k);
+      if(_lbOk){ var re=new RegExp('(?<![\\p{L}\\p{N}])'+kw+'(?![\\p{L}\\p{N}])','gu'); txt=txt.replace(re,function(){ return DICT[k]; }); }
+      else { var re2=new RegExp('(^|[^\\p{L}\\p{N}])'+kw+'(?=$|[^\\p{L}\\p{N}])','gu'); txt=txt.replace(re2,function(a,b){ return b+DICT[k]; }); }
+    });
+    return txt;
+  }
+  function walk(root){
+    if(!_trOn) return;
+    try{
+      var w=document.createTreeWalker(root||document.body, NodeFilter.SHOW_TEXT, null);
+      var n, arr=[];
+      while(w.nextNode()){ n=w.currentNode; arr.push(n); }
+      arr.forEach(function(node){
+        var p=node.parentNode; if(!p) return;
+        var tag=p.nodeName;
+        if(tag==='SCRIPT'||tag==='STYLE'||tag==='TEXTAREA'||tag==='INPUT'||tag==='SELECT'||tag==='NOSCRIPT'||tag==='CODE') return;
+        var t=node.nodeValue||'';
+        if(!t.trim()) return;
+        var orig=_orig.get(node);
+        if(orig===undefined) orig=t;
+        var nt=trText(t);
+        if(nt!==t){ _orig.set(node,orig); node.nodeValue=nt; }
+      });
+    }catch(e){}
+  }
+  /* observers: हर बदलते content पर दोबारा scan = full-app */
+  var _mo=null,_tm=null;
+  function watch(){
+    if(_mo) return;
+    _mo=new MutationObserver(function(){ if(_tm) clearTimeout(_tm); _tm=setTimeout(function(){ walk(document.body); },350); });
+    try{ _mo.observe(document.body,{childList:true,subtree:true,characterData:true}); }catch(e){}
+  }
+  function dictOn(){
+    _trOn=true; watch(); walk(document.body);
+  }
+  function dictOff(){
+    _trOn=false;
+    var all=document.querySelectorAll('body *');
+    for(var i=0;i<all.length;i++){ var el=all[i]; for(var j=0;j<el.childNodes.length;j++){ var c=el.childNodes[j]; if(c.nodeType===3){ var o=_orig.get(c); if(o!==undefined){ c.nodeValue=o; } } } }
+  }
+  /* Google widget helpers (c46 had base) */
+  function gHost(){
+    var h=document.getElementById('swGtEl');
+    if(!h){ h=document.createElement('div'); h.id='swGtEl'; h.style.cssText='position:absolute;top:-9999px;left:-9999px;width:8px;height:8px;overflow:hidden;opacity:.01;pointer-events:none;'; document.body.appendChild(h); }
+    return h;
+  }
+  function gReady(){ try{ return !!(window.google&&google.translate&&gHost().querySelector('.goog-te-combo')); }catch(e){ return false; } }
+  function gLoad(){
+    try{
+      if(document.querySelector('script[src*="translate_a/element.js"]')) return;
+      window.swGtCb=function(){ try{ if(window.google&&google.translate){ new google.translate.TranslateElement({pageLanguage:'hi',autoDisplay:false,includedLanguages:'hi,en,bn,gu,kn,ml,mr,pa,ta,te,ur,ne,as,or',layout:google.translate.TranslateElement.InlineLayout.SIMPLE},'swGtEl'); } }catch(e){} };
+      var sc=document.createElement('script'); sc.src='https://translate.google.com/translate_a/element.js?cb=swGtCb'; document.head.appendChild(sc);
+    }catch(e){}
+  }
+  function gApply(code){
+    try{
+      if(!gReady()){ gLoad(); return false; }
+      var c=gHost().querySelector('.goog-te-combo');
+      c.value=code; c.dispatchEvent(new Event('change',{bubbles:true}));
+      return true;
+    }catch(e){ return false; }
+  }
+  /* public apply: 'hi'=original, 'en'=dictionary + google, बाकी=google */
+  window.uAppLang=function(code){
+    try{ localStorage.setItem('sw_uilang',code); }catch(e){}
+    _stored=code;
+    if(code==='hi'){ dictOff(); try{ gApply('hi'); }catch(e){} try{ showToast('🌐 Original (हिन्दी)'); }catch(e){} return; }
+    if(code==='en'){ dictOn(); }
+    var go=gApply(code);
+    try{ if(go) showToast('🌐 पूरी App translate हो रही है...'); else showToast('🌐 English basic apply — internet पर पूरा होगा'); }catch(e){}
+  };
+
+  /* override c46 pickers */
+  var LGS=[['hi','हिन्दी (Original)'],['en','English'],['bn','বাংলা'],['gu','ગુજરાતી'],['kn','ಕನ್ನಡ'],['ml','മലയാളം'],['mr','मराठी'],['pa','ਪੰਜਾਬੀ'],['ta','தமிழ்'],['te','తెలుగు'],['ur','اردو'],['ne','नेपाली'],['as','অসমীয়া'],['or','ଓଡ଼ିଆ']];
+  window.swGtShow=function(){
+    try{
+      if(!document.querySelector('script[src*="translate_a/element.js"]')) gLoad();
+      var o=document.getElementById('swGtOv');
+      if(!o){ o=document.createElement('div'); o.id='swGtOv'; o.style.cssText='position:fixed;inset:0;z-index:9999992;display:none;align-items:center;justify-content:center;background:rgba(5,10,25,.55);padding:16px;'; document.body.appendChild(o); }
+      o.innerHTML='<div style="max-width:430px;width:100%;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.45);animation:ain46 .22s">'+
+        '<div style="background:linear-gradient(135deg,#0d47a1,#1976d2);color:#fff;padding:15px 16px;display:flex;justify-content:space-between;align-items:center;"><div><b style="font-size:15px;">🌐 पूरी App को भाषा में बदलें</b><br><span style="font-size:9.5px;opacity:.92;">Full-screen scan — A से Z तक सब translate</span></div><span style="font-size:22px;cursor:pointer;" onclick="swGtHide()">✕</span></div>'+
+        '<div style="padding:12px 14px;max-height:62vh;overflow-y:auto;display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">'+
+          LGS.map(function(l){ return '<button type="button" onclick="swGtSet(\''+l[0]+'\')" style="padding:12px 8px;border-radius:11px;border:1.5px solid #e3ecfa;background:#f4f8ff;color:#0d3b66;font-weight:800;font-size:12.5px;cursor:pointer;">'+l[1]+'</button>'; }).join('')+
+        '</div>'+
+        '<div style="padding:9px 16px 13px;font-size:9.5px;color:#888;border-top:1px dashed #ddd;text-align:center;">English = offline scan भी + internet पर Google पूरा • data/cart reset नहीं</div>'+
+      '</div>';
+      o.style.display='flex';
+      if(!_stored||_stored==='hi'){ try{ uAppLang('hi'); }catch(e){} }
+    }catch(e){}
+  };
+  window.swGtHide=function(){ try{ var o=document.getElementById('swGtOv'); if(o) o.style.display='none'; }catch(e){} };
+  window.swGtSet=function(code){ try{ uAppLang(code); swGtHide(); }catch(e){} };
+
+  /* auto restore + scan on boot */
+  if(_stored&&_stored!=='hi'){ if(_stored==='en') dictOn(); }
+  setTimeout(function(){ try{ if(_stored==='en') dictOn(); }catch(e){} },1500);
+  setInterval(function(){ try{ walk(document.body); }catch(e){} },6000);
+
+  /* header translate chip highlight if en */
+  /* ─────────────────────── 2) ORIGINAL COMPANY BILL ───────────────────────
+     SewaAstra Steel Pvt Ltd — authorised sign + हर item/service photo सहित पूरी जानकारी */
+  var CO={name:'SewaAstra Steel Pvt Ltd',tag:'Home Services • Steel • Appliances',gstin:'23ABCDE1234F1Z5',addr:'Shop 12, Service Road, Bhopal, Madhya Pradesh 462001',ph:'7869969190',city:'Bhopal'};
+  function billLookup(items){
+    var map={};
+    FS.collection('app_config').doc('main').get().then(function(d){
+      if(d.exists){ var x=d.data(); try{ var md=JSON.parse(x.mainData||'{}'); Object.keys(md).forEach(function(k){ (md[k]||[]).forEach(function(o){ if(o&&o.n){ map[o.n]={img:o.i||'',cat:k}; } }); }); }catch(e){} }
+      renderBill(items,map);
+    }).catch(function(){ renderBill(items,map); });
+    return map;
+  }
+  function cImg(it,map){
+    var m=map[(it.n||'')];
+    var img=(it.i||(m&&m.img)||'');
+    if(img) return '<img src="'+proEsc(img)+'" onerror="this.style.display=\'none\'" style="width:46px;height:46px;border-radius:9px;object-fit:cover;border:1px solid #eee;float:left;margin:0 10px 4px 0;">';
+    return '';
+  }
+  function fmt(n){ return '₹'+(Number(n)||0).toLocaleString('en-IN'); }
+  function renderBill(o,map){
+    var cfg=(o._cfg)||{};
+    var gstPct=Math.max(0,Number(cfg.gstPct)||0);
+    var paid=!!(o.payment&&(o.payment.verified||/^paid/i.test(o.payment.status||'')));
+    var isCash=/cash|cod|नकद/i.test(o.mode||'');
+    var sub=Number(o.subtotal)||(o.items||[]).reduce(function(s,it){ return s+(Number(it.p)||0)*(it.qty||1); },0);
+    var disc=Number(o.discount)||0;
+    var base=Math.max(0,sub-disc);
+    var gstAmt=Math.round(base*gstPct/100);
+    var rowFn=function(it){
+      var q=it.qty||1, line=(Number(it.p)||0)*q;
+      return '<div style="display:flex;align-items:flex-start;border-bottom:1px dashed #e2e2e2;padding:9px 0;">'+cImg(it,map)+
+        '<div style="flex:1;min-width:0;"><div style="font-weight:900;font-size:12.5px;color:#111;">'+proEsc(it.n)+'</div>'+
+        (it.catName?'<div style="font-size:9.5px;color:#777;font-weight:700;">'+(it.selectedSub?('📦 '+proEsc(it.selectedSub)):(it.catName?'🛠️ '+proEsc(it.catName):''))+'</div>':'')+
+        '<div style="font-size:10.5px;color:#444;">@ '+fmt(it.p)+(q>1?' × '+q:'')+'</div></div>'+
+        '<div style="font-weight:900;font-size:12.5px;color:#111;">'+fmt(line)+'</div></div>';
+    };
+    var m=document.getElementById('proBillModal');
+    if(!m){ document.body.insertAdjacentHTML('beforeend','<div id="proBillModal" onclick="if(event.target===this)proCloseBill()"><div class="pro-bill" id="proBillInner"></div></div>'); m=document.getElementById('proBillModal'); }
+    var payB='';
+    var payAct='';
+    if(paid) payB='<div style="text-align:center;background:#e6f7ed;border:1px solid #a8e6c2;border-radius:12px;padding:10px;margin-top:10px;font-weight:900;color:#0f7a37;font-size:12.5px;">✅ PAID'+(o.payment&&o.payment.ref?('<br><span style="font-size:10px;">Ref: '+proEsc(o.payment.ref)+'</span>'):'')+'</div>';
+    else {
+      if(isCash) payB='<div style="text-align:center;background:#fff6e0;border:1px solid #ffd970;border-radius:12px;padding:10px;margin-top:10px;font-weight:900;color:#8a6100;font-size:12.5px;">💵 CASH (COD) — service के बाद partner को दें</div>';
+      else { payB='<div style="text-align:center;background:#fff6e0;border:1px solid #ffd970;border-radius:12px;padding:10px;margin-top:10px;font-weight:900;color:#8a6100;font-size:12.5px;">⏳ PAYMENT DUE — नीचे से pay करें</div>';
+        payAct='<div style="text-align:center;margin-top:10px;"><div style="font-size:12px;font-weight:900;color:#ff6b00;">📲 UPI/QR से भुगतान करें</div><div id="proQrBox" style="display:flex;justify-content:center;"></div><div style="font-size:11px;color:#888;">UPI ID: <b>'+proEsc(proUpiId())+'</b></div>'+
+        '<a href="'+proUpiLink(o.total,o.id,'phonepe')+'" style="display:inline-block;margin:8px 4px 0;background:linear-gradient(90deg,#5f259f,#7b3fc4);color:#fff;padding:11px 18px;border-radius:12px;text-decoration:none;font-weight:900;font-size:12px;">💜 PhonePe ₹'+o.total+'</a>'+
+        '<a href="'+proUpiLink(o.total,o.id)+'" style="display:inline-block;margin:8px 4px 0;background:linear-gradient(90deg,#15a04a,#1fc25e);color:#fff;padding:11px 18px;border-radius:12px;text-decoration:none;font-weight:900;font-size:12px;">📲 अन्य UPI</a></div>'; }
+    }
+    var rows=(o.items||[]).map(rowFn).join('')||'<div style="color:#999;">—</div>';
+    var stamp='<div style="display:inline-block;border:2.5px solid #c62828;color:#c62828;border-radius:8px;padding:5px 12px;font-size:9.5px;font-weight:900;letter-spacing:1.5px;text-align:center;line-height:1.5;">✓ AUTHORISED<br>SEWAASTRA STEEL<br>PVT LTD</div>';
+    document.getElementById('proBillInner').innerHTML=
+      '<div style="background:linear-gradient(135deg,#10233f,#1b3a66);color:#fff;padding:16px 18px;border-radius:0;">'+
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'+
+          '<div><div style="font-size:20px;font-weight:900;letter-spacing:.5px;">🛠️ '+proEsc(CO.name)+'</div>'+
+          '<div style="font-size:9.5px;opacity:.9;font-weight:700;">'+proEsc(CO.tag)+'</div>'+
+          '<div style="font-size:9px;opacity:.85;margin-top:5px;line-height:1.6;">'+proEsc(CO.addr)+'<br>☎ +91 '+proEsc(CO.ph)+'</div>'+
+          '<div style="font-size:9.5px;margin-top:4px;color:#ffd970;font-weight:900;">GSTIN: '+proEsc(CO.gstin)+'</div></div>'+
+          '<div style="text-align:right;font-size:9px;line-height:1.8;"><div style="border:1.5px solid #ffd970;border-radius:8px;padding:4px 10px;font-weight:900;color:#ffd970;font-size:10px;">TAX INVOICE</div>'+
+          '<div style="margin-top:6px;color:#cfe1ff;">🆔 '+proEsc(o.id)+'</div></div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="padding:4px 16px 14px;background:#fff;color:#222;">'+
+        '<div style="display:flex;justify-content:space-between;font-size:10.5px;color:#333;padding:9px 0;border-bottom:1px solid #eee;font-weight:700;">'+
+          '<span>👤 Billed To: +91 '+proEsc(o.mobile||'—')+'</span><span>📅 '+proEsc(o.timestamp||((o.date||'')+' '+(o.time||'')))+'</span></div>'+
+        (o.address?'<div style="font-size:10px;color:#666;padding:6px 0 2px;border-bottom:1px solid #eee;">📍 '+proEsc(o.address)+'</div>':'')+
+        '<div style="margin-top:10px;">'+rows+'</div>'+
+        '<div style="margin-top:6px;font-size:11.5px;">'+
+          '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Subtotal</span><b>'+fmt(sub)+'</b></div>'+
+          (disc?'<div style="display:flex;justify-content:space-between;padding:3px 0;color:#15a04a;"><span>Discount (Coupon)</span><b>−'+fmt(disc)+'</b></div>':'')+
+          (gstPct>0?'<div style="display:flex;justify-content:space-between;padding:3px 0;color:#7b1fa2;"><span>GST ('+gstPct+'%) <span style="font-size:9px;color:#999;">(included)</span></span><b>'+fmt(gstAmt)+'</b></div>':'')+
+          '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Visit / Service Charge</span><b>'+fmt(10)+'</b></div>'+
+          '<div style="display:flex;justify-content:space-between;border-top:2px solid #111;margin-top:4px;padding:7px 0 2px;font-weight:900;font-size:14px;"><span>GRAND TOTAL</span><span>'+fmt(o.total)+'</span></div>'+
+        '</div>'+payB+payAct+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;border-top:1px dashed #ccc;padding-top:10px;">'+
+          '<div style="font-size:11px;color:#111;font-family:\'Segoe Script\',cursive;font-weight:900;">For '+proEsc(CO.name)+'</div>'+stamp+
+        '</div>'+
+        '<div style="text-align:right;margin-top:6px;font-size:11px;color:#111;font-weight:900;font-style:italic;">— Shoorshyam Vishwakarma<br><span style="font-size:9px;color:#666;font-style:normal;">Authorised Signatory</span></div>'+
+        '<div style="text-align:center;font-size:9px;color:#999;margin-top:8px;border-top:1px dotted #ccc;padding-top:6px;">यह कंप्यूटर जनरेटेड बिल है — बिना हस्ताक्षर के भी मान्य। धन्यवाद 🙏</div>'+
+        '<div style="display:flex;gap:8px;margin-top:12px;">'+
+          '<button class="pro-bill-btn" style="background:#0d6efd;color:#fff;" onclick="proPrintBill(\''+o.id+'\')">🖨️ Print / PDF</button>'+
+          '<button class="pro-bill-btn" style="background:#25d366;color:#fff;" onclick="proWABill(\''+o.id+'\')">📤 Share</button>'+
+          '<button class="pro-bill-btn" style="background:#eee;color:#555;" onclick="proCloseBill()">✕ Close</button>'+
+        '</div>'+
+      '</div>';
+    m.classList.add('open');
+    try{ if(!paid&&!isCash&&typeof proMakeQR==='function'){ var qb=document.getElementById('proQrBox'); if(qb) proMakeQR(qb, proUpiLink(o.total,o.id)); } }catch(e){}
+  }
+  var _pB=window.proShowBill;
+  window.proShowBill=function(oid,thenRate){
+    window.__proBillRate = thenRate ? oid : null;
+    var _pm=document.getElementById('proBillModal');
+    if(!_pm){ document.body.insertAdjacentHTML('beforeend','<div id="proBillModal" onclick="if(event.target===this)proCloseBill()"><div class="pro-bill" id="proBillInner"></div></div>'); }
+
+    var cfgP=FS.collection('config').doc('global').get().catch(function(){ return null; });
+    var cfg2={};
+    cfgP.then(function(d){ if(d&&d.exists) cfg2=d.data(); })
+      .then(function(){ return FS.collection('orders').doc(oid).get(); })
+      .then(function(d){
+        if(!d.exists) return showAlert('त्रुटि','ऑर्डर नहीं मिला');
+        var o=d.data(); o._cfg=cfg2; o._map={};
+        var map={};
+        FS.collection('app_config').doc('main').get().then(function(ad){
+          if(ad.exists){ try{ var x=ad.data(); var md=JSON.parse(x.mainData||'{}'); Object.keys(md).forEach(function(k){ (md[k]||[]).forEach(function(s){ if(s&&s.n) map[s.n]={img:s.i||'',cat:k}; }); }); }catch(e){} }
+          renderBill(o,map);
+        }).catch(function(){ renderBill(o,map); });
+      })
+      .catch(function(e){ showAlert('त्रुटि',e.message); });
+  };
+  window.proWABill=function(oid){
+    try{ FS.collection('orders').doc(oid).get().then(function(d){ if(!d.exists) return; var o=d.data(); var txt='🧾 *SewaAstra Steel Pvt Ltd — TAX INVOICE*%0A🆔 '+oid+'%0A'+(o.items||[]).map(function(i){ return '• '+i.n+(i.qty>1?' x'+i.qty:'')+' = ₹'+((Number(i.p)||0)*(i.qty||1)); }).join('%0A')+'%0A💰 Total: ₹'+o.total; window.open('https://wa.me/?text='+txt,'_blank'); }).catch(function(){}); }catch(e){}
+  };
+  /* print: clean A4 */
+  window.proPrintBill=function(oid){
+    try{
+      FS.collection('orders').doc(oid).get().then(function(d){
+        if(!d.exists) return; var o=d.data();
+        var cfg2={}; FS.collection('config').doc('global').get().then(function(cd){ if(cd.exists) cfg2=cd.data(); }).catch(function(){}).then(function(){
+          var sub=Number(o.subtotal)||0, disc=Number(o.discount)||0, gstPct=Math.max(0,Number(cfg2.gstPct)||0);
+          var rows=(o.items||[]).map(function(it){ var q=it.qty||1; return '<tr><td style="padding:7px 4px;border-bottom:1px dashed #ccc;">'+(it.n||'')+(it.selectedSub?'<br><span style="color:#777;font-size:11px;">'+proEsc(it.selectedSub)+'</span>':'')+'</td><td style="text-align:center;">'+(it.qty||1)+'</td><td style="text-align:right;">₹'+((Number(it.p)||0))+'</td><td style="text-align:right;font-weight:bold;">₹'+(sub?((Number(it.p)||0)*q):0)+'</td></tr>'; }).join('');
+          var w=window.open('','_blank');
+          w.document.write('<html><head><title>Invoice '+proEsc(oid)+'</title><style>body{font-family:Arial,sans-serif;color:#000;max-width:720px;margin:18px auto;padding:0 14px;font-size:12px;}h1{font-size:22px;margin:0}.head{display:flex;justify-content:space-between;border-bottom:3px double #000;padding-bottom:10px;}.muted{color:#555;font-size:10.5px;}table{width:100%;border-collapse:collapse;margin-top:10px;}th{background:#eee;text-align:left;padding:6px 4px;border-bottom:2px solid #000;}td{padding:6px 4px;border-bottom:1px solid #ccc;}.tot td{border-top:3px double #000;font-size:14px;font-weight:bold;}.sig{display:flex;justify-content:space-between;margin-top:34px;}button,a{display:none!important;}.stamp{border:2.5px solid #c62828;color:#c62828;border-radius:8px;padding:6px 12px;display:inline-block;font-size:10px;font-weight:bold;letter-spacing:1px;text-align:center;line-height:1.5;}</style></head><body>'+
+          '<div class="head"><div><h1>🛠️ SewaAstra Steel Pvt Ltd</h1><div class="muted">'+proEsc(CO.tag)+'<br>'+proEsc(CO.addr)+' • ☎ +91 '+CO.ph+'</div><div class="muted"><b>GSTIN: '+proEsc(CO.gstin)+'</b></div></div><div style="text-align:right;"><b style="font-size:16px;">TAX INVOICE</b><br>🆔 '+proEsc(oid)+'<br>'+proEsc(o.timestamp||'')+'</div></div>'+
+          '<div class="muted" style="margin-top:8px;">👤 Billed To: +91 '+proEsc(o.mobile||'')+(o.address?' &nbsp;•&nbsp; 📍 '+proEsc(o.address):'')+'</div>'+
+          '<table><tr><th>Item / Service</th><th style="width:46px;">Qty</th><th style="width:80px;">Rate</th><th style="width:100px;">Amount</th></tr>'+rows+
+          '<tr><td colspan="3" style="text-align:right;"><b>Subtotal</b></td><td style="text-align:right;"><b>₹'+sub+'</b></td></tr>'+(disc?'<tr><td colspan="3" style="text-align:right;color:green;"><b>Discount</b></td><td style="text-align:right;color:green;"><b>−₹'+disc+'</b></td></tr>':'')+(gstPct>0?'<tr><td colspan="3" style="text-align:right;">GST ('+gstPct+'%) (included)</td><td style="text-align:right;">₹'+Math.round((sub-disc)*gstPct/100)+'</td></tr>':'')+
+          '<tr class="tot"><td colspan="3" style="text-align:right;">GRAND TOTAL</td><td style="text-align:right;">₹'+o.total+'</td></tr></table>'+
+          '<div class="muted" style="margin-top:6px;">Payment: '+proEsc(o.mode||'—')+(o.payment&&o.payment.ref?(' • Ref/UTR: '+proEsc(o.payment.ref)):'')+'</div>'+
+          '<div class="sig"><div><b>For SewaAstra Steel Pvt Ltd</b><div class="stamp" style="margin-top:12px;">✓ AUTHORISED<br>SEWAASTRA STEEL<br>PVT LTD</div></div>'+
+          '<div style="text-align:right;"><div style="margin-top:40px;border-top:1px solid #000;padding-top:4px;width:210px;font-weight:bold;font-style:italic;">Shoorshyam Vishwakarma<br><span style="font-size:10px;font-weight:normal;">Authorised Signatory</span></div></div></div>'+
+          '<p class="muted" style="text-align:center;margin-top:18px;">यह कंप्यूटर जनरेटेड बिल है। धन्यवाद 🙏</p>'+
+          '</body></html>');
+          w.document.close();
+          setTimeout(function(){ try{ w.print(); }catch(e){} },700);
+        });
+      }).catch(function(){});
+    }catch(e){}
+  };
+  /* completion पर पुराना rate-flow: bill के बाद rating */
+  try{ if(window.proStartRatingWatcher){} }catch(e){}
+
+  /* History/tracking में 🧾 Bill button inject */
+  function billScan(){
+    try{
+      var els=document.querySelectorAll('[onclick*="openLiveTracking(\'"],[onclick*="openRateModal(\'"],[onclick*="openOrderChat(\'"]');
+      for(var i=0;i<els.length;i++){
+        var el=els[i];
+        var mt=(el.getAttribute('onclick')||'').match(/'([^']+)'/); if(!mt) continue;
+        var oid=mt[1];
+        var host=el.parentElement; if(!host) continue;
+        if(host.querySelector('[data-cbill="'+oid+'"]')) continue;
+        var b=document.createElement('button');
+        b.setAttribute('data-cbill',oid);
+        b.style.cssText='flex:1;min-width:88px;background:#0d47a1;color:#fff;border:none;padding:8px;border-radius:8px;font-size:11px;font-weight:bold;cursor:pointer;';
+        b.innerHTML='🧾 Bill';
+        b.onclick=function(){ try{ proShowBill(oid); }catch(e){} };
+        host.appendChild(b);
+      }
+    }catch(e){}
+  }
+  setInterval(billScan,4000);
+
+  /* ─────────────────────── 3) SOS CLOSE को सुंदर बनाओ ─────────────────────── */
+  var st=document.createElement('style'); st.id='c47Sos';
+  st.textContent=
+    '.sosX{width:34px!important;height:34px!important;background:rgba(255,255,255,.28)!important;border:1.5px solid rgba(255,255,255,.55)!important;color:#fff!important;border-radius:50%!important;font-size:15px!important;display:flex!important;align-items:center!important;justify-content:center!important;transition:.2s!important}'+
+    '.sosX:hover{background:rgba(255,255,255,.5)!important;transform:rotate(90deg)}'+
+    '.sosCls{width:auto!important;margin:8px auto 0!important;display:block!important;background:linear-gradient(135deg,#4a1a1a,#7f2d2d)!important;color:#ffd9d9!important;border:1.5px solid #a33!important;border-radius:30px!important;padding:11px 26px!important;font-weight:900!important;font-size:12.5px!important;box-shadow:0 6px 16px rgba(0,0,0,.35)!important}'+
+    '.sosCls:hover{background:linear-gradient(135deg,#5c2020,#8f3434)!important}'+
+    '.a36head .x36{border-radius:50%!important;background:rgba(255,255,255,.2)!important;border:1.5px solid rgba(255,255,255,.5)!important;width:36px!important;height:36px!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:16px!important;cursor:pointer!important;color:#fff!important}';
+  document.head.appendChild(st);
+
+  console.log('%c 🌐🧾🆘 CUSTOMER v4.7 — REAL TRANSLATE + ORIGINAL BILL + SOS CLOSE ✅ ','background:#0d47a1;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+
 </body>
 </html>
