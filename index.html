@@ -792,7 +792,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
 .pro-pay-step b{color:#ff6b00;}
 </style>
 
-<script id="swa-agora-sdk" async src="https://download.agora.io/sdk/release/AgoraRTC_N-4.24.2.js"></script>
+<!-- v9: Agora SDK हटाया — खुद की WebRTC mask calling -->
 </head>
 <body id="mainBody">
 
@@ -6755,249 +6755,179 @@ var LGS=[['hi','हिन्दी'],['en','English']];
 </script>
 
 
-<!-- 🔒 AGORA MASKED CALLING — app id is-ee515c7f4c5e4194895390710fe474d1 -->
+<!-- 🔒 SEWAASTRA OWN MASKED CALLING v9 — WebRTC + Firestore (Agora हटा दिया, कोई App-ID/SDK नहीं) -->
 <script>
-/* ═══════════════════════════════════════════════════════════════
-   SEWAASTRA — AGORA MASKED CALLING (v8.0)
-   App ID (verbatim): is-ee515c7f4c5e4194895390710fe474d1
-   • Asli numbers kabhi expose nahi hote — har call random masked UID pe
-   • Call signal Firestore ke order.callReq se (ring/answer/decline)
-   • Token: prod me Cloud Function se temporary token. Certificate OFF
-     project me token khali chhod sakte hain (dev).
-   ═══════════════════════════════════════════════════════════════ */
-window.SWAgora=(function(){
-  var APP='is-ee515c7f4c5e4194895390710fe474d1';
-  var TOKEN='';           // prod: server-minted temp token; dev: '' (certificate OFF)
-  var SDK='https://download.agora.io/sdk/release/AgoraRTC_N-4.24.2.js';
-  var role='cust';        // 'cust' | 'partner'
-  var client=null, localT=null, subs={}, st={s:'idle',oid:'',dir:''};
-  var unsub=null, ringT=null, loaderT=null;
-  var ui={};
-
-  function esc(s){ s=String(s==null?'':s); return s.replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
-  function myUid(){ try{ var u=firebase.auth().currentUser; return u?(u.uid||''):''; }catch(e){ return ''; } }
-  function myPhone(){ try{ return (''+((localStorage.getItem('swp_phone'))||'')).trim(); }catch(e){ return ''; } }
-  function chFor(oid){ return 'swa_'+String(oid||'').replace(/[^A-Za-z0-9]/g,''); }
-  function note(t){ try{ if(window.toast){ toast(t); return; } }catch(e){} try{ if(window.showToast){ showToast(t); } }catch(e){} }
-
-  /* ---------- SDK ---------- */
-  function loadSDK(cb){
-    if(window.AgoraRTC){ return cb(null); }
-    if(document.getElementById('swa-agora-sdk')){
-      if(loaderT) clearInterval(loaderT);
-      var t0=Date.now();
-      loaderT=setInterval(function(){
-        if(window.AgoraRTC){ clearInterval(loaderT); loaderT=null; cb(null); }
-        else if(Date.now()-t0>15000){ clearInterval(loaderT); loaderT=null; cb('timeout'); }
-      },250);
-      return;
-    }
-    var s=document.createElement('script');
-    s.id='swa-agora-sdk'; s.async=true; s.src=SDK;
-    s.onload=function(){ cb(null); };
-    s.onerror=function(){ cb('load'); };
-    document.head.appendChild(s);
-  }
-  function ok(){ return !!(window.AgoraRTC&&window.AgoraRTC.checkSystemRequirements&&window.AgoraRTC.checkSystemRequirements()); }
-
-  /* ---------- overlay ---------- */
-  function ensureUI(){
-    if(ui.root) return;
-    ui.root=document.createElement('div');
-    ui.root.innerHTML=
-      '<div id="swaBg" style="position:fixed;inset:0;background:rgba(6,10,22,.78);backdrop-filter:blur(5px);z-index:2147483646;display:none;align-items:center;justify-content:center;padding:16px;"></div>'+
-      '<div id="swaBox" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483647;width:min(92vw,342px);background:linear-gradient(160deg,#0b1220,#1e2c47);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:26px;box-shadow:0 26px 90px rgba(0,0,0,.6);padding:24px 18px 18px;text-align:center;font-family:system-ui,Arial,sans-serif;"></div>';
-    document.body.appendChild(ui.root);
-    ui.bg=document.getElementById('swaBg');
-    ui.box=document.getElementById('swaBox');
-    if(ui.bg) ui.bg.addEventListener('click',function(e){ if(e.target===ui.bg&&st.s!=='idle'&&st.s!=='live'){ hang(); } });
-  }
-  function paint(h){
-    ensureUI();
-    if(ui.box) ui.box.innerHTML=h;
-    if(ui.bg) ui.bg.style.display='flex';
-  }
-  function hideUI(){ if(ui.box) ui.box.innerHTML=''; if(ui.bg) ui.bg.style.display='none'; }
-  function card(head,body,actions){
-    var h='<div style="font-size:40px;line-height:1;">'+head+'</div>';
-    h+='<div style="font-size:15px;font-weight:900;margin:12px 0 4px;">'+body.title+'</div>';
-    h+='<div style="font-size:11.5px;opacity:.8;line-height:1.7;margin-bottom:12px;">'+body.sub+'</div>';
-    h+='<div style="display:flex;gap:8px;">'+actions.map(function(a){
-      return '<button id="'+a.id+'" style="flex:1;border:none;border-radius:13px;padding:13px;font-weight:800;font-size:12.5px;cursor:pointer;background:'+(a.bg||'#26364f')+';color:'+(a.fg||'#fff')+';">'+a.label+'</button>';
-    }).join('')+'</div>';
-    h+='<div style="font-size:9.5px;opacity:.55;margin-top:13px;">🔒 Agora secure channel • masked UID • '+esc(APP)+'</div>';
-    paint(h);
-  }
-  function bind(id,fn){ var el=document.getElementById(id); if(el) el.onclick=function(){ try{ fn(); }catch(e){ console.log(e); } }; }
-
-  /* ---------- live ---------- */
-  function liveCard(oid){
-    var muted=false;
-    card('🎧',{title:'🔒 Masked Call • LIVE',sub:'📦 '+esc(oid||'')+'<br>आपका असली नंबर दूसरे पक्ष को नहीं दिखेगा।'},
-      [{id:'swaM',label:'🔇 Mute',bg:'#374151'},{id:'swaE',label:'📵 End',bg:'#e53935'}]);
-    bind('swaE',function(){ end('कॉल समाप्त','Call ended'); });
-    bind('swaM',function(){
-      muted=!muted;
-      try{ if(localT) localT.setEnabled(!muted); }catch(e){}
-      var b=document.getElementById('swaM'); if(b) b.innerHTML=muted?'🔇 Muted':'🔇 Mute';
-    });
-  }
-  function waitingCard(oid){
-    card('📞',{title:'🔒 Masked Call',sub:'📦 '+esc(oid||'')+'<br>कॉलिंग… दूसरा पक्ष जुड़ रहा है।<br>वह Tracking / Masked Call खोलकर Answer करे।'},
-      [{id:'swaE',label:'📵 Cancel',bg:'#e53935'}]);
-    bind('swaE',function(){ end('Call रद्द','Cancelled'); });
-  }
-  function incomingCard(oid){
-    card('📞',{title:'Incoming Masked Call',sub:'📦 '+esc(oid||'')+'<br>कॉलर का असली नंबर छिपा है (Agora secure)।'},
-      [{id:'swaD',label:'✖ Decline',bg:'#374151'},{id:'swaA',label:'✅ Answer',bg:'#15a04a'}]);
-    bind('swaA',function(){ try{ navigator.vibrate&&navigator.vibrate(30); }catch(e){} doJoin(oid,false); });
-    bind('swaD',function(){ clearReq(oid); reset(); hideUI(); });
-  }
-
-  /* ---------- state mgmt ---------- */
-  function status(s){ st.s=s; }
-  function reset(){ st={s:'idle',oid:'',dir:''}; }
-  function clearReq(oid){
-    if(!oid) return;
-    try{ FS.collection('orders').doc(oid).update({'callReq':firebase.firestore.FieldValue.delete()}).catch(function(){}); }catch(e){}
-  }
-  function cleanup(){
-    if(ringT){ clearTimeout(ringT); ringT=null; }
-    try{ if(localT){ localT.close(); } }catch(e){}
-    try{ Object.keys(subs).forEach(function(k){ try{ subs[k].close(); }catch(e){} }); }catch(e){}
-    subs={}; localT=null;
-    if(client){ try{ client.leave().catch(function(){}); }catch(e){} client=null; }
-  }
-  function end(title,sub){
-    var oid=st.oid;
-    cleanup();
-    clearReq(oid);
-    reset();
-    hideUI();
-    if(title){ paint('<div style="font-size:34px;">📵</div><div style="font-size:14px;font-weight:900;margin-top:10px;">'+esc(title)+'</div>'+(sub?'<div style="font-size:10.5px;opacity:.7;margin-top:4px;">'+esc(sub)+'</div>':''));
-      setTimeout(hideUI,2000); }
-  }
-  function fail(msg){
-    cleanup();
-    var oid=st.oid; clearReq(oid);
-    reset();
-    card('⚠️',{title:'Masked Call उपलब्ध नहीं',sub:esc(msg)+'<br>💡 दोनों पक्ष को Tracking में Call दबाना होगा। फिर भी न जुड़े तो in-app 💬 Chat use करें।'},
-      [{id:'swaOk',label:'ठीक है',bg:'#0d6efd'}]);
-    bind('swaOk',function(){ hideUI(); });
-  }
-
-  /* ---------- join ---------- */
-  function doJoin(oid,isCaller){
-    loadSDK(function(err){
-      if(err){ fail('Agora SDK load नहीं हुआ — internet check करें और page refresh करें।'); return; }
-      if(!ok()){ fail('इस device/browser पर masked call support नहीं (https + mic ज़रूरी)।'); return; }
-      var R=window.AgoraRTC;
-      var c=R.createClient({mode:'rtc',codec:'vp8'});
-      client=c;
-      c.on('user-published',function(user,mt){
-        try{ if(subs[user.uid]) return; subs[user.uid]=user; c.subscribe(user,'audio').then(function(){
-          try{ user.audioTrack&&user.audioTrack.play(); }catch(e){}
-          if(st.s!=='live'){ status('live'); liveCard(oid); }
-        }).catch(function(){}); }catch(e){}
-      });
-      c.on('user-left',function(user){
-        try{ if(subs[user.uid]){ subs[user.uid].close(); delete subs[user.uid]; } }catch(e){}
-        if(st.s==='live') end('कॉल समाप्त','दूसरा पक्ष कॉल से हट गया');
-      });
-      status('connect');
-      paint('<div style="font-size:40px;">🔒</div><div style="font-size:14px;font-weight:900;margin-top:12px;">Secure channel बन रहा है…</div>');
-      c.join(APP,chFor(oid),TOKEN||null,Math.floor(100000+Math.random()*2147000000)).then(function(){
-        return R.createMicrophoneAudioTrack();
-      }).then(function(t){
-        localT=t;
-        return c.publish(t);
-      }).then(function(){
-        try{ navigator.vibrate&&navigator.vibrate([60,40,60]); }catch(e){}
-        if(!isCaller){ status('live'); try{ FS.collection('orders').doc(oid).update({'callReq.ans':{by:myUid(),role:role,t:Date.now()}}).catch(function(){}); }catch(e){} liveCard(oid); return; }
-        status('wait');
-        waitingCard(oid);
-        (c.remoteUsers||[]).forEach(function(u){ if(subs[u.uid]) return; try{ subs[u.uid]=u; c.subscribe(u,'audio').then(function(){ try{ u.audioTrack&&u.audioTrack.play(); }catch(e){} if(st.s!=='live'){ status('live'); if(ringT){clearTimeout(ringT);ringT=null;} liveCard(oid); } }).catch(function(){}); }catch(e){} });
-        ringT=setTimeout(function(){ ringT=null; if(st.s==='wait') end('कोई जवाब नहीं','दूसरा पक्ष Tracking/Call से जुड़ा नहीं'); },30000);
-      }).catch(function(e){
-        if(client){ try{ client.leave().catch(function(){}); }catch(x){} client=null; }
-        try{ if(localT){ localT.close(); localT=null; } }catch(x){}
-        var msg=(e&&e.message)||'';
-        var code=(e&&e.code)||'';
-        if(code===8||/token|certificate|DYNAMIC_KEY|APP_CERT/i.test(msg)) fail('Agora project पर App Certificate ON है — server (Cloud Function) से temporary token जोड़ें, या Console में certificate OFF करें (अभी app-id mode)।');
-        else if(/NotAllowedError|Permission|microphone|device/i.test(msg)) fail('🎤 Microphone permission नहीं मिली — browser allow करके फिर try करें।');
-        else if(/network|timeout|ECONN/i.test(msg)) fail('📶 Agora से connect नहीं हुआ — internet check करके फिर try करें।');
-        else fail('Connect error'+(code?(' ('+code+')'):'')+' — कुछ देर बाद फिर try करें।');
-      });
-    });
-  }
-
-  /* ---------- dial (outgoing) ---------- */
-  function dial(oid){
-    if(!oid){ note('पहले कोई active ऑर्डर की Tracking/Call screen खोलें'); return; }
-    if(st.s==='live'||st.s==='connect'||st.s==='wait'||st.s==='ring'){ note('एक call पहले से जारी है — End करें'); return; }
-    st.oid=oid; st.dir='out';
-    try{ FS.collection('orders').doc(oid).set({'callReq':{by:myUid(),role:role,t:Date.now()}},{merge:true}).catch(function(){}); }catch(e){}
-    doJoin(oid,true);
-  }
-  function hang(){ if(st.s==='live'||st.s==='connect'||st.s==='wait') end('कॉल समाप्त',''); }
-
-  /* ---------- incoming watcher ---------- */
-  function checkOrder(oid,d){
-    if(!d) return;
-    var req=d.callReq; if(!req){ if(st.s==='ring'&&st.oid===oid){ clearReq(oid); reset(); hideUI(); } return; }
-    if(!((req.t||0)&&(Date.now()-req.t)<45000)) return;
-    if(req.by===myUid()) return;
-    if(req.role===role) return;
-    if(st.s!=='idle') return;
-    if(req.ans&&req.ans.by) return;
-    incomingCard(oid);
-    if(ringT) clearTimeout(ringT);
-    ringT=setTimeout(function(){ ringT=null; if(st.s==='ring'){ clearReq(oid); reset(); hideUI(); } },35000);
-  }
-  function watch(){
-    if(unsub){ try{ unsub(); }catch(e){} unsub=null; }
-    var u=null; try{ u=firebase.auth().currentUser; }catch(e){}
-    if(!u) return;
-    var q=null;
-    try{
-      if(role==='partner'){ var ph=myPhone(); if(!ph) return; q=FS.collection('orders').where('partnerPhone','==',ph); }
-      else q=FS.collection('orders').where('uid','==',u.uid);
-      if(!q) return;
-    }catch(e){ return; }
-    try{
-      unsub=q.onSnapshot(function(sn){
-        try{ sn.docChanges().forEach(function(c){ if(c.type!=='removed'){ try{ checkOrder(c.doc.id,c.doc.data()); }catch(e){} } }); }catch(e){}
-      },function(){});
-    }catch(e){}
-  }
-
-  return {
-    APP:APP,
-    init:function(r){
-      role=(r==='partner')?'partner':'cust';
-      watch();
-      try{ firebase.auth().onAuthStateChanged(function(){ setTimeout(watch,900); }); }catch(e){}
-    },
-    dial:dial,
-    hangup:hang,
-    state:function(){ return st.s; },
-    why:function(){ return { app:APP, tokenSet:!!TOKEN, sdkLoaded:!!window.AgoraRTC, supported:ok(), state:st }; }
-  };
-})();
-
-</script>
-<script>
+/* ═══ SewaAstra v9 — KHUD KI Masked Calling (WebRTC voice, number kabhi nahi dikhta) ═══ */
 (function(){
-  try{
-    window.openMaskCall=function(oid){
-      if(!oid){ try{ oid=window.__swaCustOid||''; }catch(e){} }
-      if(!oid){ try{ oid=window.__swaCustOid; }catch(e){} }
-      SWAgora.dial(oid);
-    };
-    SWAgora.init('cust');
-    console.log('%c 🔒 AGORA MASKED CALL v8.0 (customer) ','background:#15a04a;color:#fff;font-weight:bold;padding:3px;');
-  }catch(e){ console.log('agora',e); }
+if(window.__swCall9) return; window.__swCall9=1;
+var ROLE='cust';
+var PEER=(ROLE==='cust')?'Service Partner':'Customer';
+function esc(s){ s=String(s==null?'':s); return s.replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
+function nt(m){ try{ if(window.showToast){ window.showToast(m); return; } }catch(e){} try{ if(window.toast){ window.toast(m); return; } }catch(e){} }
+function vib(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+function myUid(){ try{ var u=firebase.auth().currentUser; return u?(u.uid||''):''; }catch(e){ return ''; } }
+function myPhone(){ try{ var k=(ROLE==='cust')?'sw_user':'swp_phone'; return String(localStorage.getItem(k)||'').replace(/\D/g,'').slice(-10); }catch(e){ return ''; } }
+function myKey(){ return myUid()||myPhone()||ROLE; }
+/* audio */
+var AC=null;
+function ac(){ try{ if(!AC){ var C=window.AudioContext||window.webkitAudioContext; if(C) AC=new C(); } if(AC&&AC.state==='suspended'){ AC.resume().catch(function(){}); } return AC; }catch(e){ return null; } }
+function tone(f,dl,dur,vol){ try{ var c=ac(); if(!c) return; var o=c.createOscillator(),g=c.createGain(); o.connect(g); g.connect(c.destination); o.type='sine'; o.frequency.value=f; var t=c.currentTime+dl; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||0.25,t+0.04); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.start(t); o.stop(t+dur+0.05); }catch(e){} }
+var ringT=null,vibT=null;
+function ringStart(incoming){ ringStop(); ringT=setInterval(function(){ if(incoming){ tone(440,0,0.32,0.28); tone(480,0.38,0.32,0.28); } else { tone(660,0,0.16,0.16); } },incoming?1400:2000); vibT=setInterval(function(){ vib(incoming?[420,150,420,150,420]:[180]); },incoming?1750:2100); if(incoming){ tone(440,0,0.32,0.28); tone(480,0.38,0.32,0.28); } vib(incoming?[420,150,420]:[180]); }
+function ringStop(){ if(ringT){ clearInterval(ringT); ringT=null; } if(vibT){ clearInterval(vibT); vibT=null; } try{ if(navigator.vibrate) navigator.vibrate(0); }catch(e){} }
+/* state */
+var pc=null,localS=null,remoteA=null,st={s:'idle',oid:''},docUn=null,candUn=null,seenC={},waitT=null,secT=null,secs=0,muted=false,bigSpk=true;
+function callDoc(oid){ return FS.collection('orders').doc(oid).collection('swcall').doc('live'); }
+function callCands(oid){ return FS.collection('orders').doc(oid).collection('swcall').doc('live').collection('cands'); }
+function rtcConf(){ return {iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}]}; }
+/* ---- FULL SCREEN UI ---- */
+function ensureUI(){
+if(document.getElementById('swCallFS')){ remoteA=document.getElementById('swCallRemote'); return; }
+var stl=document.createElement('style'); stl.id='swc9st';
+stl.textContent='.swcAv{width:110px;height:110px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:52px;background:linear-gradient(135deg,#ff6b00,#ff2d95 55%,#7a2bff);box-shadow:0 0 0 8px rgba(255,255,255,.12),0 14px 44px rgba(255,45,149,.5);animation:swcPulse 1.5s ease-in-out infinite;}@keyframes swcPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}.swcB{border:none;border-radius:16px;padding:15px 8px;font-weight:900;font-size:13.5px;cursor:pointer;color:#fff;flex:1;}.swcB:active{transform:scale(.95);}';
+document.head.appendChild(stl);
+var d=document.createElement('div'); d.id='swCallFS';
+d.style.cssText='position:fixed;inset:0;z-index:2147483645;display:none;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 50% 20%,#26364f 0%,#0b1220 55%,#050914 100%);color:#fff;font-family:system-ui,Arial,sans-serif;';
+d.innerHTML='<audio id="swCallRemote" autoplay playsinline style="display:none;"></audio><div id="swCallInner" style="width:100%;max-width:360px;text-align:center;"></div>';
+document.body.appendChild(d); remoteA=document.getElementById('swCallRemote');
+}
+function fsShow(){ ensureUI(); document.getElementById('swCallFS').style.display='flex'; }
+function fsHide(){ var e=document.getElementById('swCallFS'); if(e) e.style.display='none'; }
+function paint(h){ ensureUI(); document.getElementById('swCallInner').innerHTML=h; fsShow(); }
+function bind(id,fn){ var b=document.getElementById(id); if(b) b.onclick=function(){ try{ fn(); }catch(e){} }; }
+function head(emoji,title,oid,sub){ return '<div class="swcAv">'+emoji+'</div><div style="font-size:19px;font-weight:900;margin-top:14px;">'+title+'</div><div style="font-size:12px;opacity:.85;margin-top:6px;line-height:1.7;">📦 '+esc(oid)+'<br>'+sub+'</div>'; }
+function paintOut(oid){ paint(head('🔒','🔒 Masked Call',oid,PEER+' से जुड़ रहे हैं…<br>दोनों का असली नंबर <b>छिपा है</b> 🙈')+'<div style="font-size:12.5px;font-weight:800;color:#ffd970;margin-top:12px;">📞 Ring बज रही है… रुकें</div><div style="display:flex;gap:10px;margin-top:20px;"><button class="swcB" id="swcEnd" style="background:linear-gradient(135deg,#e53935,#ff6659);">📵 काटें</button></div><div style="font-size:10px;opacity:.6;margin-top:12px;">🎙️ Mic ON रखें • SewaAstra Secure Voice (अपनी तकनीक, कोई Agora नहीं)</div>'); bind('swcEnd',function(){ endCall('कॉल रद्द',''); }); }
+function paintIn(oid){ paint(head('📞','Incoming Masked Call',oid,'कॉलर का असली नंबर <b>छिपा है</b><br>(SewaAstra Secure Voice) 🔊📳')+'<div style="display:flex;gap:10px;margin-top:22px;"><button class="swcB" id="swcDec" style="background:#374151;">✖ काटें</button><button class="swcB" id="swcAns" style="background:linear-gradient(135deg,#15a04a,#1fc25e);box-shadow:0 8px 24px rgba(21,160,74,.5);">✅ उठाएँ</button></div>'); bind('swcAns',function(){ vib(40); answerCall(oid); }); bind('swcDec',function(){ declineCall(oid); }); }
+function paintLive(oid){ paint(head('🟢','🔒 Masked Call • LIVE',oid,PEER+' जुड़ा है • नंबर छिपा है 🙈')+'<div id="swcT" style="font-size:26px;font-weight:900;color:#7dffa0;margin-top:10px;">00:00</div><div style="display:flex;gap:10px;margin-top:18px;"><button class="swcB" id="swcM" style="background:#374151;">🔇 Mute</button><button class="swcB" id="swcS" style="background:#0d6efd;">🔊 Speaker:ON</button></div><div style="display:flex;gap:10px;margin-top:10px;"><button class="swcB" id="swcE" style="background:linear-gradient(135deg,#e53935,#ff6659);padding:16px 8px;font-size:15px;">📵 End</button></div>'); bind('swcE',function(){ endCall('कॉल समाप्त',''); }); bind('swcM',function(){ muted=!muted; try{ if(localS) localS.getAudioTracks().forEach(function(t){ t.enabled=!muted; }); }catch(e){} var b=document.getElementById('swcM'); if(b) b.innerHTML=muted?'🔇 Muted':'🔇 Mute'; }); bind('swcS',function(){ bigSpk=!bigSpk; try{ if(remoteA) remoteA.volume=bigSpk?1:0.35; }catch(e){} var b=document.getElementById('swcS'); if(b) b.innerHTML=bigSpk?'🔊 Speaker:ON':'🔈 Speaker:LOW'; }); }
+function paintEnd(t,s){ paint('<div style="font-size:54px;">📵</div><div style="font-size:16px;font-weight:900;margin-top:12px;">'+esc(t||'कॉल समाप्त')+'</div>'+(s?'<div style="font-size:11.5px;opacity:.75;margin-top:6px;">'+esc(s)+'</div>':'')); }
+/* ---- peer helpers ---- */
+function closePc(){ try{ if(pc) pc.close(); }catch(e){} pc=null; }
+function stopMic(){ try{ if(localS) localS.getTracks().forEach(function(t){ t.stop(); }); }catch(e){} localS=null; }
+function unsubs(){ try{ if(docUn) docUn(); }catch(e){} docUn=null; try{ if(candUn) candUn(); }catch(e){} candUn=null; }
+function stopTimer(){ if(secT){ clearInterval(secT); secT=null; } if(waitT){ clearTimeout(waitT); waitT=null; } }
+function startTimer(){ stopTimer2(); secs=0; secT=setInterval(function(){ secs++; var m=Math.floor(secs/60),s=secs%60; var e=document.getElementById('swcT'); if(e) e.innerText=(m<10?'0':'')+m+':'+(s<10?'0':'')+s; },1000); }
+function stopTimer2(){ if(secT){ clearInterval(secT); secT=null; } }
+function mkPc(oid){
+closePc(); var P=null;
+try{ P=new RTCPeerConnection(rtcConf()); }catch(e){ return null; }
+pc=P;
+P.ontrack=function(ev){ try{ remoteA.srcObject=ev.streams[0]; var pr=remoteA.play(); if(pr&&pr.catch) pr.catch(function(){}); }catch(e){} };
+P.onicecandidate=function(ev){ if(ev.candidate){ try{ callCands(oid).add({from:myKey(),role:ROLE,cand:JSON.stringify(ev.candidate),ts:Date.now()}).catch(function(){}); }catch(e){} } };
+return P;
+}
+function listenCands(oid){ try{ if(candUn) candUn(); }catch(e){} try{ candUn=callCands(oid).onSnapshot(function(sn){ sn.docChanges().forEach(function(ch){ if(ch.type!=='added') return; if(seenC[ch.doc.id]) return; var m=ch.doc.data()||{}; if(m.from===myKey()) return; seenC[ch.doc.id]=1; if(!pc) return; try{ var c=new RTCIceCandidate(JSON.parse(m.cand)); pc.addIceCandidate(c).catch(function(){}); }catch(e){} }); },function(){}); }catch(e){} }
+function clearCands(oid){ try{ callCands(oid).get().then(function(sn){ sn.docs.forEach(function(d){ d.ref.delete().catch(function(){}); }); }).catch(function(){}); }catch(e){} }
+/* ---- caller ---- */
+function dial(oid){
+oid=String(oid||'').trim();
+if(!oid){ nt('पहले कोई active ऑर्डर खोलें, फिर Call दबाएँ'); return; }
+if(st.s!=='idle'){ nt('एक कॉल पहले से चल रही है — पहले उसे End करें'); return; }
+if(!window.RTCPeerConnection){ failCall('इस browser में voice-call support नहीं (Chrome use करें)'); return; }
+st={s:'dial',oid:oid}; seenC={}; muted=false; bigSpk=true;
+paintOut(oid); ringStart(false);
+function go(stream){ localS=stream; startCaller(oid); }
+try{
+if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){ navigator.mediaDevices.getUserMedia({audio:true}).then(go).catch(function(){ ringStop(); failCall('🎤 Microphone नहीं मिला — browser में Mic ALLOW करें, फिर try करें'); }); }
+else { ringStop(); failCall('🎤 Microphone support नहीं — Chrome में खोलें'); }
+}catch(e){ ringStop(); failCall('कॉल शुरू नहीं हुई'); }
+}
+function startCaller(oid){
+var P=mkPc(oid); if(!P){ failCall('Voice engine नहीं चला'); return; }
+try{ localS.getTracks().forEach(function(t){ P.addTrack(t,localS); }); }catch(e){}
+listenCands(oid);
+P.createOffer({offerToReceiveAudio:true}).then(function(off){ return P.setLocalDescription(off).then(function(){ return callDoc(oid).set({type:'offer',sdp:off.sdp,from:myKey(),role:ROLE,state:'ringing',ts:Date.now()}); }); }).then(function(){
+try{ if(docUn) docUn(); }catch(e){}
+try{ docUn=callDoc(oid).onSnapshot(function(d){ if(!d.exists||st.oid!==oid) return; var x=d.data()||{};
+if(x.state==='answered'&&x.sdp&&x.role!==ROLE&&st.s==='dial'){ try{ pc.setRemoteDescription({type:'answer',sdp:x.sdp}).then(function(){ goLive(oid); }).catch(function(){}); }catch(e){} }
+else if(x.state==='declined'&&st.s!=='live'){ endCall('सामने वाले ने काट दिया',''); }
+else if(x.state==='ended'&&st.s==='live'){ endCall('कॉल समाप्त',''); }
+},function(){}); }catch(e){}
+if(waitT) clearTimeout(waitT);
+waitT=setTimeout(function(){ if(st.s==='dial'&&st.oid===oid) endCall('कोई जवाब नहीं','सामने वाला जुड़ा नहीं — 💬 Chat try करें'); },45000);
+}).catch(function(){ failCall('कॉल शुरू नहीं हुई — internet check करें'); });
+}
+/* ---- callee ---- */
+function answerCall(oid){
+if(st.s!=='ringin'||st.oid!==oid) return;
+st={s:'ans',oid:oid}; seenC={}; muted=false; bigSpk=true;
+paint(head('🔒','जुड़ रहे हैं…',oid,'Secure voice बन रहा है'));
+try{
+if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){ failCall('Mic support नहीं'); return; }
+navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+localS=stream;
+callDoc(oid).get().then(function(d){
+if(!d.exists){ failCall('कॉल मिल नहीं रही (कट गई)'); return; }
+var x=d.data()||{};
+if(x.state!=='ringing'||!x.sdp){ failCall('कॉल पहले ही कट गई'); return; }
+var P=mkPc(oid); if(!P){ failCall('Voice engine नहीं चला'); return; }
+try{ localS.getTracks().forEach(function(t){ P.addTrack(t,localS); }); }catch(e){}
+listenCands(oid);
+P.setRemoteDescription({type:'offer',sdp:x.sdp}).then(function(){ return P.createAnswer(); }).then(function(ans){ return P.setLocalDescription(ans).then(function(){
+return callDoc(oid).update({type:'answer',sdp:ans.sdp,state:'answered',from:myKey(),role:ROLE,ansAt:Date.now()});
+}); }).then(function(){ goLive(oid); liveWatch(oid); }).catch(function(){ failCall('जुड़ नहीं पाए — फिर try करें'); });
+}).catch(function(){ failCall('जुड़ नहीं पाए'); });
+}).catch(function(){ failCall('🎤 Mic ALLOW करें, फिर Answer दबाएँ'); });
+}catch(e){ failCall('जुड़ नहीं पाए'); }
+}
+function liveWatch(oid){ try{ if(docUn) docUn(); }catch(e){} try{ docUn=callDoc(oid).onSnapshot(function(d){ if(st.oid!==oid) return; if(!d.exists) return; var x=d.data()||{}; if(x.state==='ended'&&st.s==='live'){ endCall('कॉल समाप्त',''); } },function(){}); }catch(e){} }
+function declineCall(oid){ try{ callDoc(oid).update({state:'declined'}).catch(function(){}); }catch(e){} ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); st={s:'idle',oid:''}; fsHide(); }
+function goLive(oid){ st={s:'live',oid:oid}; ringStop(); stopTimer(); if(waitT){ clearTimeout(waitT); waitT=null; } vib([80,60,80]); tone(880,0,0.15,0.2); paintLive(oid); startTimer(); }
+function endCall(t,s){ var oid=st.oid; ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); st={s:'idle',oid:''}; if(oid){ try{ callDoc(oid).update({state:'ended',ts:Date.now()}).catch(function(){}); }catch(e){} clearCands(oid); } if(t){ paintEnd(t,s); setTimeout(function(){ fsHide(); },1600); } else { fsHide(); } }
+function silentHide(){ ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); st={s:'idle',oid:''}; fsHide(); }
+function failCall(msg){ var oid=st.oid; ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); st={s:'idle',oid:''}; if(oid) clearCands(oid); paint(head('⚠️','कॉल नहीं जुड़ी',oid||'',esc(msg)+'<br>💡 फिर try करें या 💬 Chat use करें')+'<div style="display:flex;gap:10px;margin-top:18px;"><button class="swcB" id="swcOk" style="background:#0d6efd;">ठीक है</button></div>'); bind('swcOk',function(){ fsHide(); }); }
+/* ---- incoming watcher ---- */
+var orderUn=null,docSubs={};
+function myQuery(){ try{ if(ROLE==='partner'){ var ph=myPhone(); if(!ph||ph.length<10) return null; return FS.collection('orders').where('partnerPhone','==',ph); } var u=null; try{ u=firebase.auth().currentUser; }catch(e){} if(u&&u.uid) return FS.collection('orders').where('uid','==',u.uid); return null; }catch(e){ return null; } }
+function watchMine(){
+try{ if(orderUn) orderUn(); }catch(e){} orderUn=null;
+var q=null; try{ q=myQuery(); }catch(e){}
+if(!q){ setTimeout(function(){ try{ watchMine(); }catch(e){} },6000); return; }
+try{ orderUn=q.onSnapshot(function(sn){
+var ids={};
+sn.docs.forEach(function(d){ var o=d.data()||{}; var oid=o.id||d.id; if(['Accepted','On the Way','Working'].indexOf(o.status)<0) return; ids[oid]=1;
+if(!docSubs[oid]){ (function(id){ try{ docSubs[id]=callDoc(id).onSnapshot(function(dd){ onCallDoc(id,dd); },function(){}); }catch(e){} })(oid); }
+});
+Object.keys(docSubs).forEach(function(k){ if(!ids[k]){ try{ docSubs[k](); }catch(e){} delete docSubs[k]; } });
+},function(){}); }catch(e){}
+}
+function onCallDoc(oid,dd){
+if(st.s!=='idle') return;
+if(!dd.exists) return;
+var x=dd.data()||{};
+if(x.state!=='ringing'||x.type!=='offer') return;
+if(x.role===ROLE) return;
+if(x.from===myKey()) return;
+if(!(x.ts&&(Date.now()-x.ts)<60000)) return;
+st={s:'ringin',oid:oid}; paintIn(oid); ringStart(true);
+if(waitT) clearTimeout(waitT);
+waitT=setTimeout(function(){ if(st.s==='ringin'&&st.oid===oid){ try{ callDoc(oid).update({state:'ended'}).catch(function(){}); }catch(e){} silentHide(); } },50000);
+}
+/* ---- public ---- */
+window.SWAgora={ APP:'SWA-OWN-v9', init:function(r){ try{ if(r) ROLE=(r==='partner')?'partner':'cust'; }catch(e){} try{ ensureUI(); }catch(e){} try{ document.addEventListener('click',function(){ try{ ac(); }catch(e){} },{once:true}); }catch(e){} setTimeout(function(){ try{ watchMine(); }catch(e){} },1200); try{ firebase.auth().onAuthStateChanged(function(){ setTimeout(function(){ try{ watchMine(); }catch(e){} },900); }); }catch(e){} setInterval(function(){ try{ watchMine(); }catch(e){} },60000); }, dial:dial, hangup:function(){ if(st.s!=='idle') endCall('कॉल समाप्त',''); }, state:function(){ return st.s; } };
+console.log('%c 🔒 OWN MASKED CALL v9 (WebRTC, full-screen + vibrate/sound) ','background:#15a04a;color:#fff;font-weight:bold;padding:3px;');
 })();
+</script>
+
+<script>
+(function(){ try{
+window.openMaskCall=function(oid){
+try{ oid=oid||window.__swaCustOid||window.activeChatOrderId||''; }catch(e){}
+oid=String(oid||'').trim();
+if(oid){ try{ SWAgora.dial(oid); }catch(e){} return; }
+try{
+if(typeof myOrdersQuery==='function'){
+myOrdersQuery().get().then(function(sn){
+var best=null; sn.docs.forEach(function(d){ var o=d.data()||{}; if(['Accepted','On the Way','Working'].indexOf(o.status)>-1){ if(!best||(o.createdAt||0)>(best.createdAt||0)) best=o; } });
+if(best){ try{ SWAgora.dial(best.id||''); }catch(e){} }
+else { try{ if(window.showToast) window.showToast('कोई active ऑर्डर नहीं — पहले booking करें'); }catch(e){} }
+}).catch(function(){ try{ if(window.showToast) window.showToast('पहले कोई active ऑर्डर खोलें'); }catch(e){} });
+return;
+}
+}catch(e){}
+try{ if(window.showToast) window.showToast('पहले कोई active ऑर्डर खोलें, फिर Call दबाएँ'); }catch(e){}
+};
+SWAgora.init('cust');
+}catch(e){ console.log('swcall',e); } })();
 </script>
 
 
@@ -7323,5 +7253,49 @@ body.dark-mode #swLegalOv .swl-b b{color:#fff;}
 })();
 
 </script>
-</body>
+<script>
+/* ═══ v9 — CHAT NOTIFICATION (sound + vibrate + popup) — customer ═══ */
+(function(){
+if(window.__swChatN9) return; window.__swChatN9=1;
+function nt(m){ try{ if(window.showToast){ window.showToast(m); return; } }catch(e){} try{ if(window.toast){ window.toast(m); } }catch(e){} }
+function vib(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+var AC9=null;
+function beep9(){ try{ if(!AC9){ var C=window.AudioContext||window.webkitAudioContext; if(C) AC9=new C(); } var c=AC9; if(!c) return; if(c.state==='suspended'){ c.resume().catch(function(){}); } [880,660].forEach(function(f,i){ var o=c.createOscillator(),g=c.createGain(); o.connect(g); g.connect(c.destination); o.type='sine'; o.frequency.value=f; var t=c.currentTime+i*0.22; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.3,t+0.03); g.gain.exponentialRampToValueAtTime(0.0001,t+0.2); o.start(t); o.stop(t+0.25); }); }catch(e){} }
+function chatOpen(oid){ try{ var m=document.getElementById('chatCallModal'); var open=m&&m.style.display==='flex'; if(!open) return false; if(oid&&window.activeChatOrderId&&window.activeChatOrderId!==oid) return false; return true; }catch(e){ return false; } }
+function bell(t,b,oid){ try{ if('Notification' in window&&Notification.permission==='granted'){ var n=new Notification(t,{body:b,tag:'swc9_'+oid}); n.onclick=function(){ try{ window.focus(); }catch(e){} try{ if(window.openOrderChat) window.openOrderChat(oid); }catch(e){} try{ n.close(); }catch(e){} }; } }catch(e){} }
+try{ if('Notification' in window&&Notification.permission==='default'){ var once=function(){ try{ document.removeEventListener('click',once); }catch(e){} try{ var p=Notification.requestPermission(); if(p&&p.catch) p.catch(function(){}); }catch(e){} }; document.addEventListener('click',once); } }catch(e){}
+var lastN={};
+function scan(){
+try{
+if(typeof myOrdersQuery!=='function') return;
+if(document.hidden) return;
+myOrdersQuery().get().then(function(sn){
+sn.docs.forEach(function(d){
+var o=d.data()||{}; var oid=o.id||d.id;
+if(['Accepted','On the Way','Working'].indexOf(o.status)<0) return;
+var lr=0; try{ lr=parseInt(localStorage.getItem('swc_rd_'+oid)||'0',10)||0; }catch(e){}
+if(!lr){ try{ localStorage.setItem('swc_rd_'+oid,String(Date.now())); }catch(e){} lastN[oid]=0; return; }
+FS.collection('orders').doc(oid).collection('chats').where('ts','>',lr).get().then(function(cn){
+var news=[]; cn.docs.forEach(function(cd){ var m=cd.data()||{}; if(m.sender==='partner'||m.sender==='admin') news.push(m); });
+if(news.length&&!chatOpen(oid)){
+if(lastN[oid]!==news.length){
+beep9(); vib([120,60,120,60,220]);
+var prev=news[news.length-1];
+var txt=String(prev.text||'नया मैसेज');
+nt('💬 नया मैसेज: '+txt.slice(0,60));
+bell('💬 SewaAstra — नया मैसेज',txt.slice(0,90),oid);
+}
+}
+lastN[oid]=news.length;
+}).catch(function(){});
+});
+}).catch(function(){});
+}catch(e){}
+}
+setInterval(scan,7000);
+setTimeout(scan,5000);
+console.log('%c 💬 CHAT NOTIFY v9 (sound+vibrate) ','background:#0d6efd;color:#fff;font-weight:bold;padding:3px;');
+})();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35d7f93de6d7b2f',t:'MTc4ODUzMDE5NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
