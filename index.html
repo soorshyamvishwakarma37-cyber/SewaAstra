@@ -7477,5 +7477,26 @@ setTimeout(steps,900);
 console.log('%c ⬇️ DOWNLOAD APP v12 (customer) ','background:#15a04a;color:#fff;font-weight:bold;padding:3px;');
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35e0f5b092a3fa8',t:'MTc4ODUzNjA4Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>
+/* ═══ v13 — SETTINGS me bada ⬇️ Download App button (customer) ═══ */
+(function(){
+if(window.__swSetC13) return; window.__swSetC13=1;
+function add(){
+try{
+if(document.getElementById('swSetDl')) return;
+var titles=document.querySelectorAll('.settings-section-title');
+var host=null;
+for(var i=0;i<titles.length;i++){ if((titles[i].textContent||'').indexOf('Preferences')>-1){ host=titles[i]; break; } }
+if(!host){ var items=document.querySelectorAll('.setting-item'); if(items.length) host=items[0].parentNode; }
+if(!host) return;
+var d=document.createElement('div'); d.id='swSetDl';
+d.style.cssText='margin:12px 14px;border-radius:20px;overflow:hidden;background:linear-gradient(135deg,#ff6b00,#ff2d95 60%,#7a2bff);color:#fff;box-shadow:0 12px 30px rgba(255,45,149,.35);';
+d.innerHTML='<div style="display:flex;align-items:center;gap:12px;padding:15px 16px;"><div style="font-size:40px;">📱</div><div style="flex:1;"><div style="font-weight:900;font-size:15px;">SewaAstra App</div><div style="font-size:11px;opacity:.92;">APK download • tez • home-screen icon</div></div></div><div style="padding:0 14px 14px;"><button onclick="triggerAppInstall()" style="width:100%;border:none;border-radius:14px;padding:14px;font-weight:900;font-size:14.5px;cursor:pointer;background:#fff;color:#e91e63;box-shadow:0 6px 16px rgba(0,0,0,.25);">⬇️ Download App</button></div>';
+if(host.parentNode) host.parentNode.insertBefore(d,host.nextSibling);
+}catch(e){}
+}
+setInterval(add,2500); setTimeout(add,1500);
+})();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35e3c492c513a1f',t:'MTc4ODUzNzkyNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
