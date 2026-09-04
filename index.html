@@ -7562,5 +7562,53 @@ el=el.parentNode;
 console.log('%c 📱 APP-FEEL v17 (browser hi app hai) ','background:#0d6efd;color:#fff;font-weight:bold;padding:3px;');
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35f7a1eec033f85',t:'MTc4ODU1MDk0Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>
+/* ═══ v20 — ONE-FINGER SCROLL GUARANTEE (native + manual backup) ═══ */
+(function(){
+if(window.__swScr20) return; window.__swScr20=1;
+var sx=0, sy=0, on=false, down=false;
+function innerScroller(el){
+try{
+for(var k=0;k<7&&el&&el!==document.documentElement;k++){
+if(el.id==='leafletMapModal'||(el.className&&/leaflet-container|chat-box|chatMsgContainer|modal-box|ovl-card/i.test(String(el.className)))) return true;
+try{
+var cs=getComputedStyle(el);
+if(cs&&(cs.overflowY==='auto'||cs.overflowY==='scroll')&&el.scrollHeight>el.clientHeight+4) return true;
+}catch(c){}
+el=el.parentNode;
+}
+}catch(x){}
+return false;
+}
+document.addEventListener('touchstart',function(e){
+down=false; on=false;
+try{
+if(!e.touches||e.touches.length!==1) return;
+var t=e.target, tag=(t&&t.tagName)||'';
+if(/INPUT|TEXTAREA|SELECT|VIDEO|AUDIO/.test(tag)) return;
+if(innerScroller(t)) return;
+sx=e.touches[0].clientX; sy=e.touches[0].clientY; down=true;
+}catch(x){}
+},{passive:true});
+document.addEventListener('touchmove',function(e){
+try{
+if(!down||!e.touches||e.touches.length!==1){ on=false; return; }
+var nx=e.touches[0].clientX, ny=e.touches[0].clientY;
+var dx=nx-sx, dy=ny-sy;
+if(!on){
+if(Math.abs(dy)<12) return;
+if(Math.abs(dx)>Math.abs(dy)*1.4){ down=false; return; }
+on=true;
+}
+try{ e.preventDefault(); }catch(x){}
+try{ window.scrollBy(0,-dy); }catch(y){}
+sx=nx; sy=ny;
+}catch(x){}
+},{passive:false});
+document.addEventListener('touchend',function(){ down=false; on=false; },{passive:true});
+document.addEventListener('touchcancel',function(){ down=false; on=false; },{passive:true});
+console.log('%c 👆 SCROLL-FIX v20 ','background:#15a04a;color:#fff;font-weight:bold;padding:3px;');
+})();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35f8c2f6b770b19',t:'MTc4ODU1MTY4Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
