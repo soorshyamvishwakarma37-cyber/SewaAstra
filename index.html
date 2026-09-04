@@ -6773,7 +6773,7 @@ var AC=null;
 function ac(){ try{ if(!AC){ var C=window.AudioContext||window.webkitAudioContext; if(C) AC=new C(); } if(AC&&AC.state==='suspended'){ AC.resume().catch(function(){}); } return AC; }catch(e){ return null; } }
 function tone(f,dl,dur,vol){ try{ var c=ac(); if(!c) return; var o=c.createOscillator(),g=c.createGain(); o.connect(g); g.connect(c.destination); o.type='sine'; o.frequency.value=f; var t=c.currentTime+dl; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||0.25,t+0.04); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.start(t); o.stop(t+dur+0.05); }catch(e){} }
 var ringT=null,vibT=null;
-function ringStart(incoming){ ringStop(); ringT=setInterval(function(){ if(incoming){ tone(440,0,0.32,0.28); tone(480,0.38,0.32,0.28); } else { tone(660,0,0.16,0.16); } },incoming?1400:2000); vibT=setInterval(function(){ vib(incoming?[420,150,420,150,420]:[180]); },incoming?1750:2100); if(incoming){ tone(440,0,0.32,0.28); tone(480,0.38,0.32,0.28); } vib(incoming?[420,150,420]:[180]); }
+function ringStart(incoming){ ringStop(); ringT=setInterval(function(){ tone(440,0,0.32,0.3); tone(480,0.38,0.32,0.3); if(!incoming){ tone(660,0.82,0.16,0.2); } },1400); vibT=setInterval(function(){ vib([420,150,420,150,420]); },1750); tone(440,0,0.32,0.3); tone(480,0.38,0.32,0.3); vib([420,150,420]); }
 function ringStop(){ if(ringT){ clearInterval(ringT); ringT=null; } if(vibT){ clearInterval(vibT); vibT=null; } try{ if(navigator.vibrate) navigator.vibrate(0); }catch(e){} }
 /* state */
 var pc=null,localS=null,remoteA=null,st={s:'idle',oid:''},docUn=null,candUn=null,seenC={},waitT=null,secT=null,secs=0,muted=false,bigSpk=true;
@@ -7297,5 +7297,154 @@ setTimeout(scan,5000);
 console.log('%c 💬 CHAT NOTIFY v9 (sound+vibrate) ','background:#0d6efd;color:#fff;font-weight:bold;padding:3px;');
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35d7f93de6d7b2f',t:'MTc4ODUzMDE5NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>
+/* ═══ v10 — SUNDER MIC PERMISSION BOX (dono apps) ═══ */
+(function(){
+if(window.__swMic10) return; window.__swMic10=1;
+function granted(){ try{ return localStorage.getItem('sw_mic_ok')==='1'; }catch(e){ return false; } }
+function ensure(){
+if(document.getElementById('swMicOv')) return;
+var s=document.createElement('style');
+s.textContent='#swMicOv{position:fixed;inset:0;z-index:2147483640;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(5,8,18,.72);backdrop-filter:blur(4px);font-family:system-ui,Arial,sans-serif;box-sizing:border-box;}#swMicOv.on{display:flex;}.swMicCard{width:100%;max-width:340px;border-radius:26px;overflow:hidden;background:#fff;color:#222;box-shadow:0 30px 80px rgba(0,0,0,.5);animation:swmIn .3s cubic-bezier(.2,1.3,.4,1);text-align:center;}@keyframes swmIn{from{transform:scale(.88) translateY(16px);opacity:0;}to{transform:none;opacity:1;}}.swMicTop{background:linear-gradient(135deg,#7a2bff,#ff2d95 60%,#ff6b00);padding:26px 18px 20px;color:#fff;}.swMicTop .mic{font-size:56px;animation:swmPu 1.6s infinite;}@keyframes swmPu{50%{transform:scale(1.15);}}.swMicB{padding:18px;}';
+document.head.appendChild(s);
+var d=document.createElement('div'); d.id='swMicOv';
+d.innerHTML='<div class="swMicCard"><div class="swMicTop"><div class="mic">🎤</div><div style="font-weight:900;font-size:16px;margin-top:8px;">Mic Permission दें</div><div style="font-size:11.5px;opacity:.92;margin-top:5px;line-height:1.6;">Masked calling (बिना नंबर दिखे बात) के लिए<br>microphone ज़रूरी है</div></div><div class="swMicB"><div style="font-size:12px;font-weight:700;color:#555;line-height:1.9;text-align:left;">✅ आपकी आवाज़ सिर्फ़ कॉल में जाती है<br>✅ नंबर दोनों तरफ़ हमेशा छिपा रहता है<br>✅ बिना बात के Mic कभी ON नहीं होता</div><button id="swMicYes" style="width:100%;margin-top:14px;border:none;border-radius:15px;padding:15px;font-weight:900;font-size:14.5px;color:#fff;background:linear-gradient(135deg,#15a04a,#1fc25e);cursor:pointer;box-shadow:0 8px 22px rgba(21,160,74,.4);">✅ Allow Mic</button><button id="swMicNo" style="width:100%;margin-top:9px;border:none;background:none;color:#888;font-weight:800;font-size:12px;cursor:pointer;padding:8px;">बाद में</button></div></div>';
+document.body.appendChild(d);
+}
+var pending=null;
+function hide(){ var e=document.getElementById('swMicOv'); if(e) e.classList.remove('on'); }
+function goNext(){ hide(); var f=pending; pending=null; if(f){ try{ f(); }catch(e){} } }
+window.swAskMic=function(next){
+ensure();
+if(granted()){ if(next){ try{ next(); }catch(e){} } return; }
+pending=next||null;
+document.getElementById('swMicOv').classList.add('on');
+document.getElementById('swMicYes').onclick=function(){
+try{
+if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){ try{ localStorage.setItem('sw_mic_asked','1'); }catch(e){} goNext(); return; }
+navigator.mediaDevices.getUserMedia({audio:true}).then(function(st){
+try{ st.getTracks().forEach(function(t){ t.stop(); }); }catch(e){}
+try{ localStorage.setItem('sw_mic_ok','1'); localStorage.setItem('sw_mic_asked','1'); }catch(e){}
+try{ if(window.showToast) window.showToast('✅ Mic ready — अब clear बात होगी!'); else if(window.toast) window.toast('✅ Mic ready!'); }catch(e){}
+goNext();
+}).catch(function(){
+try{ localStorage.setItem('sw_mic_asked','1'); }catch(e){}
+try{ if(window.showToast) window.showToast('⚠️ Mic allow नहीं हुआ — phone Settings में Mic ON करें'); else if(window.toast) window.toast('⚠️ Mic allow करें'); }catch(e){}
+goNext();
+});
+}catch(e){ goNext(); }
+};
+document.getElementById('swMicNo').onclick=function(){ try{ localStorage.setItem('sw_mic_asked','1'); }catch(e){} goNext(); };
+};
+try{
+var _dial=window.SWAgora&&window.SWAgora.dial;
+if(window.SWAgora&&typeof _dial==='function'){
+window.SWAgora.dial=function(oid){ var a=arguments,self=this;
+if(granted()){ return _dial.apply(self,a); }
+try{ window.swAskMic(function(){ _dial.apply(self,a); }); }catch(e){ return _dial.apply(self,a); }
+};
+}
+}catch(e){}
+setTimeout(function(){ try{ var asked=false; try{ asked=!!localStorage.getItem('sw_mic_asked'); }catch(e){} if(!asked&&!granted()) window.swAskMic(null); }catch(e){} },6000);
+console.log('%c 🎤 MIC PERMISSION BOX v10 ','background:#7a2bff;color:#fff;font-weight:bold;padding:3px;');
+})();
+</script>
+<style id="swSys10">
+/* ═══ v10 — SYSTEMATIC UI: koi overlap nahi ═══ */
+html,body{overflow-x:hidden!important;}
+img,video,canvas{max-width:100%;}
+.cd,.card{overflow:hidden;box-sizing:border-box;}
+button,.bn{min-height:40px;box-sizing:border-box;}
+#swCallFS{z-index:2147483645!important;}
+#swMicOv{z-index:2147483640!important;}
+#swOtpBar{z-index:2147483630!important;}
+#sxOv{z-index:900000!important;}
+#op{z-index:99999!important;}
+#camOv{z-index:99998!important;}
+#chO{z-index:95000!important;}
+#v39Pill{z-index:9000!important;}
+.swDot{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;border-radius:12px;background:#ff1744;color:#fff;font-size:11px;font-weight:900;padding:0 5px;margin-left:6px;box-shadow:0 0 0 3px rgba(255,23,68,.25);animation:swDotPu 1s infinite;vertical-align:middle;}
+@keyframes swDotPu{50%{transform:scale(1.25);}}
+#swLiveB{position:fixed;top:8px;right:10px;z-index:8000;font-size:10px;font-weight:900;color:#fff;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:4px 10px;pointer-events:none;font-family:system-ui,Arial,sans-serif;box-sizing:border-box;}
+</style>
+<script>
+/* ═══ v10 — LIVE sync badge (refresh ki jarurat nahi) ═══ */
+(function(){
+if(window.__swLive10) return; window.__swLive10=1;
+try{
+var b=document.createElement('div'); b.id='swLiveB'; b.innerHTML='⚡ Live';
+document.body.appendChild(b);
+function upd(){ try{ b.innerHTML=navigator.onLine?'⚡ Live':'📴 Offline'; b.style.background=navigator.onLine?'rgba(21,160,74,.75)':'rgba(180,30,30,.8)'; }catch(e){} }
+window.addEventListener('online',upd); window.addEventListener('offline',upd); upd();
+}catch(e){}
+})();
+</script>
+<script>
+/* ═══ v10 — RED DOT on Live Chat (customer) + instant listener ═══ */
+(function(){
+if(window.__swDotC10) return; window.__swDotC10=1;
+function vib(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+var AC=null;
+function beep(){ try{ if(!AC){ var C=window.AudioContext||window.webkitAudioContext; if(C) AC=new C(); } var c=AC; if(!c) return; if(c.state==='suspended'){ c.resume().catch(function(){}); } [880,660].forEach(function(f,i){ var o=c.createOscillator(),g=c.createGain(); o.connect(g); g.connect(c.destination); o.type='sine'; o.frequency.value=f; var t=c.currentTime+i*0.22; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.3,t+0.03); g.gain.exponentialRampToValueAtTime(0.0001,t+0.2); o.start(t); o.stop(t+0.25); }); }catch(e){} }
+window.swUnread=window.swUnread||{};
+function chatOpenNow(oid){ try{ var m=document.getElementById('chatCallModal'); if(!(m&&m.style.display==='flex')) return false; if(oid&&window.activeChatOrderId&&window.activeChatOrderId!==oid) return false; return true; }catch(e){ return false; } }
+function paintDots(){
+try{
+var h=document.querySelector('#chatCallModal h3');
+if(h){ var d=document.getElementById('swDotH'); var n=0; Object.keys(window.swUnread).forEach(function(k){ n+=window.swUnread[k]||0; });
+if(n>0){ if(!d){ d=document.createElement('span'); d.id='swDotH'; d.className='swDot'; h.appendChild(d); } d.innerText=n>9?'9+':n; d.style.display='inline-flex'; }
+else if(d){ d.style.display='none'; } }
+Object.keys(window.swUnread).forEach(function(oid){
+if(!(window.swUnread[oid]>0)) return;
+try{
+var btns=document.querySelectorAll('button[onclick*="openOrderChat"]');
+for(var i=0;i<btns.length;i++){ var oc=btns[i].getAttribute('onclick')||''; if(oc.indexOf(oid)>-1&&!btns[i].querySelector('.swDot')){ var s=document.createElement('span'); s.className='swDot'; s.innerText=window.swUnread[oid]>9?'9+':window.swUnread[oid]; s.setAttribute('data-oid',oid); btns[i].appendChild(s); } }
+}catch(e){}
+});
+}catch(e){}
+}
+window.swDotShow=function(oid,n){ try{ window.swUnread[oid]=n||1; paintDots(); }catch(e){} };
+window.swDotClear=function(oid){ try{ delete window.swUnread[oid]; paintDots(); try{ var els=document.querySelectorAll('.swDot[data-oid="'+oid+'"]'); for(var i=0;i<els.length;i++){ els[i].remove(); } }catch(e){} }catch(e){} };
+try{
+var _oc=window.openOrderChat;
+if(typeof _oc==='function'){ window.openOrderChat=function(oid){ try{ window.swDotClear(oid); }catch(e){} try{ return _oc.apply(this,arguments); }catch(e){} }; }
+}catch(e){}
+var subs={};
+function ensure(){
+try{
+if(typeof myOrdersQuery!=='function') return;
+myOrdersQuery().get().then(function(sn){
+var ids={};
+sn.docs.forEach(function(d){ var o=d.data()||{}; var oid=o.id||d.id; if(['Accepted','On the Way','Working'].indexOf(o.status)<0) return; ids[oid]=1;
+if(!subs[oid]){ (function(id){ var first=true; try{ subs[id]=FS.collection('orders').doc(id).collection('chats').orderBy('ts','desc').limit(1).onSnapshot(function(ss){ if(first){ first=false; return; } ss.docChanges().forEach(function(ch){ if(ch.type!=='added') return; var m=ch.doc.data()||{}; if(!(m.sender==='partner'||m.sender==='admin')) return; if(chatOpenNow(id)) return; beep(); vib([120,60,120,60,220]); var cur=window.swUnread[id]||0; window.swDotShow(id,cur+1); try{ if(window.showToast) window.showToast('💬 नया मैसेज — लाल बिंदी वाली चैट खोलें'); }catch(e){} }); },function(){}); }catch(e){} })(oid); }
+});
+Object.keys(subs).forEach(function(k){ if(!ids[k]){ try{ subs[k](); }catch(e){} delete subs[k]; try{ window.swDotClear(k); }catch(e){} } });
+}).catch(function(){});
+}catch(e){}
+}
+setInterval(ensure,9000); setTimeout(ensure,4000);
+setInterval(paintDots,3000);
+})();
+</script>
+<script>
+/* ═══ v10 — Customer OTP popup par sound+vibrate (dhyaan jaye turant) ═══ */
+(function(){
+if(window.__swOtpW10) return; window.__swOtpW10=1;
+function vib(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+function beep3(){ try{ var C=window.AudioContext||window.webkitAudioContext; if(!C) return; var c=new C(); [880,880,1170].forEach(function(f,i){ var o=c.createOscillator(),g=c.createGain(); o.connect(g); g.connect(c.destination); o.type='sine'; o.frequency.value=f; var t=c.currentTime+i*0.25; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.32,t+0.03); g.gain.exponentialRampToValueAtTime(0.0001,t+0.22); o.start(t); o.stop(t+0.28); }); }catch(e){} }
+try{
+var mo=new MutationObserver(function(muts){
+muts.forEach(function(mu){
+mu.addedNodes.forEach(function(nd){
+try{
+if(nd&&nd.id==='wOtpBar'){ beep3(); vib([200,100,200,100,400]); try{ if(window.showToast) window.showToast('🔐 OTP aaya — partner ko batayein!'); }catch(e){} }
+}catch(e){}
+});
+});
+});
+mo.observe(document.body,{childList:true,subtree:false});
+}catch(e){}
+})();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35df37ebf274811',t:'MTc4ODUzNDk0Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
