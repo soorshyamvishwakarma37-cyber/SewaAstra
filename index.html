@@ -790,6 +790,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
 .pro-pay-step b{color:#ff6b00;}
 </style>
 
+<script id="swa-agora-sdk" async src="https://download.agora.io/sdk/release/AgoraRTC_N-4.24.2.js"></script>
 </head>
 <body id="mainBody">
 
@@ -850,24 +851,24 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" /> Google से लॉगिन करें
         </button>
 
-        <div class="pa-divider">या मोबाइल नंबर से</div>
+        <div class="pa-divider">या ईमेल और पासवर्ड से लॉगिन करें</div>
 
-        <div id="phoneAuthSection">
+        <div id="emailAuthSection">
             <div class="pa-input-group">
-                <span class="pa-flag">🇮🇳 +91</span>
-                <input type="tel" id="userPhone" placeholder="मोबाइल नंबर दर्ज करें" maxlength="10" inputmode="numeric" />
+                <span class="pa-flag">✉️</span>
+                <input type="email" id="userEmail" placeholder="ईमेल पता (Email address)" autocomplete="email" onkeydown="if(event.key==='Enter')emailPassSubmit()" />
             </div>
-            <button class="pa-btn" onclick="sendRealPhoneOTP()">OTP भेजें &nbsp;<i class="fa fa-arrow-right"></i></button>
+            <div class="pa-input-group" style="margin-top:10px;">
+                <span class="pa-flag">🔒</span>
+                <input type="password" id="userPass" placeholder="पासवर्ड (कम से कम 6 अक्षर)" autocomplete="current-password" onkeydown="if(event.key==='Enter')emailPassSubmit()" />
+            </div>
+            <div id="paAuthMsg" style="display:none;font-size:11px;font-weight:700;color:#c62828;background:#ffe9e9;border:1px solid #ffd0d0;border-radius:10px;padding:8px 10px;margin-top:10px;line-height:1.5;"></div>
+            <button class="pa-btn" id="emailPassBtn" onclick="emailPassSubmit()">🔐 Login करें &nbsp;<i class="fa fa-arrow-right"></i></button>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:4px;">
+                <span class="pa-link" id="emailModeLink" onclick="emailModeToggle()">पहली बार? नया अकाउंट बनाएं →</span>
+                <span class="pa-link" onclick="emailPassReset()">पासवर्ड भूल गए?</span>
+            </div>
         </div>
-
-        <div id="otpAuthSection" style="display:none;">
-            <p class="pa-otp-note">📲 आपके नंबर पर 6-अंकों का OTP भेजा गया है</p>
-            <input type="text" id="userOTP" class="pa-otp-input" placeholder="••••••" maxlength="6" inputmode="numeric" />
-            <button class="pa-btn" onclick="verifyRealPhoneOTP()">सत्यापित करें &nbsp;<i class="fa fa-check-circle"></i></button>
-            <span class="pa-link" onclick="resetAuth()">← दूसरा नंबर बदलें</span>
-        </div>
-
-        <div id="recaptcha-container"></div>
         <p class="pa-terms">जारी रखने पर आप हमारी <b>सेवा शर्तें</b> व <b>गोपनीयता नीति</b> स्वीकार करते हैं</p>
     </div>
 </div>
@@ -1038,7 +1039,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
 <div id="homePage">
     <header class="app-header">
         <div class="header-top">
-            <div class="brand-text">❤️SewaAstra</div>
+            <div class="brand-text">SEWAASTRA</div>
             <div class="header-actions">
                 <div class="loc-badge" onclick="getLiveLocation()"><i class="fa fa-map-marker-alt"></i> <span id="locTxt">GPS लोकेट करें</span></div>
                 <div id="headerProfile" onclick="toggleProfile()">
@@ -1111,7 +1112,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
 </div>
 
 <footer class="bottom-nav">
-    <div class="nav-item active" onclick="location.reload()" id="navHome"><i class="fa fa-home"></i>Home</div>
+    <div class="nav-item active" onclick="if(window.__exitGuard)window.__exitGuard.silent();location.reload()" id="navHome"><i class="fa fa-home"></i>Home</div>
     <div class="nav-item" onclick="openSupportView()" id="navSupp"><i class="fa fa-headset"></i><span>Support</span></div>
     <div class="nav-item" onclick="checkout()"><i class="fa fa-shopping-cart"></i>Cart <span class="badge" id="bCount">0</span></div>
     <div class="nav-item" onclick="showHistory()" id="navHis"><i class="fa fa-history"></i>History</div>
@@ -1277,7 +1278,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
 <footer style="text-align: center; padding: 20px; margin-top: 50px; border-top: 1px solid var(--border-color); font-size: 13px;">
     <p>&copy; 2026 SewaAstra. All rights reserved.</p>
     <div style="margin-top: 8px; display: flex; justify-content: center; gap: 15px;">
-        <a href="policy.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">Privacy Policy</a>
+        <a href="privacy.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">Privacy Policy</a>
         <span style="color: #ccc;">|</span>
         <a href="about.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">About Us</a>
     </div>
@@ -1396,8 +1397,6 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
   const LANG_DATA = {
     hi: { home:"होम", support:"सहायता", history:"इतिहास", noHistory:"कोई इतिहास नहीं मिला" },
     en: { home:"Home", support:"Support", history:"History", noHistory:"No history found" },
-    bh: { home:"घर", support:"मदद", history:"पुराना", noHistory:"कुछु नइखे" },
-    pb: { home:"ਘਰ", support:"ਸਹਾਇता", history:"ਇतिहास", noHistory:"ਕੋਈ ਇਤਿਹਾਸ ਨਹੀਂ" }
   };
 
   function showAlert(title, message) {
@@ -1862,7 +1861,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
       firebase.auth().signOut();
       localStorage.removeItem('sw_logged');
       localStorage.removeItem('sw_is_admin');
-      location.reload();
+      try{if(window.__exitGuard)window.__exitGuard.silent();}catch(_e){}location.reload();
   }
 
   // --- 10+ CUSTOMER REQUIREMENTS HANDLER FUNCTION ---
@@ -2578,7 +2577,7 @@ window.handleFinalOrder = function () {
       const upi = `upi://pay?pa=${encodeURIComponent(CLOUD_CONFIG.upiId)}&pn=SewaAstra&am=${finalAmt}&cu=INR&tn=${oid}`;
       extra = `<br><a href="${upi}" style="display:inline-block;margin-top:10px;background:#15a04a;color:#fff;padding:10px 18px;border-radius:10px;text-decoration:none;font-weight:bold;">💳 UPI से ₹${finalAmt} Pay करें</a>`;
     }
-    showAlert('Booking Successful! 🎉', `आपका ऑर्डर <b>${oid}</b> History में सेव हो गया है!<br>स्टेटस अपडेट आपको History  मिलेंगे (📋 History में देखें)।${extra}<br><br>WhatsApp पर विवरण भेजा जा रहा है...`);
+    showAlert('बुकिंग सफल! 🎉', `आपका ऑर्डर <b>${oid}</b> ☁️ cloud में सेव हो गया है!<br>स्टेटस अपडेट आपको यहीं मिलेंगे (📋 History में देखें)।${extra}<br><br>WhatsApp पर विवरण भेजा जा रहा है...`);
     setTimeout(() => { window.open(`https://wa.me/917869969190?text=${waMsg}`, '_blank'); }, 1800);
     startMyOrdersListener();
   }).catch(e => {
@@ -3026,7 +3025,7 @@ function subscribeTrack(oid) {
         </div>
         <a href="${navLn}" target="_blank" style="display:block;text-align:center;background:#0d47a1;color:#fff;text-decoration:none;border-radius:11px;padding:9px;font-size:11.5px;font-weight:900;margin-bottom:6px;">🧭 Partner तक Navigation (Google Maps)</a>` : ''}`}
         <div style="display:flex;gap:10px;margin-top:8px;">
-          <button onclick="openMaskCall()" style="flex:1;background:#15a04a;color:#fff;border:none;padding:11px;border-radius:12px;font-weight:800;cursor:pointer;"><i class="fa fa-phone-alt"></i> Call</button>
+          <button onclick="openMaskCall('${oid}')" style="flex:1;background:#15a04a;color:#fff;border:none;padding:11px;border-radius:12px;font-weight:800;cursor:pointer;"><i class="fa fa-phone-alt"></i> 🔒 Masked Call</button>
           <button onclick="closeLiveTracking();openOrderChat('${oid}')" style="flex:1;background:#ff6b00;color:#fff;border:none;padding:11px;border-radius:12px;font-weight:800;cursor:pointer;"><i class="fa fa-comment-dots"></i> Live Chat</button>
         </div>`;
     }
@@ -3869,7 +3868,7 @@ var PRO_I18N = {
   }
 };
 function proApplyLang(){
-  var lang = (typeof currentLang !== 'undefined') ? currentLang : 'hi';
+  var lang = (typeof currentLang !== 'undefined' && (currentLang==='hi'||currentLang==='en')) ? currentLang : 'hi';
   var dict = PRO_I18N[lang];
   var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   var n;
@@ -3900,7 +3899,7 @@ function proApplyLang(){
   }).observe(document.body, { childList: true, subtree: true });
   window.addEventListener('load', function(){
     var saved = localStorage.getItem('sw_lang');
-    if (saved && saved !== 'hi') setTimeout(proApplyLang, 1500);
+    if (saved && saved !== 'hi' && PRO_I18N[saved]) setTimeout(proApplyLang, 1500);
   });
 })();
 
@@ -4224,7 +4223,7 @@ window.handleFinalOrder = function(){
         : (payment && /verifying/i.test(payment.status||''))
         ? '<br><span style="color:#b07800;font-weight:800;">⏳ Payment verification में — UTR: ' + proEsc(payment.ref||'') + '<br>Admin जल्द confirm करेंगे</span>'
         : '';
-      showAlert('Booking Successful! 🎉', 'आपका ऑर्डर <b>' + oid + '</b> History में सेव हो गया है!' + payLine + '<br>स्टेटस अपडेट 📋 History में मिलेंगे।<br><br>WhatsApp पर विवरण भेजा जा रहा है...');
+      showAlert('बुकिंग सफल! 🎉', 'आपका ऑर्डर <b>' + oid + '</b> ☁️ cloud में सेव हो गया है!' + payLine + '<br>स्टेटस अपडेट 📋 History में मिलेंगे।<br><br>WhatsApp पर विवरण भेजा जा रहा है...');
       setTimeout(function(){ window.open('https://wa.me/917869969190?text=' + waMsg, '_blank'); }, 1800);
       startMyOrdersListener();
       proStartRatingWatcher();
@@ -4570,8 +4569,9 @@ console.log('%c SewaAstra v3.3 📍 live area | auto PIN | extra address ', 'bac
 function proHeartbeat(on){
   try{
     var id = (localStorage.getItem('sw_user')||'').trim();
+    var uu=''; try{ uu=firebase.auth().currentUser?firebase.auth().currentUser.uid:''; }catch(e){}
     if(!id || localStorage.getItem('sw_logged')!=='true') return;
-    FS.collection('users').doc(id).set({lastSeen: Date.now(), online: on!==false}, {merge:true}).catch(function(){});
+    if(uu){ FS.collection('presence').doc(uu).set({uid:uu,phone:id,lastSeen: Date.now(), online: on!==false}, {merge:true}).catch(function(){}); }
   }catch(e){}
 }
 window.addEventListener('load', function(){ setTimeout(function(){ proHeartbeat(true); }, 3000); });
@@ -4586,11 +4586,11 @@ function proAuthErr(e){
   var host = location.hostname || '(file)';
   var M = {
     'auth/unauthorized-domain': '🌐 यह domain Firebase में allowed नहीं!<br><br>Console → Authentication → Settings → <b>Authorized domains</b> में add करें:<br><b>' + host + '</b>',
-    'auth/billing-not-enabled': '💳 Phone OTP के लिए Blaze plan चाहिए।<br><br>✅ <b>FREE तरीका:</b> Console → Authentication → Phone → <b>"Phone numbers for testing"</b> में नंबर + fixed OTP डालें — बिना SMS login!',
+    'auth/billing-not-enabled': '💳 Email/Password login के लिए Blaze ज़रूरी नहीं — Console → Authentication → Sign-in method में <b>Email/Password</b> enable करें।',
     'auth/invalid-app-credential': '🤖 reCAPTCHA fail — page reload करें, domain authorized check करें।',
     'auth/captcha-check-failed': '🤖 reCAPTCHA verify नहीं हुआ — domain authorize करके reload करें।',
     'auth/too-many-requests': '⏳ बहुत कोशिशें — थोड़ी देर बाद try करें।',
-    'auth/operation-not-allowed': '⚙️ Console में यह provider (Phone/Google) enable नहीं है।',
+    'auth/operation-not-allowed': '⚙️ Console → Authentication → Sign-in method में <b>Email/Password</b> व Google दोनों enable करें।',
     'auth/operation-not-supported-in-this-environment': '🌐 यह browser/preview login support नहीं करता — https hosting पर खोलें।',
     'auth/network-request-failed': '📶 Internet problem।'
   };
@@ -4658,7 +4658,7 @@ window.sendRealPhoneOTP = function(){
 
 if (location.protocol === 'file:'){
   setTimeout(function(){
-    showAlert('⚠️ File से खोला गया है', 'Login (OTP/Google) के लिए app को <b>hosting</b> पर खोलें:<br>• Firebase Hosting (free, सबसे सही)<br>• या localhost server<br><br>file:// पर Firebase login काम नहीं करता।');
+    showAlert('⚠️ File से खोला गया है', 'Login (Email/Password/Google) के लिए app को <b>hosting</b> पर खोलें:<br>• Firebase Hosting (free, सबसे सही)<br>• या localhost server<br><br>file:// पर Firebase login काम नहीं करता।');
   }, 2500);
 }
 console.log('%c CUSTOMER LOGIN FIX v3.5 ✅ ', 'background:#e53935;color:#fff;font-weight:bold;');
@@ -4767,8 +4767,9 @@ console.log('%c REAL AUTH MODE ✅ (Direct Login removed) ', 'background:#15a04a
     var m=(ta.value||'').trim();
     if(m.length<10) return alert('कृपया शिकायत थोड़ा detail में लिखें');
     var btn=document.querySelector('#soSOv .sosSend'); if(btn){ btn.disabled=true; btn.innerText='भेज रहे हैं...'; }
+    var cuu=''; try{ cuu=firebase.auth().currentUser?firebase.auth().currentUser.uid:''; }catch(e){}
     firebase.firestore().collection('tickets').add({
-      from:'customer', phone:ph, name:'', cat:'🛒 Customer शिकायत',
+      from:'customer', phone:ph, uid:cuu, name:'', cat:'🛒 Customer शिकायत',
       msg:m, status:'Open', ts:Date.now(), at:new Date().toLocaleString('en-IN')
     }).then(function(){
       alert('✅ शिकायत दर्ज हो गई!\nAdmin जल्द resolve करेंगे।');
@@ -5588,6 +5589,8 @@ body.dark-mode .v39mg span{background:#2e2e2e}
           if(!x.led) upd.led=[];
         }
         if(Object.keys(upd).length) FS.collection('users').doc(k).set(upd,{merge:true}).catch(function(){});
+        var uu2=''; try{ uu2=firebase.auth().currentUser?firebase.auth().currentUser.uid:''; }catch(e){}
+        if(uu2) FS.collection('users').doc(k).set({uid:uu2},{merge:true}).catch(function(){});
         FS.collection('users').doc(k).onSnapshot(function(s){ if(s.exists) wC=Object.assign(wC,s.data()); },function(){});
       }).catch(function(){});
     }catch(e){}
@@ -6073,7 +6076,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
 /* ═══════════════ CUSTOMER v4.6 — 🌐 GOOGLE TRANSLATE (A–Z पूरी App) + ⚡ 5-sec AUTO REFRESH (data reset नहीं) ═══════════════ */
 (function(){
   if(window.__c46) return; window.__c46=1;
-  var LGS=[['hi','हिन्दी (Original)'],['en','English'],['bn','বাংলা'],['gu','ગુજરાતી'],['kn','ಕನ್ನಡ'],['ml','മലയാളം'],['mr','मराठी'],['pa','ਪੰਜਾਬੀ'],['ta','தமிழ்'],['te','తెలుగు'],['ur','اردو'],['ne','नेपाली'],['as','অসমীয়া'],['or','ଓଡ଼ିଆ']];
+var LGS=[['hi','हिन्दी'],['en','English']];
   var _ready=false,_loading=false;
 
   function host(){
@@ -6086,7 +6089,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
   function load(){
     if(_loading) return; _loading=true;
     try{
-      window.swGtCb=function(){ try{ if(window.google&&google.translate){ new google.translate.TranslateElement({pageLanguage:'hi',autoDisplay:false,includedLanguages:'hi,en,bn,gu,kn,ml,mr,pa,ta,te,ur,ne,as,or',layout:google.translate.TranslateElement.InlineLayout.SIMPLE},'swGtEl'); _ready=true; } }catch(e){} };
+      window.swGtCb=function(){ try{ if(window.google&&google.translate){ new google.translate.TranslateElement({pageLanguage:'hi',autoDisplay:false,includedLanguages:'hi,en',layout:google.translate.TranslateElement.InlineLayout.SIMPLE},'swGtEl'); _ready=true; } }catch(e){} };
       if(document.querySelector('script[src*="translate_a/element.js"]')){ _loading=false; return; }
       var sc=document.createElement('script');
       sc.src='https://translate.google.com/translate_a/element.js?cb=swGtCb';
@@ -6175,7 +6178,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
 
 
 <script>
-/* ═══════════════ CUSTOMER v4.7 — REAL FULL-APP TRANSLATE + ORIGINAL COMPANY BILL (SewaAstra ) + SOS CLOSE ═══════════════ */
+/* ═══════════════ CUSTOMER v4.7 — REAL FULL-APP TRANSLATE + ORIGINAL COMPANY BILL (SewaAstra Steel Pvt Ltd) + SOS CLOSE ═══════════════ */
 (function(){
   if(window.__c47) return; window.__c47=1;
 
@@ -6268,7 +6271,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
   function gLoad(){
     try{
       if(document.querySelector('script[src*="translate_a/element.js"]')) return;
-      window.swGtCb=function(){ try{ if(window.google&&google.translate){ new google.translate.TranslateElement({pageLanguage:'hi',autoDisplay:false,includedLanguages:'hi,en,bn,gu,kn,ml,mr,pa,ta,te,ur,ne,as,or',layout:google.translate.TranslateElement.InlineLayout.SIMPLE},'swGtEl'); } }catch(e){} };
+      window.swGtCb=function(){ try{ if(window.google&&google.translate){ new google.translate.TranslateElement({pageLanguage:'hi',autoDisplay:false,includedLanguages:'hi,en',layout:google.translate.TranslateElement.InlineLayout.SIMPLE},'swGtEl'); } }catch(e){} };
       var sc=document.createElement('script'); sc.src='https://translate.google.com/translate_a/element.js?cb=swGtCb'; document.head.appendChild(sc);
     }catch(e){}
   }
@@ -6292,7 +6295,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
   };
 
   /* override c46 pickers */
-  var LGS=[['hi','हिन्दी (Original)'],['en','English'],['bn','বাংলা'],['gu','ગુજરાતી'],['kn','ಕನ್ನಡ'],['ml','മലയാളം'],['mr','मराठी'],['pa','ਪੰਜਾਬੀ'],['ta','தமிழ்'],['te','తెలుగు'],['ur','اردو'],['ne','नेपाली'],['as','অসমীয়া'],['or','ଓଡ଼ିଆ']];
+var LGS=[['hi','हिन्दी'],['en','English']];
   window.swGtShow=function(){
     try{
       if(!document.querySelector('script[src*="translate_a/element.js"]')) gLoad();
@@ -6319,8 +6322,8 @@ body.dark-mode .v39mg span{background:#2e2e2e}
 
   /* header translate chip highlight if en */
   /* ─────────────────────── 2) ORIGINAL COMPANY BILL ───────────────────────
-     SewaAstra  — authorised sign + हर item/service photo सहित पूरी जानकारी */
-  var CO={name:'SewaAstra ',tag:'Home Services •  • Appliances',gstin:'23ABCDE1234F1Z5',addr:'misrod , Service Road, Bhopal, Madhya Pradesh 462001',ph:'7869969190',city:'Bhopal'};
+     SewaAstra Steel Pvt Ltd — authorised sign + हर item/service photo सहित पूरी जानकारी */
+  var CO={name:'SewaAstra Steel Pvt Ltd',tag:'Home Services • Steel • Appliances',gstin:'23ABCDE1234F1Z5',addr:'Shop 12, Service Road, Bhopal, Madhya Pradesh 462001',ph:'7869969190',city:'Bhopal'};
   function billLookup(items){
     var map={};
     FS.collection('app_config').doc('main').get().then(function(d){
@@ -6366,7 +6369,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
         '<a href="'+proUpiLink(o.total,o.id)+'" style="display:inline-block;margin:8px 4px 0;background:linear-gradient(90deg,#15a04a,#1fc25e);color:#fff;padding:11px 18px;border-radius:12px;text-decoration:none;font-weight:900;font-size:12px;">📲 अन्य UPI</a></div>'; }
     }
     var rows=(o.items||[]).map(rowFn).join('')||'<div style="color:#999;">—</div>';
-    var stamp='<div style="display:inline-block;border:2.5px solid #c62828;color:#c62828;border-radius:8px;padding:5px 12px;font-size:9.5px;font-weight:900;letter-spacing:1.5px;text-align:center;line-height:1.5;">✓ AUTHORISED<br>SEWAASTRA <br>Home Services</div>';
+    var stamp='<div style="display:inline-block;border:2.5px solid #c62828;color:#c62828;border-radius:8px;padding:5px 12px;font-size:9.5px;font-weight:900;letter-spacing:1.5px;text-align:center;line-height:1.5;">✓ AUTHORISED<br>SEWAASTRA STEEL<br>PVT LTD</div>';
     document.getElementById('proBillInner').innerHTML=
       '<div style="background:linear-gradient(135deg,#10233f,#1b3a66);color:#fff;padding:16px 18px;border-radius:0;">'+
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'+
@@ -6613,5 +6616,471 @@ body.dark-mode .v39mg span{background:#2e2e2e}
 
 </script>
 
+
+<script>
+/* ═══════════════ CUSTOMER v5.0 — 🛒 CART REFRESH-SAFE (localStorage) — refresh par data reset नहीं ═══════════════ */
+(function(){
+  if(window.__c50) return; window.__c50=1;
+  var KEY='sw_cart_v2';
+  function nowCart(){ try{ if(typeof cart==='undefined') return []; return cart||[]; }catch(e){ return []; } }
+  window.cartSave=function(){ try{ localStorage.setItem(KEY, JSON.stringify(nowCart())); }catch(e){} };
+  window.cartRestore=function(){
+    try{
+      var cur=nowCart();
+      if(cur&&cur.length) return;                 /* पहले से कुछ है — मत छेड़ो */
+      var raw=localStorage.getItem(KEY); if(!raw) return;
+      var s=JSON.parse(raw);
+      if(s&&s.length){
+        /* same top-level binding में restore — cart global lexical env है */
+        cart=s.slice();
+        try{ var b=document.getElementById('bCount'); if(b) b.innerText=String(cart.length); }catch(e){}
+        try{ if(typeof renderCart==='function') renderCart(); else if(typeof openCart==='function'){} }catch(e){}
+      }
+    }catch(e){}
+  };
+  /* हर 1.2s cart save → refresh के बाद भी वापस */
+  setInterval(window.cartSave,1200);
+  window.addEventListener('pagehide',window.cartSave);
+  window.addEventListener('beforeunload',window.cartSave);
+  setTimeout(window.cartRestore,300);
+  setTimeout(window.cartRestore,1400);
+  setTimeout(window.cartRestore,4000);
+  console.log('%c 🛒 CUSTOMER v5.0 — CART REFRESH-SAFE ✅ ','background:#0d47a1;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+
+<!-- ✉️ EMAIL + PASSWORD LOGIN (mobile OTP login हटा दिया गया — v7.0) -->
+<script>
+(function(){
+  if(window.__swEmailAuth7) return; window.__swEmailAuth7=1;
+  var mode='in';
+  function msgEl(){ return document.getElementById('paAuthMsg'); }
+  function setMsg(t){ var m=msgEl(); if(m){ if(t){ m.style.display='block'; m.innerHTML=t; } else m.style.display='none'; } }
+  function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
+  function label(){
+    var b=document.getElementById('emailPassBtn'), l=document.getElementById('emailModeLink');
+    if(b) b.innerHTML = mode==='up' ? '📝 अकाउंट बनाएं &nbsp;<i class="fa fa-user-plus"></i>' : '🔐 Login करें &nbsp;<i class="fa fa-arrow-right"></i>';
+    if(l) l.innerHTML = mode==='up' ? '← पहले से अकाउंट है? Login करें' : 'पहली बार? नया अकाउंट बनाएं →';
+  }
+  window.emailModeToggle=function(){ mode=(mode==='in')?'up':'in'; label(); setMsg(''); };
+  window.emailPassReset=function(){
+    var e=(document.getElementById('userEmail').value||'').trim();
+    if(!validEmail(e)) return setMsg('⚠️ पहले अपना सही ईमेल पता लिखें');
+    showLoader('Reset link भेजा जा रहा है...');
+    firebase.auth().sendPasswordResetEmail(e).then(function(){
+      hideLoader(); setMsg('');
+      showAlert('पासवर्ड रीसेट','रीसेट लिंक <b>'+proEsc(e)+'</b> पर भेज दिया गया।<br>मेल में दिए link से नया पासवर्ड बनाएं।');
+    }).catch(function(err){ hideLoader(); setMsg(proAuthErr(err)); });
+  };
+  function done(user,isNew){
+    var em=String(user.email||'').trim().toLowerCase();
+    localStorage.setItem('sw_logged','true');
+    localStorage.setItem('sw_user', em);
+    try{ checkAdminAccess(em); }catch(e){}
+    var ao=document.getElementById('authOverlay'); if(ao) ao.style.display='none';
+    var pp=document.getElementById('profilePhoneDisplay'); if(pp) pp.innerText=em;
+    try{ if(window.fetchCityNameByGPS) fetchCityNameByGPS(); }catch(e){}
+    try{ if(window.checkAndShowInstallModalAfterLogin) checkAndShowInstallModalAfterLogin(); }catch(e){}
+    showToast(isNew?'अकाउंट बन गया — स्वागत है! 🎉':'लॉगिन सफल — स्वागत है! 👋');
+    setTimeout(function(){ try{ if(window.startMyOrdersListener) startMyOrdersListener(); }catch(e){} },600);
+    setTimeout(function(){ try{ if(window.proSaveProfile) proSaveProfile(); }catch(e){} },1400);
+    try{ document.getElementById('userPass').value=''; }catch(e){}
+  }
+  function fail(err){
+    hideLoader(); var c=(err&&err.code)||'';
+    if(c==='auth/email-already-in-use') setMsg('इस ईमेल से पहले account मौजूद है — सही पासवर्ड डालकर Login करें, या Google से login करें।');
+    else if(c==='auth/user-not-found') setMsg('यह ईमेल registered नहीं है — नीचे "नया अकाउंट बनाएं" से signup करें।');
+    else if(c==='auth/wrong-password'||c==='auth/invalid-credential') setMsg('❌ पासवर्ड गलत है — "पासवर्ड भूल गए?" से रीसेट करें।');
+    else if(c==='auth/too-many-requests') setMsg('⏳ बहुत कोशिशें — कुछ देर बाद फिर try करें।');
+    else if(c==='auth/invalid-email') setMsg('⚠️ ईमेल पता सही नहीं है।');
+    else setMsg(proAuthErr(err));
+  }
+  function autoUp(){
+    mode='up'; label();
+    setMsg('नया ईमेल — अभी आपका account बना दिया जाएगा (यही ईमेल+पासवर्ड से आगे login होगा)।');
+  }
+  window.emailPassSubmit=function(){
+    var e=(document.getElementById('userEmail').value||'').trim();
+    var p=document.getElementById('userPass').value||'';
+    if(!validEmail(e)) return setMsg('⚠️ सही ईमेल पता लिखें (example@mail.com)');
+    if(p.length<6) return setMsg('⚠️ पासवर्ड कम से कम 6 अक्षर का होना चाहिए');
+    setMsg('');
+    showLoader(mode==='up'?'अकाउंट बनाया जा रहा है...':'लॉगिन हो रहा है...');
+    if(mode==='up'){
+      firebase.auth().createUserWithEmailAndPassword(e,p).then(function(r){ hideLoader(); done(r.user,true); })
+        .catch(function(err){ if(err&&err.code==='auth/email-already-in-use'){
+          firebase.auth().signInWithEmailAndPassword(e,p).then(function(r){ hideLoader(); done(r.user,false); }).catch(fail);
+        } else fail(err); });
+    } else {
+      firebase.auth().signInWithEmailAndPassword(e,p).then(function(r){ hideLoader(); done(r.user,false); })
+        .catch(function(err){
+          if(err&&err.code==='auth/user-not-found'){
+            autoUp();
+            firebase.auth().createUserWithEmailAndPassword(e,p).then(function(r){ hideLoader(); done(r.user,true); }).catch(fail);
+          } else fail(err);
+        });
+    }
+  };
+  /* 📵 mobile OTP entry points बंद — किसी पुराने button ने call किया तो नरम message */
+  var noOTP=function(){ showToast('📵 मोबाइल OTP login बंद — अब ईमेल+पासवर्ड (या Google) से login करें ✉️'); };
+  window.sendRealPhoneOTP=noOTP; window.verifyRealPhoneOTP=noOTP; window.resetAuth=noOTP;
+  console.log('%c ✉️ EMAIL+PASSWORD LOGIN v7.0 (mobile OTP removed) ','background:#0d47a1;color:#fff;font-weight:bold;padding:3px;');
+})();
+</script>
+
+
+<!-- 🔒 AGORA MASKED CALLING — app id is-ee515c7f4c5e4194895390710fe474d1 -->
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   SEWAASTRA — AGORA MASKED CALLING (v8.0)
+   App ID (verbatim): is-ee515c7f4c5e4194895390710fe474d1
+   • Asli numbers kabhi expose nahi hote — har call random masked UID pe
+   • Call signal Firestore ke order.callReq se (ring/answer/decline)
+   • Token: prod me Cloud Function se temporary token. Certificate OFF
+     project me token khali chhod sakte hain (dev).
+   ═══════════════════════════════════════════════════════════════ */
+window.SWAgora=(function(){
+  var APP='is-ee515c7f4c5e4194895390710fe474d1';
+  var TOKEN='';           // prod: server-minted temp token; dev: '' (certificate OFF)
+  var SDK='https://download.agora.io/sdk/release/AgoraRTC_N-4.24.2.js';
+  var role='cust';        // 'cust' | 'partner'
+  var client=null, localT=null, subs={}, st={s:'idle',oid:'',dir:''};
+  var unsub=null, ringT=null, loaderT=null;
+  var ui={};
+
+  function esc(s){ s=String(s==null?'':s); return s.replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
+  function myUid(){ try{ var u=firebase.auth().currentUser; return u?(u.uid||''):''; }catch(e){ return ''; } }
+  function myPhone(){ try{ return (''+((localStorage.getItem('swp_phone'))||'')).trim(); }catch(e){ return ''; } }
+  function chFor(oid){ return 'swa_'+String(oid||'').replace(/[^A-Za-z0-9]/g,''); }
+  function note(t){ try{ if(window.toast){ toast(t); return; } }catch(e){} try{ if(window.showToast){ showToast(t); } }catch(e){} }
+
+  /* ---------- SDK ---------- */
+  function loadSDK(cb){
+    if(window.AgoraRTC){ return cb(null); }
+    if(document.getElementById('swa-agora-sdk')){
+      if(loaderT) clearInterval(loaderT);
+      var t0=Date.now();
+      loaderT=setInterval(function(){
+        if(window.AgoraRTC){ clearInterval(loaderT); loaderT=null; cb(null); }
+        else if(Date.now()-t0>15000){ clearInterval(loaderT); loaderT=null; cb('timeout'); }
+      },250);
+      return;
+    }
+    var s=document.createElement('script');
+    s.id='swa-agora-sdk'; s.async=true; s.src=SDK;
+    s.onload=function(){ cb(null); };
+    s.onerror=function(){ cb('load'); };
+    document.head.appendChild(s);
+  }
+  function ok(){ return !!(window.AgoraRTC&&window.AgoraRTC.checkSystemRequirements&&window.AgoraRTC.checkSystemRequirements()); }
+
+  /* ---------- overlay ---------- */
+  function ensureUI(){
+    if(ui.root) return;
+    ui.root=document.createElement('div');
+    ui.root.innerHTML=
+      '<div id="swaBg" style="position:fixed;inset:0;background:rgba(6,10,22,.78);backdrop-filter:blur(5px);z-index:2147483646;display:none;align-items:center;justify-content:center;padding:16px;"></div>'+
+      '<div id="swaBox" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483647;width:min(92vw,342px);background:linear-gradient(160deg,#0b1220,#1e2c47);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:26px;box-shadow:0 26px 90px rgba(0,0,0,.6);padding:24px 18px 18px;text-align:center;font-family:system-ui,Arial,sans-serif;"></div>';
+    document.body.appendChild(ui.root);
+    ui.bg=document.getElementById('swaBg');
+    ui.box=document.getElementById('swaBox');
+    if(ui.bg) ui.bg.addEventListener('click',function(e){ if(e.target===ui.bg&&st.s!=='idle'&&st.s!=='live'){ hang(); } });
+  }
+  function paint(h){
+    ensureUI();
+    if(ui.box) ui.box.innerHTML=h;
+    if(ui.bg) ui.bg.style.display='flex';
+  }
+  function hideUI(){ if(ui.box) ui.box.innerHTML=''; if(ui.bg) ui.bg.style.display='none'; }
+  function card(head,body,actions){
+    var h='<div style="font-size:40px;line-height:1;">'+head+'</div>';
+    h+='<div style="font-size:15px;font-weight:900;margin:12px 0 4px;">'+body.title+'</div>';
+    h+='<div style="font-size:11.5px;opacity:.8;line-height:1.7;margin-bottom:12px;">'+body.sub+'</div>';
+    h+='<div style="display:flex;gap:8px;">'+actions.map(function(a){
+      return '<button id="'+a.id+'" style="flex:1;border:none;border-radius:13px;padding:13px;font-weight:800;font-size:12.5px;cursor:pointer;background:'+(a.bg||'#26364f')+';color:'+(a.fg||'#fff')+';">'+a.label+'</button>';
+    }).join('')+'</div>';
+    h+='<div style="font-size:9.5px;opacity:.55;margin-top:13px;">🔒 Agora secure channel • masked UID • '+esc(APP)+'</div>';
+    paint(h);
+  }
+  function bind(id,fn){ var el=document.getElementById(id); if(el) el.onclick=function(){ try{ fn(); }catch(e){ console.log(e); } }; }
+
+  /* ---------- live ---------- */
+  function liveCard(oid){
+    var muted=false;
+    card('🎧',{title:'🔒 Masked Call • LIVE',sub:'📦 '+esc(oid||'')+'<br>आपका असली नंबर दूसरे पक्ष को नहीं दिखेगा।'},
+      [{id:'swaM',label:'🔇 Mute',bg:'#374151'},{id:'swaE',label:'📵 End',bg:'#e53935'}]);
+    bind('swaE',function(){ end('कॉल समाप्त','Call ended'); });
+    bind('swaM',function(){
+      muted=!muted;
+      try{ if(localT) localT.setEnabled(!muted); }catch(e){}
+      var b=document.getElementById('swaM'); if(b) b.innerHTML=muted?'🔇 Muted':'🔇 Mute';
+    });
+  }
+  function waitingCard(oid){
+    card('📞',{title:'🔒 Masked Call',sub:'📦 '+esc(oid||'')+'<br>कॉलिंग… दूसरा पक्ष जुड़ रहा है।<br>वह Tracking / Masked Call खोलकर Answer करे।'},
+      [{id:'swaE',label:'📵 Cancel',bg:'#e53935'}]);
+    bind('swaE',function(){ end('Call रद्द','Cancelled'); });
+  }
+  function incomingCard(oid){
+    card('📞',{title:'Incoming Masked Call',sub:'📦 '+esc(oid||'')+'<br>कॉलर का असली नंबर छिपा है (Agora secure)।'},
+      [{id:'swaD',label:'✖ Decline',bg:'#374151'},{id:'swaA',label:'✅ Answer',bg:'#15a04a'}]);
+    bind('swaA',function(){ try{ navigator.vibrate&&navigator.vibrate(30); }catch(e){} doJoin(oid,false); });
+    bind('swaD',function(){ clearReq(oid); reset(); hideUI(); });
+  }
+
+  /* ---------- state mgmt ---------- */
+  function status(s){ st.s=s; }
+  function reset(){ st={s:'idle',oid:'',dir:''}; }
+  function clearReq(oid){
+    if(!oid) return;
+    try{ FS.collection('orders').doc(oid).update({'callReq':firebase.firestore.FieldValue.delete()}).catch(function(){}); }catch(e){}
+  }
+  function cleanup(){
+    if(ringT){ clearTimeout(ringT); ringT=null; }
+    try{ if(localT){ localT.close(); } }catch(e){}
+    try{ Object.keys(subs).forEach(function(k){ try{ subs[k].close(); }catch(e){} }); }catch(e){}
+    subs={}; localT=null;
+    if(client){ try{ client.leave().catch(function(){}); }catch(e){} client=null; }
+  }
+  function end(title,sub){
+    var oid=st.oid;
+    cleanup();
+    clearReq(oid);
+    reset();
+    hideUI();
+    if(title){ paint('<div style="font-size:34px;">📵</div><div style="font-size:14px;font-weight:900;margin-top:10px;">'+esc(title)+'</div>'+(sub?'<div style="font-size:10.5px;opacity:.7;margin-top:4px;">'+esc(sub)+'</div>':''));
+      setTimeout(hideUI,2000); }
+  }
+  function fail(msg){
+    cleanup();
+    var oid=st.oid; clearReq(oid);
+    reset();
+    card('⚠️',{title:'Masked Call उपलब्ध नहीं',sub:esc(msg)+'<br>💡 दोनों पक्ष को Tracking में Call दबाना होगा। फिर भी न जुड़े तो in-app 💬 Chat use करें।'},
+      [{id:'swaOk',label:'ठीक है',bg:'#0d6efd'}]);
+    bind('swaOk',function(){ hideUI(); });
+  }
+
+  /* ---------- join ---------- */
+  function doJoin(oid,isCaller){
+    loadSDK(function(err){
+      if(err){ fail('Agora SDK load नहीं हुआ — internet check करें और page refresh करें।'); return; }
+      if(!ok()){ fail('इस device/browser पर masked call support नहीं (https + mic ज़रूरी)।'); return; }
+      var R=window.AgoraRTC;
+      var c=R.createClient({mode:'rtc',codec:'vp8'});
+      client=c;
+      c.on('user-published',function(user,mt){
+        try{ if(subs[user.uid]) return; subs[user.uid]=user; c.subscribe(user,'audio').then(function(){
+          try{ user.audioTrack&&user.audioTrack.play(); }catch(e){}
+          if(st.s!=='live'){ status('live'); liveCard(oid); }
+        }).catch(function(){}); }catch(e){}
+      });
+      c.on('user-left',function(user){
+        try{ if(subs[user.uid]){ subs[user.uid].close(); delete subs[user.uid]; } }catch(e){}
+        if(st.s==='live') end('कॉल समाप्त','दूसरा पक्ष कॉल से हट गया');
+      });
+      status('connect');
+      paint('<div style="font-size:40px;">🔒</div><div style="font-size:14px;font-weight:900;margin-top:12px;">Secure channel बन रहा है…</div>');
+      c.join(APP,chFor(oid),TOKEN||null,Math.floor(100000+Math.random()*2147000000)).then(function(){
+        return R.createMicrophoneAudioTrack();
+      }).then(function(t){
+        localT=t;
+        return c.publish(t);
+      }).then(function(){
+        try{ navigator.vibrate&&navigator.vibrate([60,40,60]); }catch(e){}
+        if(!isCaller){ status('live'); try{ FS.collection('orders').doc(oid).update({'callReq.ans':{by:myUid(),role:role,t:Date.now()}}).catch(function(){}); }catch(e){} liveCard(oid); return; }
+        status('wait');
+        waitingCard(oid);
+        (c.remoteUsers||[]).forEach(function(u){ if(subs[u.uid]) return; try{ subs[u.uid]=u; c.subscribe(u,'audio').then(function(){ try{ u.audioTrack&&u.audioTrack.play(); }catch(e){} if(st.s!=='live'){ status('live'); if(ringT){clearTimeout(ringT);ringT=null;} liveCard(oid); } }).catch(function(){}); }catch(e){} });
+        ringT=setTimeout(function(){ ringT=null; if(st.s==='wait') end('कोई जवाब नहीं','दूसरा पक्ष Tracking/Call से जुड़ा नहीं'); },30000);
+      }).catch(function(e){
+        if(client){ try{ client.leave().catch(function(){}); }catch(x){} client=null; }
+        try{ if(localT){ localT.close(); localT=null; } }catch(x){}
+        var msg=(e&&e.message)||'';
+        var code=(e&&e.code)||'';
+        if(code===8||/token|certificate|DYNAMIC_KEY|APP_CERT/i.test(msg)) fail('Agora project पर App Certificate ON है — server (Cloud Function) से temporary token जोड़ें, या Console में certificate OFF करें (अभी app-id mode)।');
+        else if(/NotAllowedError|Permission|microphone|device/i.test(msg)) fail('🎤 Microphone permission नहीं मिली — browser allow करके फिर try करें।');
+        else if(/network|timeout|ECONN/i.test(msg)) fail('📶 Agora से connect नहीं हुआ — internet check करके फिर try करें।');
+        else fail('Connect error'+(code?(' ('+code+')'):'')+' — कुछ देर बाद फिर try करें।');
+      });
+    });
+  }
+
+  /* ---------- dial (outgoing) ---------- */
+  function dial(oid){
+    if(!oid){ note('पहले कोई active ऑर्डर की Tracking/Call screen खोलें'); return; }
+    if(st.s==='live'||st.s==='connect'||st.s==='wait'||st.s==='ring'){ note('एक call पहले से जारी है — End करें'); return; }
+    st.oid=oid; st.dir='out';
+    try{ FS.collection('orders').doc(oid).set({'callReq':{by:myUid(),role:role,t:Date.now()}},{merge:true}).catch(function(){}); }catch(e){}
+    doJoin(oid,true);
+  }
+  function hang(){ if(st.s==='live'||st.s==='connect'||st.s==='wait') end('कॉल समाप्त',''); }
+
+  /* ---------- incoming watcher ---------- */
+  function checkOrder(oid,d){
+    if(!d) return;
+    var req=d.callReq; if(!req){ if(st.s==='ring'&&st.oid===oid){ clearReq(oid); reset(); hideUI(); } return; }
+    if(!((req.t||0)&&(Date.now()-req.t)<45000)) return;
+    if(req.by===myUid()) return;
+    if(req.role===role) return;
+    if(st.s!=='idle') return;
+    if(req.ans&&req.ans.by) return;
+    incomingCard(oid);
+    if(ringT) clearTimeout(ringT);
+    ringT=setTimeout(function(){ ringT=null; if(st.s==='ring'){ clearReq(oid); reset(); hideUI(); } },35000);
+  }
+  function watch(){
+    if(unsub){ try{ unsub(); }catch(e){} unsub=null; }
+    var u=null; try{ u=firebase.auth().currentUser; }catch(e){}
+    if(!u) return;
+    var q=null;
+    try{
+      if(role==='partner'){ var ph=myPhone(); if(!ph) return; q=FS.collection('orders').where('partnerPhone','==',ph); }
+      else q=FS.collection('orders').where('uid','==',u.uid);
+      if(!q) return;
+    }catch(e){ return; }
+    try{
+      unsub=q.onSnapshot(function(sn){
+        try{ sn.docChanges().forEach(function(c){ if(c.type!=='removed'){ try{ checkOrder(c.doc.id,c.doc.data()); }catch(e){} } }); }catch(e){}
+      },function(){});
+    }catch(e){}
+  }
+
+  return {
+    APP:APP,
+    init:function(r){
+      role=(r==='partner')?'partner':'cust';
+      watch();
+      try{ firebase.auth().onAuthStateChanged(function(){ setTimeout(watch,900); }); }catch(e){}
+    },
+    dial:dial,
+    hangup:hang,
+    state:function(){ return st.s; },
+    why:function(){ return { app:APP, tokenSet:!!TOKEN, sdkLoaded:!!window.AgoraRTC, supported:ok(), state:st }; }
+  };
+})();
+
+</script>
+<script>
+(function(){
+  try{
+    window.openMaskCall=function(oid){
+      if(!oid){ try{ oid=window.__swaCustOid||''; }catch(e){} }
+      if(!oid){ try{ oid=window.__swaCustOid; }catch(e){} }
+      SWAgora.dial(oid);
+    };
+    SWAgora.init('cust');
+    console.log('%c 🔒 AGORA MASKED CALL v8.0 (customer) ','background:#15a04a;color:#fff;font-weight:bold;padding:3px;');
+  }catch(e){ console.log('agora',e); }
+})();
+</script>
+
+<!-- 🚪 EXIT CONFIRMATION GUARD v8.1 -->
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   SEWAASTRA — EXIT GUARD v8.1 (teeno apps)
+   • Back button / tab close / refresh par puchhe bina bahar nahi ja sakte
+   • Custom in-app modal (koi native confirm/prompt nahi)
+   • window.__exitGuard.silent() — internal reload/logout ke liye bypass
+   ═══════════════════════════════════════════════════════════════ */
+(function(){
+  if(window.__exitGuardInstalled) return; window.__exitGuardInstalled=1;
+  var armed=true, silentT=0, pendingExit=false, zz=2147483600;
+  var root=null, box=null;
+
+  function el(id){ return document.getElementById(id); }
+
+  function ensureUI(){
+    if(root) return;
+    root=document.createElement('div');
+    root.id='swExitRoot';
+    root.innerHTML=
+      '<div id="swExitBg" style="position:fixed;inset:0;background:rgba(5,8,20,.7);backdrop-filter:blur(4px);z-index:'+zz+';display:none;align-items:center;justify-content:center;padding:18px;"></div>'+
+      '<div id="swExitBox" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.94);z-index:'+(zz+1)+';width:min(90vw,330px);background:linear-gradient(165deg,#ffffff,#f4f6fb);color:#17203a;border-radius:24px;box-shadow:0 24px 80px rgba(0,0,0,.45);padding:24px 20px 18px;text-align:center;display:none;font-family:system-ui,Arial,sans-serif;"></div>';
+    document.body.appendChild(root);
+    var bg=el('swExitBg'), bx=el('swExitBox');
+    if(bg) bg.addEventListener('click',function(e){ if(e.target===bg) stay(); });
+  }
+  function show(){
+    ensureUI();
+    if(!box){ return; }
+    box.innerHTML=
+      '<div style="font-size:46px;line-height:1;">🚪</div>'+
+      '<div style="font-size:17px;font-weight:900;margin:12px 0 5px;">बाहर जाना है?</div>'+
+      '<div style="font-size:12px;color:#556;line-height:1.7;margin-bottom:16px;">क्या आप सच में SewaAstra से बाहर जाना चाहते हैं?<br><b>रुकें</b> दबाएँ तो आप यहीं बने रहेंगे।</div>'+
+      '<div style="display:flex;gap:8px;">'+
+        '<button id="swExitYes" style="flex:1;border:none;border-radius:13px;padding:13px;font-weight:800;font-size:13px;cursor:pointer;background:#e53935;color:#fff;">हाँ, बाहर जाएँ</button>'+
+        '<button id="swExitNo" style="flex:1;border:none;border-radius:13px;padding:13px;font-weight:800;font-size:13px;cursor:pointer;background:#0d6efd;color:#fff;">रुकें</button>'+
+      '</div>';
+    var b1=el('swExitYes'), b2=el('swExitNo');
+    if(b1) b1.onclick=function(){ goOut(); };
+    if(b2) b2.onclick=function(){ stay(); };
+    var bg=el('swExitBg'); if(bg) bg.style.display='flex';
+    box.style.display='block';
+  }
+  function hide(){
+    var bg=el('swExitBg'); if(bg) bg.style.display='none';
+    if(box) box.style.display='none';
+  }
+  function stay(){ pendingExit=false; hide(); trap(); }
+  function trap(){
+    try{
+      if(history.state && history.state.__swg) return;
+      history.replaceState({__swg:1}, '');
+      history.pushState({__swg:1}, '');
+    }catch(e){}
+  }
+  function goOut(){
+    pendingExit=true; armed=false;
+    try{ silentT=Date.now(); }catch(e){}
+    hide();
+    var done=false;
+    setTimeout(function(){
+      try{ if(history.length>1){ history.back(); done=true; } }catch(e){}
+      setTimeout(function(){
+        try{ window.close(); }catch(e){}
+        setTimeout(function(){
+          if(!done){
+            // browser ne tab band nahi kiya — ek aakhri naram notice
+            ensureUI();
+            if(box) box.innerHTML='<div style="font-size:38px;">👋</div><div style="font-size:14px;font-weight:800;margin-top:10px;">फिर मिलेंगे!</div><div style="font-size:11px;color:#667;margin-top:6px;">इस browser में अब tab बंद कर सकते हैं।</div>';
+          }
+        },700);
+      },300);
+    },60);
+  }
+
+  /* back button (Android/browser) */
+  window.addEventListener('popstate',function(){
+    if(!armed) return;
+    if(pendingExit) return;             // exit already confirmed — allow
+    show();
+  });
+  /* tab close / refresh / external link — browser native leave prompt */
+  window.addEventListener('beforeunload',function(e){
+    if(!armed) return;
+    if(Date.now()-silentT<1200) return; // internal silent reload
+    e.preventDefault();
+    e.returnValue='';
+  });
+
+  /* keyboard shortcut bhi confirm kar de (alt+left etc.) */
+  window.addEventListener('pagehide',function(){ /* kuch nahi — pagehide flow block nahi hota */ });
+
+  /* API */
+  window.__exitGuard={
+    armed:function(){ return armed; },
+    disarm:function(){ armed=false; },
+    rearm:function(){ armed=true; trap(); },
+    silent:function(){ silentT=Date.now(); armed=false; },
+    trap:trap,
+    askExit:show
+  };
+
+  try{ trap(); }catch(e){}
+  console.log('%c 🚪 EXIT GUARD v8.1 — bina confirm bahar nahi ja sakte ','background:#e53935;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
 </body>
 </html>
