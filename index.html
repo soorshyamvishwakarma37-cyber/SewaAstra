@@ -1753,6 +1753,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
 
   // --- GOOGLE & PHONE LOGIN ---
   function swGoogleDone(result) {
+      var __prev=''; try{ __prev=localStorage.getItem('sw_user')||''; }catch(e){}
       hideLoader();
       const user = result.user;
       localStorage.setItem('sw_logged', 'true');
@@ -1765,7 +1766,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
           document.getElementById('sheetPic').src = user.photoURL;
       }
       document.getElementById('authOverlay').style.display = 'none';
-      document.getElementById('googlePhonePromptOverlay').style.display = 'flex';
+      if(/^\d{10}$/.test(__prev)){ document.getElementById('googlePhonePromptOverlay').style.display = 'none'; try{ showToast('👋 वापसी पर स्वागत! एक-टैप login ✅'); }catch(e){} } else { document.getElementById('googlePhonePromptOverlay').style.display = 'flex'; }
       checkAndShowInstallModalAfterLogin();
       showToast("Google से लॉगिन सफल! अब मोबाइल नंबर दर्ज करें।");
   }
@@ -6809,7 +6810,7 @@ function ringStop(){ if(ringT){ clearInterval(ringT); ringT=null; } if(vibT){ cl
 var pc=null,localS=null,remoteA=null,st={s:'idle',oid:''},docUn=null,candUn=null,seenC={},waitT=null,secT=null,secs=0,muted=false,bigSpk=true;
 function callDoc(oid){ return FS.collection('orders').doc(oid).collection('swcall').doc('live'); }
 function callCands(oid){ return FS.collection('orders').doc(oid).collection('swcall').doc('live').collection('cands'); }
-function rtcConf(){ return {iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}]}; }
+function rtcConf(){ return {iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}], iceCandidatePoolSize:8}; }
 /* ---- FULL SCREEN UI ---- */
 function ensureUI(){
 if(document.getElementById('swCallFS')){ remoteA=document.getElementById('swCallRemote'); return; }
@@ -6873,7 +6874,7 @@ else if(x.state==='declined'&&st.s!=='live'){ endCall('सामने वाल
 else if(x.state==='ended'&&st.s==='live'){ endCall('कॉल समाप्त',''); }
 },function(){}); }catch(e){}
 if(waitT) clearTimeout(waitT);
-waitT=setTimeout(function(){ if(st.s==='dial'&&st.oid===oid) endCall('कोई जवाब नहीं','सामने वाला जुड़ा नहीं — 💬 Chat try करें'); },45000);
+waitT=setTimeout(function(){ if(st.s==='dial'&&st.oid===oid) endCall('कोई जवाब नहीं','सामने वाला जुड़ा नहीं — 💬 Chat try करें'); },60000);
 }).catch(function(){ failCall('कॉल शुरू नहीं हुई — internet check करें'); });
 }
 /* ---- callee ---- */
@@ -7566,7 +7567,8 @@ console.log('%c 📱 APP-FEEL v17 (browser hi app hai) ','background:#0d6efd;col
 /* ═══ v20 — ONE-FINGER SCROLL GUARANTEE (native + manual backup) ═══ */
 (function(){
 if(window.__swScr20) return; window.__swScr20=1;
-var sx=0, sy=0, on=false, down=false;
+var sx=0, sy=0, on=false, down=false, vy=0, lastY=0, lastT=0, glide=null;
+function stopGlide(){ if(glide){ try{ cancelAnimationFrame(glide); }catch(e){} glide=null; } }
 function innerScroller(el){
 try{
 for(var k=0;k<7&&el&&el!==document.documentElement;k++){
@@ -7587,7 +7589,7 @@ if(!e.touches||e.touches.length!==1) return;
 var t=e.target, tag=(t&&t.tagName)||'';
 if(/INPUT|TEXTAREA|SELECT|VIDEO|AUDIO/.test(tag)) return;
 if(innerScroller(t)) return;
-sx=e.touches[0].clientX; sy=e.touches[0].clientY; down=true;
+sx=e.touches[0].clientX; sy=e.touches[0].clientY; down=true; vy=0; lastY=sy; lastT=Date.now(); stopGlide();
 }catch(x){}
 },{passive:true});
 document.addEventListener('touchmove',function(e){
@@ -7601,14 +7603,25 @@ if(Math.abs(dx)>Math.abs(dy)*1.4){ down=false; return; }
 on=true;
 }
 try{ e.preventDefault(); }catch(x){}
-try{ window.scrollBy(0,-dy); }catch(y){}
+try{ var now=Date.now(), dt=Math.max(8,now-lastT); var step=dy*1.4; window.scrollBy(0,-step); vy=0.75*vy+0.25*(dy/dt*16); lastT=now; }catch(y){}
 sx=nx; sy=ny;
 }catch(x){}
 },{passive:false});
-document.addEventListener('touchend',function(){ down=false; on=false; },{passive:true});
-document.addEventListener('touchcancel',function(){ down=false; on=false; },{passive:true});
-console.log('%c 👆 SCROLL-FIX v20 ','background:#15a04a;color:#fff;font-weight:bold;padding:3px;');
+document.addEventListener('touchend',function(){ down=false; var g=on; on=false; try{ if(g&&Math.abs(vy)>1){ stopGlide(); var f=function(){ vy*=0.94; if(Math.abs(vy)<0.6||down){ glide=null; return; } try{ window.scrollBy(0,-vy); }catch(e){ glide=null; return; } glide=requestAnimationFrame(f); }; glide=requestAnimationFrame(f); } }catch(e){} },{passive:true});
+document.addEventListener('touchcancel',function(){ down=false; on=false; try{ stopGlide(); }catch(e){} },{passive:true});
+console.log('%c 👆 FAST SCROLL v21 ','background:#15a04a;color:#fff;font-weight:bold;padding:3px;');
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35f8c2f6b770b19',t:'MTc4ODU1MTY4Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>
+/* ═══ v21 — 3 SECOND AUTO SYNC (bina dikhe, bina net-ghehra) — customer ═══ */
+(function(){
+if(window.__swTick21) return; window.__swTick21=1;
+setInterval(function(){
+try{ if(document.hidden) return; }catch(e){}
+try{ var b=document.getElementById('swLiveB'); if(b){ var on=navigator.onLine; b.innerHTML=on?'⚡ Live':'📴 Offline'; b.style.background=on?'rgba(21,160,74,.75)':'rgba(180,30,30,.8)'; } }catch(e){}
+try{ var h=document.getElementById('swDotH'); }catch(e){}
+},3000);
+})();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35ffa880bebff72',t:'MTc4ODU1NjIwMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
