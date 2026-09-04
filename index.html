@@ -826,7 +826,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
             • विशेष कूपन और कैशबैक
         </div>
         <button onclick="triggerAppInstall()" style="background: var(--success); margin-bottom: 10px;">
-            <i class="fa fa-download"></i> ऐप इनस्टॉल करें (Install App)
+            <i class="fa fa-download"></i> ⬇️ Download App (डाउनलोड करें)
         </button>
         <button onclick="closeInstallModal()" style="background: #eee; color: #555; box-shadow: none;">
             बाद में (Continue in Browser)
@@ -7446,5 +7446,36 @@ mo.observe(document.body,{childList:true,subtree:false});
 }catch(e){}
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35df37ebf274811',t:'MTc4ODUzNDk0Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>
+/* ═══ v12 — ⬇️ DOWNLOAD APP button (APK download karke install) — customer ═══ */
+(function(){
+if(window.__swDl12) return; window.__swDl12=1;
+var APK='SewaAstra-Customer.apk';
+function dl(){
+try{
+var a=document.createElement('a'); a.href=APK; a.download=APK;
+document.body.appendChild(a); a.click(); a.remove();
+}catch(e){
+try{ window.open(APK,'_blank'); }catch(e2){}
+}
+}
+function steps(){
+try{
+showAlert('📲 App Install kaise karein',
+'1️⃣ <b>APK download</b> poora hone dein<br>2️⃣ Upar notification / <b>Downloads</b> me APK par tap karein<br>3️⃣ <b>"Unknown apps"</b> maange to <b>ALLOW</b> karein<br>4️⃣ <b>Install</b> dabayein — bas! 🎉<br><br>SewaAstra icon home-screen par aa jayega ⚡');
+}catch(e){
+alert('App Install:\n1) APK download poora hone dein\n2) Downloads me APK par tap karein\n3) Unknown apps ALLOW karein\n4) Install dabayein');
+}
+}
+window.triggerAppInstall=function(){
+try{ document.getElementById('installAppModal').style.display='none'; }catch(e){}
+try{ localStorage.setItem('sw_install_dismissed','true'); }catch(e){}
+try{ if(window.showToast) window.showToast('⬇️ App download ho rahi hai...'); }catch(e){}
+dl();
+setTimeout(steps,900);
+};
+console.log('%c ⬇️ DOWNLOAD APP v12 (customer) ','background:#15a04a;color:#fff;font-weight:bold;padding:3px;');
+})();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35e0f5b092a3fa8',t:'MTc4ODUzNjA4Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
