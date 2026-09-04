@@ -26,7 +26,7 @@
 <!-- Leaflet CSS & JS for Interactive Map Selection & Live Tracking -->
 
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>SewaAstra PRO - Home Services (Cloud Connected)</title>
 <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
 
@@ -698,6 +698,8 @@ body.dark-mode .svc-opt-card.sel{background:linear-gradient(120deg,#2b2016,#241a
 </style>
 
 <!-- ═══════ v27: REAL PWA ═══════ -->
+<meta name="description" content="SewaAstra – AC, RO, Fridge, Washing Machine, Electrician, Plumber: verified experts aapke ghar, one click par. Booking, live tracking, secure payment.">
+<meta name="application-name" content="SewaAstra">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#ff6b00">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1278,9 +1280,11 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
 <footer style="text-align: center; padding: 20px; margin-top: 50px; border-top: 1px solid var(--border-color); font-size: 13px;">
     <p>&copy; 2026 SewaAstra. All rights reserved.</p>
     <div style="margin-top: 8px; display: flex; justify-content: center; gap: 15px;">
-        <a href="privacy.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">Privacy Policy</a>
+        <a onclick="event.preventDefault();swLegal('privacy')" style="color: var(--primary); text-decoration: underline; font-weight: 600; cursor:pointer;">Privacy Policy</a>
         <span style="color: #ccc;">|</span>
-        <a href="about.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">About Us</a>
+        <a onclick="event.preventDefault();swLegal('terms')" style="color: var(--primary); text-decoration: underline; font-weight: 600; cursor:pointer;">Terms</a>
+        <span style="color: #ccc;">|</span>
+        <a onclick="event.preventDefault();swLegal('about')" style="color: var(--primary); text-decoration: underline; font-weight: 600; cursor:pointer;">About Us</a>
     </div>
 </footer>
 
@@ -1653,7 +1657,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
   }
 
   function deleteAdminCategory(key) {
-      if (confirm(`क्या आप वाकई कैटेगरी '${key}' और उसके अंतर्गत सभी सर्विसेज को हटाना चाहते हैं?`)) {
+      swUi.confirm({icon:'🗑️',title:'कैटेगरी हटाएँ?',msg:`क्या आप वाकई कैटेगरी '${key}' और उसके अंतर्गत सभी सर्विसेज को हटाना चाहते हैं?`,ok:'हाँ, हटाएँ',cancel:'रुकें',danger:true,onOk:function(){
           categoriesData = categoriesData.filter(c => c.key !== key);
           delete mainData[key];
           localStorage.setItem('sw_custom_categories', JSON.stringify(categoriesData));
@@ -1662,7 +1666,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
           populateAdminCatDropdown();
           renderAdminCategoriesList();
           showToast("कैटेगरी सफलतापूर्वक हटा दी गई!");
-      }
+      }});
   }
 
   function renderAdminCategoriesList() {
@@ -1857,11 +1861,27 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
       document.getElementById('otpAuthSection').style.display = 'none';
   }
 
-  function logout() {
+  function logoutNow() {
       firebase.auth().signOut();
       localStorage.removeItem('sw_logged');
       localStorage.removeItem('sw_is_admin');
       try{if(window.__exitGuard)window.__exitGuard.silent();}catch(_e){}location.reload();
+  }
+  function logout() {
+      try{
+        if(window.__exitGuard && window.__exitGuard.confirmExit){
+          window.__exitGuard.confirmExit({
+            icon:'🔓',
+            title:'Logout करें?',
+            sub:'क्या आप अपने <b>SewaAstra account</b> से logout करना चाहते हैं?<br>आपके ऑर्डर व wallet account में सुरक्षित रहेंगे — फिर से login करके देख सकते हैं।',
+            yes:'हाँ, Logout',
+            no:'रुकें',
+            cb:function(){ logoutNow(); }
+          });
+          return;
+        }
+      }catch(e){}
+      logoutNow();
   }
 
   // --- 10+ CUSTOMER REQUIREMENTS HANDLER FUNCTION ---
@@ -1887,7 +1907,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
       } else if (type === 'Feedback') {
           showAlert("Rate App", "SewaAstra को 5-स्टार रेटिंग देने के लिए धन्यवाद! ⭐⭐⭐⭐⭐");
       } else if (type === 'TandC') {
-          showAlert("Terms & Conditions", "SewaAstra की सभी सेवाएं सेवा प्रदाता और उपयोगकर्ता के बीच पारदर्शी और सुरक्षित नियमों के तहत संचालित होती हैं।");
+          swLegal('terms');
       }
   }
 
@@ -2645,10 +2665,11 @@ window.showHistory = function () {
 };
 
 window.cancelMyOrder = function (oid) {
-  if (!confirm(`ऑर्डर ${oid} रद्द करना है?`)) return;
-  FS.collection('orders').doc(oid).update({ status: 'Cancelled' })
-    .then(() => { showToast('❌ ऑर्डर रद्द हो गया'); closeCustomAlert(); setTimeout(showHistory, 400); })
-    .catch(e => showAlert('त्रुटि', e.message));
+  swUi.confirm({icon:'🚫',title:'ऑर्डर रद्द करें?',msg:`ऑर्डर ${oid} रद्द करना है?`,ok:'हाँ, रद्द करें',cancel:'रुकें',danger:true,onOk:function(){
+    FS.collection('orders').doc(oid).update({ status: 'Cancelled' })
+      .then(() => { showToast('❌ ऑर्डर रद्द हो गया'); closeCustomAlert(); setTimeout(showHistory, 400); })
+      .catch(e => showAlert('त्रुटि', e.message));
+  }});
 };
 
 /* ═══════════════ 4. REAL CHAT (per order, customer ↔ admin) ═══════════════ */
@@ -3149,28 +3170,30 @@ console.log('%c SewaAstra PRO-MAX v2.2 ✅ auto-banner | multi-options | REAL tr
 
 /* 2. HISTORY DELETE */
 window.deleteMyOrder = function(oid){
-  if(!confirm(`ऑर्डर ${oid} को history से हमेशा के लिए delete करना है?`)) return;
-  FS.collection('orders').doc(oid).delete()
-    .then(()=>{ showToast('🗑️ ऑर्डर delete हो गया'); closeCustomAlert(); setTimeout(showHistory, 350); })
-    .catch(e=>showAlert('त्रुटि', e.message));
+  swUi.confirm({icon:'🗑️',title:'ऑर्डर delete करें?',msg:`ऑर्डर ${oid} को history से हमेशा के लिए delete करना है?`,ok:'हाँ, delete करें',cancel:'रुकें',danger:true,onOk:function(){
+    FS.collection('orders').doc(oid).delete()
+      .then(()=>{ showToast('🗑️ ऑर्डर delete हो गया'); closeCustomAlert(); setTimeout(showHistory, 350); })
+      .catch(e=>showAlert('त्रुटि', e.message));
+  }});
 };
 
 window.clearMyHistory = function(){
-  if(!confirm('सभी पूर्ण/रद्द ऑर्डर history से delete हो जाएंगे। पक्का?')) return;
-  showLoader('History साफ़ हो रही है...');
-  myOrdersQuery().get().then(snap=>{
-    const batch = FS.batch();
-    let n = 0;
-    snap.docs.forEach(d=>{
-      const s = d.data().status;
-      if(s === 'Completed' || s === 'Cancelled'){ batch.delete(d.ref); n++; }
-    });
-    return batch.commit().then(()=>n);
-  }).then(n=>{
-    hideLoader(); closeCustomAlert();
-    showToast(n ? `🗑️ ${n} ऑर्डर delete हो गए` : 'कोई पूर्ण/रद्द ऑर्डर नहीं मिला');
-    setTimeout(showHistory, 400);
-  }).catch(e=>{ hideLoader(); showAlert('त्रुटि', e.message); });
+  swUi.confirm({icon:'🧹',title:'History साफ करें?',msg:'सभी पूर्ण/रद्द ऑर्डर history से delete हो जाएंगे। पक्का?',ok:'हाँ, साफ करें',cancel:'रुकें',danger:true,onOk:function(){
+    showLoader('History साफ़ हो रही है...');
+    myOrdersQuery().get().then(snap=>{
+      const batch = FS.batch();
+      let n = 0;
+      snap.docs.forEach(d=>{
+        const s = d.data().status;
+        if(s === 'Completed' || s === 'Cancelled'){ batch.delete(d.ref); n++; }
+      });
+      return batch.commit().then(()=>n);
+    }).then(n=>{
+      hideLoader(); closeCustomAlert();
+      showToast(n ? `🗑️ ${n} ऑर्डर delete हो गए` : 'कोई पूर्ण/रद्द ऑर्डर नहीं मिला');
+      setTimeout(showHistory, 400);
+    }).catch(e=>{ hideLoader(); showAlert('त्रुटि', e.message); });
+  }});
 };
 
 /* 3. HISTORY UI (overrides v2.0 — delete buttons ke saath) */
@@ -3652,10 +3675,11 @@ window.submitProRating = function(oid){
 
 /* ---------- ADMIN ORDERS: DELETE BUTTON ---------- */
 window.adminDeleteOrder = function(oid){
-  if(!confirm('ऑर्डर ' + oid + ' को हमेशा के लिए delete करना है?\n(Chat history भी हट जाएगी)')) return;
-  FS.collection('orders').doc(oid).delete()
-    .then(function(){ showToast('🗑️ ऑर्डर ' + oid + ' delete हो गया'); })
-    .catch(function(e){ showAlert('त्रुटि', e.message); });
+  swUi.confirm({icon:'🗑️',title:'ऑर्डर delete करें?',msg:'ऑर्डर ' + oid + ' को हमेशा के लिए delete करना है?\n(Chat history भी हट जाएगी)',ok:'हाँ, delete करें',cancel:'रुकें',danger:true,onOk:function(){
+    FS.collection('orders').doc(oid).delete()
+      .then(function(){ showToast('🗑️ ऑर्डर ' + oid + ' delete हो गया'); })
+      .catch(function(e){ showAlert('त्रुटि', e.message); });
+  }});
 };
 (function(){
   var _rao = window.renderAdminOrders;
@@ -4307,13 +4331,14 @@ body.dark-mode .pro-rev-top{background:linear-gradient(120deg,#2b2016,#241a10);b
 
 /* ---------- 1. ADMIN PAYMENT VERIFY ---------- */
 window.adminVerifyPayment = function(oid, ref){
-  if(!confirm('PhonePe Business app me check kiya?\nUTR: ' + (ref||'—') + '\n\nPayment VERIFY karein?')) return;
-  FS.collection('orders').doc(oid).update({
-    'payment.verified': true,
-    'payment.status': 'PAID (Admin Verified)',
-    'payment.verifiedAt': Date.now()
-  }).then(function(){ showToast('✅ Payment verified — ' + oid); })
-    .catch(function(e){ showAlert('त्रुटि', e.message); });
+  swUi.confirm({icon:'💜',title:'Payment VERIFY करें?',msg:'PhonePe Business app me check kiya?\nUTR: ' + (ref||'—') + '\n\nPayment VERIFY karein?',ok:'✅ Verify करें',cancel:'रुकें',onOk:function(){
+    FS.collection('orders').doc(oid).update({
+      'payment.verified': true,
+      'payment.status': 'PAID (Admin Verified)',
+      'payment.verifiedAt': Date.now()
+    }).then(function(){ showToast('✅ Payment verified — ' + oid); })
+      .catch(function(e){ showAlert('त्रुटि', e.message); });
+  }});
 };
 (function(){
   var _rao = window.renderAdminOrders;
@@ -6670,7 +6695,7 @@ var LGS=[['hi','हिन्दी'],['en','English']];
     showLoader('Reset link भेजा जा रहा है...');
     firebase.auth().sendPasswordResetEmail(e).then(function(){
       hideLoader(); setMsg('');
-      showAlert('पासवर्ड रीसेट','रीसेट लिंक <b>'+proEsc(e)+'</b> पर भेज दिया गया।<br>मेल में दिए link से नया पासवर्ड बनाएं।');
+      showAlert('पासवर्ड रीसेट ✉️','अगर यह ईमेल registered है तो रीसेट link भेज दिया गया है।<br><b>Spam/Junk</b> folder भी check करें — मेल के link से नया पासवर्ड बनाकर login करें।');
     }).catch(function(err){ hideLoader(); setMsg(proAuthErr(err)); });
   };
   function done(user,isNew){
@@ -6975,110 +7000,326 @@ window.SWAgora=(function(){
 })();
 </script>
 
-<!-- 🚪 EXIT CONFIRMATION GUARD v8.1 -->
+
+<style>
+/* Legal in-app pages — SewaAstra v8.2 */
+#swLegalOv{position:fixed;inset:0;z-index:2147483400;display:none;align-items:flex-end;justify-content:center;background:rgba(6,9,26,.55);backdrop-filter:blur(4px);}
+#swLegalOv.on{display:flex;}
+#swLegalOv .swl{width:100%;max-width:520px;height:min(92vh,760px);background:#fff;border-radius:24px 24px 0 0;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 -18px 60px rgba(0,0,0,.35);animation:swlUp .28s cubic-bezier(.2,1.2,.4,1);}
+@keyframes swlUp{from{transform:translateY(60px);opacity:0}to{transform:none;opacity:1}}
+#swLegalOv .swl-h{background:linear-gradient(135deg,#0b1220,#26364f 60%,#ff6b00);color:#fff;padding:18px 18px 22px;position:relative;}
+#swLegalOv .swl-h .x{position:absolute;right:14px;top:14px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+#swLegalOv .swl-b{flex:1;overflow-y:auto;padding:18px 18px 34px;background:linear-gradient(180deg,#fbfcff,#f3f6fd);}
+body.dark-mode #swLegalOv .swl{background:#141a2c;}
+body.dark-mode #swLegalOv .swl-b{background:#10162a;color:#e6ebf6;}
+#swLegalOv h4{margin:16px 0 6px;color:#ff6b00;font-size:13.5px;display:flex;align-items:center;gap:7px;}
+#swLegalOv .swl-b p{font-size:12.5px;line-height:1.75;color:#333;margin:4px 0;}
+body.dark-mode #swLegalOv .swl-b p{color:#c9d2e6;}
+#swLegalOv .swl-b b{color:#0b1220;}
+body.dark-mode #swLegalOv .swl-b b{color:#fff;}
+</style>
+<script>
+/* SewaAstra — in-app Policy / Terms / About (bina exit confirm) v8.2 */
+(function(){
+  if(window.__swLegalInst) return; window.__swLegalInst=1;
+  function ov(){
+    var d=document.getElementById('swLegalOv');
+    if(d) return d;
+    d=document.createElement('div'); d.id='swLegalOv';
+    d.innerHTML='<div class="swl"><div class="swl-h"><div style="font-size:13px;letter-spacing:1px;opacity:.85;">SEWAASTRA</div><div class="t" style="font-size:19px;font-weight:900;margin-top:2px;"></div><div class="x">✕</div></div><div class="swl-b"></div></div>';
+    document.body.appendChild(d);
+    d.querySelector('.x').onclick=function(){ closeIt(); };
+    d.addEventListener('click',function(e){ if(e.target===d) closeIt(); });
+    return d;
+  }
+  function closeIt(){ var d=document.getElementById('swLegalOv'); if(d) d.classList.remove('on'); }
+  var CONT={
+    privacy:{t:'Privacy Policy',h:'🔒 Privacy Policy',sections:[
+      ['📱 हम क्या जानकारी लेते हैं', 'Booking और सेवा के लिए आपका नाम, मोबाइल नंबर, ईमेल, घर का पता व लोकेशन। Payment जानकारी सिर्फ UPI/bank के ज़रिए।'],
+      ['🔐 कौन देख सकता है', 'आपका फोन/पता सिर्फ आपके काम पर आने वाले Verified Service Partner को दिखता है — किसी और को नहीं।'],
+      ['🛡️ असली नंबर सुरक्षित', 'Partner को कॉल Masked Calling से जाती है — आपका असली नंबर उसे नहीं दिखता, जब तक आप खुद न दें।'],
+      ['☁️ कहाँ रहती है', 'सारी जानकारी Google Firebase (secure) में रहती है। हम आपकी जानकारी बेचते नहीं, न ही spam करते हैं।'],
+      ['🗑️ मिटाना/सुधारना', 'जानकारी बदलने या हटाने के लिए app में Help & Support से संपर्क करें — 48 घंटे में कर दिया जाएगा।'],
+      ['✉️ संपर्क', 'SewaAstra, Bhopal (M.P.) • App में Help से chat/कॉल करें।']
+    ]},
+    terms:{t:'Terms & Conditions',h:'📜 Terms & Conditions',sections:[
+      ['✅ Booking', 'सेवा बुक करते ही Admin/Partner को ऑर्डर मिल जाता है। समय और पता सही भरें।'],
+      ['💵 Payment', 'Online payment तुरंत, Cash भुगतान partner को काम पूरा होने पर। Coupon सिर्फ Online पर चलता है।'],
+      ['↩️ Cancellation', 'Customer अपना ऑर्डर तब तक cancel कर सकता है जब तक partner काम शुरू न करे। रद्द ऑर्डर का कोई शुल्क नहीं।'],
+      ['🛠️ सेवा की ज़िम्मेदारी', 'पार्टनर सिर्फ बुक की गई सेवा करता है। नुकसान की सूचना 24 घंटे में दें — Support जाँच करेगा।'],
+      ['⭐ Rating & Review', 'हर काम के बाद rating/रिव्यू दें — इससे quality सुधरती है।'],
+      ['🔒 Safe use', 'अपनी login जानकारी किसी को न दें। App का दुरुपयोग account बंद करवा सकता है।']
+    ]},
+    about:{t:'About SewaAstra',h:'ℹ️ About SewaAstra',sections:[
+      ['🏠 हम कौन हैं', 'SewaAstra एक Home Services platform है — Bhopal (M.P.) से शुरू, पूरे भारत के लिए। Verified Experts घर आकर सेवा देते हैं।'],
+      ['🔧 सेवाएँ', 'AC/फ्रिज repair, Plumbing, Electrician, Cleaning, Painting और बहुत कुछ — एक टैप पर।'],
+      ['🤝 हमारा वादा', 'Verified partner, पक्का rate, समय पर पहुँच, और असली नंबर की सुरक्षा (Masked Call)।'],
+      ['📈 हमारा मक़सद', 'भारत के हर घर को भरोसेमंद सेवा — और हर कारीगर को सीधा, बिना बिचौलिए वाला काम और कमाई।'],
+      ['✉️ संपर्क', 'SewaAstra • Help: app में Support टैब • Admin: 78699 69190']
+    ]}
+  };
+  window.swLegal=function(kind){
+    var c=CONT[kind]||CONT.about;
+    var d=ov();
+    d.querySelector('.t').innerText=c.t;
+    var b=d.querySelector('.swl-b');
+    b.innerHTML='<div style="border-left:4px solid #ff6b00;background:#fff4ea;border-radius:0 12px 12px 0;padding:10px 12px;font-size:12px;font-weight:800;color:#7a3b00;line-height:1.6;">'+c.h+'</div>'+
+      c.sections.map(function(s){
+        return '<div style="background:#fff;border:1px solid #e8edf6;border-radius:14px;padding:12px 14px;margin:10px 0;box-shadow:0 2px 8px rgba(21,60,150,.05);">'+
+        '<div style="font-weight:900;font-size:13px;color:#ff6b00;display:flex;align-items:center;gap:7px;">'+s[0]+'</div>'+
+        '<div style="font-size:12px;color:#334;line-height:1.7;margin-top:5px;">'+s[1]+'</div></div>';
+      }).join('')+
+      '<div style="text-align:center;margin-top:14px;font-size:10px;color:#889;font-weight:700;">© 2026 SewaAstra • v8.2</div>';
+    d.classList.add('on');
+  };
+  try{
+    if(window.__exitGuard && window.__exitGuard.registerCloser){
+      window.__exitGuard.registerCloser(function(){
+        var d=document.getElementById('swLegalOv');
+        if(d && d.classList.contains('on')){ closeIt(); return true; }
+        return false;
+      });
+    }
+  }catch(e){}
+  console.log('%c 📄 IN-APP Policy/About/Terms v8.2 ','background:#0d6efd;color:#fff;font-weight:bold;padding:3px;');
+})();
+</script>
+
+<!-- 💎 SUNDER POPUP SYSTEM v8.3 -->
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   SEWAASTRA — EXIT GUARD v8.1 (teeno apps)
-   • Back button / tab close / refresh par puchhe bina bahar nahi ja sakte
-   • Custom in-app modal (koi native confirm/prompt nahi)
-   • window.__exitGuard.silent() — internal reload/logout ke liye bypass
+   SEWAASTRA — SUNDER POPUP SYSTEM v8.3
+   Har alert/confirm/prompt = beautiful in-app popup (kabhi native
+   browser/GitHub jaisa popup nahi). window.alert/confirm/prompt sab
+   yahin route hote hain.
+   ═══════════════════════════════════════════════════════════════ */
+(function(){
+  if(window.__sunderUi) return; window.__sunderUi=1;
+  var Z=2147483000, ov=null, box=null, cur=null;
+
+  function el(id){ return document.getElementById(id); }
+  function esc(s){ s=String(s==null?'':s); return s.replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
+  function nl(s){ return esc(s).replace(/\\n/g,'<br>'); }
+
+  function cssOnce(){
+    if(document.getElementById('swSunderCss')) return;
+    var st=document.createElement('style'); st.id='swSunderCss';
+    st.textContent=
+      '#swSOv{position:fixed;inset:0;z-index:'+Z+';display:none;align-items:center;justify-content:center;padding:18px;background:rgba(7,10,28,.62);backdrop-filter:blur(6px);}'+
+      '#swSOv.on{display:flex;}'+
+      '#swSBox{width:min(92vw,356px);max-height:86vh;overflow:hidden;border-radius:26px;background:#fff;color:#1b2540;box-shadow:0 30px 90px rgba(2,5,20,.6);display:flex;flex-direction:column;animation:swSIn .28s cubic-bezier(.2,1.15,.4,1);border:1px solid rgba(255,255,255,.18);}'+
+      '@keyframes swSIn{from{transform:translateY(26px) scale(.95);opacity:0}to{transform:none;opacity:1}}'+
+      '#swSH{background:linear-gradient(135deg,#0b1220,#26364f 55%,#ff6b00);color:#fff;padding:20px 18px 26px;text-align:center;position:relative;}'+
+      '#swSH .swI{width:66px;height:66px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:30px;background:linear-gradient(135deg,#ff6b00,#ff2d95 55%,#7a2bff);box-shadow:0 8px 26px rgba(255,45,149,.45);}'+
+      '#swSH .swT{font-size:17px;font-weight:900;}'+
+      '#swSH .swS{font-size:12px;opacity:.85;line-height:1.6;margin-top:6px;word-break:break-word;}'+
+      '#swSB{padding:16px 16px 18px;overflow-y:auto;}'+
+      '#swSB .swRow{display:flex;gap:9px;margin-top:2px;}'+
+      '#swSB .swB{flex:1;border:none;border-radius:14px;padding:13px 8px;font-weight:900;font-size:13px;cursor:pointer;color:#fff;}'+
+      '#swSB .swIn{width:100%;box-sizing:border-box;border:2px solid #e2e8f4;border-radius:13px;padding:12px;font-size:14px;font-weight:800;outline:none;margin-top:8px;background:#f6f9ff;color:#1b2540;}'+
+      '#swSB .swIn:focus{border-color:#ff6b00;background:#fff;}'+
+      'body.dark-mode #swSBox, body.dark #swSBox{background:#131a2e;color:#eef2fb;}'+
+      'body.dark-mode #swSB .swIn, body.dark #swSB .swIn{background:#0e1526;border-color:#2a3857;color:#eef2fb;}';
+    document.head.appendChild(st);
+  }
+  function ensure(){
+    cssOnce();
+    if(ov) return;
+    ov=document.createElement('div'); ov.id='swSOv';
+    ov.innerHTML='<div id="swSBox"><div id="swSH"><div class="swI" id="swSI">💬</div><div class="swT" id="swST"></div><div class="swS" id="swSS"></div></div><div id="swSB"></div></div>';
+    document.body.appendChild(ov);
+    box=el('swSBox');
+    ov.addEventListener('click',function(e){ if(e.target===ov && cur && cur.tap) close(); });
+  }
+  function open(o){
+    ensure();
+    cur=o;
+    ov.classList.add('on');
+    el('swSI').textContent=o.icon||'💬';
+    el('swST').textContent=o.title||'SewaAstra';
+    el('swSS').innerHTML=o.html||nl(o.msg||'');
+    var b=el('swSB');
+    b.innerHTML='';
+    if(o.input){
+      var inp=document.createElement('input');
+      inp.type=(o.inputType)||'text';
+      inp.className='swIn';
+      inp.placeholder=o.ph||'';
+      inp.value=(o.def==null?'':o.def);
+      b.appendChild(inp);
+      setTimeout(function(){ try{ inp.focus(); }catch(e){} },120);
+    }
+    var row=document.createElement('div'); row.className='swRow';
+    function mk(txt,bg,cls,fn){
+      var x=document.createElement('button'); x.className='swB '+cls;
+      x.style.background=bg; x.innerHTML=txt;
+      x.onclick=function(){ close(); if(fn) fn(); };
+      return x;
+    }
+    if(o.input){
+      row.appendChild(mk(o.ok||'✅ ठीक है', o.danger?'linear-gradient(135deg,#e53935,#ff6659)':'linear-gradient(135deg,#15a04a,#1fc25e)','swOk',function(){ var v=inp.value; if(o.onOk) o.onOk(v); }));
+      row.appendChild(mk(o.cancel||'✕ रद्द','linear-gradient(135deg,#6b7686,#546078)','swNo',o.onCancel));
+    } else if(o.buttons==='no'){
+      row.appendChild(mk(o.ok||'✅ ठीक है','linear-gradient(135deg,#0d6efd,#7a5cff)','swOk',o.onOk));
+    } else {
+      row.appendChild(mk(o.cancel||'✕ '+(o.no||'रुकें'),'linear-gradient(135deg,#6b7686,#546078)','swNo',o.onCancel));
+      row.appendChild(mk(o.ok||'✅ '+(o.yes||'हाँ'), o.danger?'linear-gradient(135deg,#e53935,#ff6659)':'linear-gradient(135deg,#0d6efd,#7a5cff)','swOk',o.onOk));
+    }
+    b.appendChild(row);
+    return o;
+  }
+  function close(){ if(ov) ov.classList.remove('on'); }
+  window.swUi={
+    alert:function(o){ open(typeof o==='string'?{msg:o}:o); },
+    confirm:function(o){ o.buttons='yn'; return open(o); },
+    prompt:function(o){ o.input=true; o.tap=false; return open(o); },
+    close:close
+  };
+  console.log('%c 💎 SUNDER POPUPS v8.3 ','background:linear-gradient(90deg,#ff2d95,#7a2bff);color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+<script>
+/* Native overrides — har alert/confirm/prompt ab sunder in-app popup */
+(function(){
+  window.alert=function(m){
+    try{ if(window.showAlert){ showAlert('सूचना', String(m==null?'':m).replace(/\n/g,'<br>')); return; } }catch(e){}
+    try{ swUi.alert({msg:m}); }catch(e){}
+  };
+  window.confirm=function(){ return false; };   /* conversions swUi.confirm use karte hain */
+  window.prompt=function(){ return null; };
+})();
+</script>
+<!-- 🚪 EXIT CONFIRMATION GUARD v8.2 -->
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   SEWAASTRA — EXIT GUARD v8.2 (teeno apps) — सुंदर confirm popup
+   • Back button / tab close / refresh / logout — bina confirm bahar nahi
+   • Custom gradient modal (koi native confirm/prompt nahi)
+   • In-app internal pages (Policy/About/Terms) kholne par confirm NAHI
+   • window.__exitGuard.silent() = internal reload/logout bypass
    ═══════════════════════════════════════════════════════════════ */
 (function(){
   if(window.__exitGuardInstalled) return; window.__exitGuardInstalled=1;
   var armed=true, silentT=0, pendingExit=false, zz=2147483600;
-  var root=null, box=null;
-
+  var root=null, box=null, busy=null;
+  var PAL={
+    bg:'linear-gradient(160deg,#101c3f,#17284f 45%,#0b142e)',
+    card:'linear-gradient(165deg,#ffffff,#f2f5fd)',
+    ring:'linear-gradient(135deg,#ff6b00,#ff2d95,#7a2bff)',
+    good:'linear-gradient(135deg,#15a04a,#1fc25e)',
+    bad:'linear-gradient(135deg,#e53935,#ff6659)',
+    blu:'linear-gradient(135deg,#0d6efd,#7a5cff)'
+  };
   function el(id){ return document.getElementById(id); }
+  function _m(){ return busy||null; }
 
   function ensureUI(){
     if(root) return;
     root=document.createElement('div');
     root.id='swExitRoot';
     root.innerHTML=
-      '<div id="swExitBg" style="position:fixed;inset:0;background:rgba(5,8,20,.7);backdrop-filter:blur(4px);z-index:'+zz+';display:none;align-items:center;justify-content:center;padding:18px;"></div>'+
-      '<div id="swExitBox" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.94);z-index:'+(zz+1)+';width:min(90vw,330px);background:linear-gradient(165deg,#ffffff,#f4f6fb);color:#17203a;border-radius:24px;box-shadow:0 24px 80px rgba(0,0,0,.45);padding:24px 20px 18px;text-align:center;display:none;font-family:system-ui,Arial,sans-serif;"></div>';
+      '<div id="swExitBg" style="position:fixed;inset:0;background:rgba(8,10,26,.62);backdrop-filter:blur(6px);z-index:'+zz+';display:none;align-items:center;justify-content:center;padding:18px;"></div>'+
+      '<div id="swExitBox" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:'+(zz+1)+';width:min(92vw,352px);display:none;text-align:center;font-family:system-ui,Arial,sans-serif;overflow:hidden;border-radius:26px;box-shadow:0 30px 90px rgba(3,6,20,.65);border:1px solid rgba(255,255,255,.25);"></div>';
     document.body.appendChild(root);
-    var bg=el('swExitBg'), bx=el('swExitBox');
-    if(bg) bg.addEventListener('click',function(e){ if(e.target===bg) stay(); });
+    var bg=el('swExitBg');
+    if(bg) bg.addEventListener('click',function(e){ if(e.target===bg){ dismiss(); } });
   }
-  function show(){
+  function render(cfg){
     ensureUI();
-    if(!box){ return; }
-    box.innerHTML=
-      '<div style="font-size:46px;line-height:1;">🚪</div>'+
-      '<div style="font-size:17px;font-weight:900;margin:12px 0 5px;">बाहर जाना है?</div>'+
-      '<div style="font-size:12px;color:#556;line-height:1.7;margin-bottom:16px;">क्या आप सच में SewaAstra से बाहर जाना चाहते हैं?<br><b>रुकें</b> दबाएँ तो आप यहीं बने रहेंगे।</div>'+
-      '<div style="display:flex;gap:8px;">'+
-        '<button id="swExitYes" style="flex:1;border:none;border-radius:13px;padding:13px;font-weight:800;font-size:13px;cursor:pointer;background:#e53935;color:#fff;">हाँ, बाहर जाएँ</button>'+
-        '<button id="swExitNo" style="flex:1;border:none;border-radius:13px;padding:13px;font-weight:800;font-size:13px;cursor:pointer;background:#0d6efd;color:#fff;">रुकें</button>'+
+    var icon=(cfg&&cfg.icon)||'🚪';
+    var title=(cfg&&cfg.title)||'बाहर जाना है?';
+    var sub=(cfg&&cfg.sub)||'क्या आप सच में SewaAstra से बाहर जाना चाहते हैं?<br><b>रुकें</b> दबाएँ तो आप यहीं बने रहेंगे।';
+    var yes=(cfg&&cfg.yes)||'हाँ, बाहर जाएँ';
+    var no=(cfg&&cfg.no)||'रुकें';
+    var yesBg=(cfg&&cfg.yesBg)||PAL.bad;
+    var sub2=(cfg&&cfg.sub2)||'';
+    var html=
+      '<div style="background:'+PAL.bg+';color:#fff;padding:26px 18px 34px;position:relative;">'+
+        '<div style="width:84px;height:84px;border-radius:50%;margin:0 auto 14px;background:'+PAL.ring+';display:flex;align-items:center;justify-content:center;font-size:40px;box-shadow:0 10px 34px rgba(255,45,149,.5);">'+icon+'</div>'+
+        '<div style="font-size:18.5px;font-weight:900;letter-spacing:.2px;">'+title+'</div>'+
+        '<div style="font-size:12px;opacity:.82;line-height:1.65;margin-top:7px;">'+sub+'</div>'+
+      '</div>'+
+      '<div style="background:'+PAL.card+';color:#1c2542;padding:16px 16px 18px;">'+
+        (sub2?'<div style="font-size:10.5px;color:#8a93ad;line-height:1.6;margin-bottom:10px;">'+sub2+'</div>':'')+
+        '<div style="display:flex;gap:9px;">'+
+          '<button id="swExitYes" style="flex:1.15;border:none;border-radius:14px;padding:13px 6px;font-weight:900;font-size:13px;cursor:pointer;color:#fff;background:'+yesBg+';box-shadow:0 8px 22px rgba(0,0,0,.18);">'+yes+'</button>'+
+          '<button id="swExitNo" style="flex:1;border:none;border-radius:14px;padding:13px 6px;font-weight:900;font-size:13px;cursor:pointer;background:'+PAL.blu+';color:#fff;box-shadow:0 8px 22px rgba(13,110,253,.25);">'+no+'</button>'+
+        '</div>'+
       '</div>';
-    var b1=el('swExitYes'), b2=el('swExitNo');
-    if(b1) b1.onclick=function(){ goOut(); };
-    if(b2) b2.onclick=function(){ stay(); };
+    box=el('swExitBox');
+    box.innerHTML=html;
+    box.style.background=PAL.card;
     var bg=el('swExitBg'); if(bg) bg.style.display='flex';
     box.style.display='block';
+    var y=el('swExitYes'), n=el('swExitNo');
+    if(y) y.onclick=function(){ try{ (cfg&&cfg.cb)(); }catch(e){ console.log(e); } hide(); };
+    if(n) n.onclick=function(){ dismiss(); };
+    return cfg;
   }
   function hide(){
     var bg=el('swExitBg'); if(bg) bg.style.display='none';
-    if(box) box.style.display='none';
+    var b=el('swExitBox'); if(b) b.style.display='none';
   }
-  function stay(){ pendingExit=false; hide(); trap(); }
+  function dismiss(){ hide(); pendingExit=false; busy=null; }
   function trap(){
     try{
-      if(history.state && history.state.__swg) return;
-      history.replaceState({__swg:1}, '');
-      history.pushState({__swg:1}, '');
+      if(history.state&&history.state.__swg) return;
+      history.replaceState({__swg:1},'');
+      history.pushState({__swg:1},'');
     }catch(e){}
   }
   function goOut(){
-    pendingExit=true; armed=false;
-    try{ silentT=Date.now(); }catch(e){}
+    pendingExit=true; armed=false; busy=null;
     hide();
-    var done=false;
     setTimeout(function(){
-      try{ if(history.length>1){ history.back(); done=true; } }catch(e){}
+      try{ if(history.length>1) history.back(); }catch(e){}
       setTimeout(function(){
         try{ window.close(); }catch(e){}
         setTimeout(function(){
-          if(!done){
-            // browser ne tab band nahi kiya — ek aakhri naram notice
+          if(!document.hidden){
             ensureUI();
-            if(box) box.innerHTML='<div style="font-size:38px;">👋</div><div style="font-size:14px;font-weight:800;margin-top:10px;">फिर मिलेंगे!</div><div style="font-size:11px;color:#667;margin-top:6px;">इस browser में अब tab बंद कर सकते हैं।</div>';
+            var b=el('swExitBox');
+            if(b) b.innerHTML='<div style="background:'+PAL.bg+';color:#fff;padding:26px 16px;"><div style="font-size:40px;">👋</div><div style="font-size:15px;font-weight:900;margin-top:10px;">फिर मिलेंगे!</div><div style="font-size:11px;opacity:.8;margin-top:6px;">अब आप इस tab को बंद कर सकते हैं।</div></div>';
           }
-        },700);
-      },300);
-    },60);
+        },800);
+      },350);
+    },80);
   }
 
-  /* back button (Android/browser) */
+  /* 🔙 Android/browser back — pehle app ke kholे हुए internal page (Policy/About/Terms/modal) band */
   window.addEventListener('popstate',function(){
-    if(!armed) return;
-    if(pendingExit) return;             // exit already confirmed — allow
-    show();
+    if(!armed||pendingExit) return;
+    try{
+      var cbs=window.__exitGuardCloseables||[];
+      for(var i=0;i<cbs.length;i++){ try{ if(cbs[i]()) return; }catch(e){} }
+    }catch(e){}
+    render({icon:'🚪',title:'बाहर जाना है?',sub:'क्या आप सच में SewaAstra से बाहर जाना चाहते हैं?<br><b>रुकें</b> दबाएँ तो आप यहीं बने रहेंगे।',yes:'हाँ, बाहर जाएँ',no:'रुकें',cb:function(){ goOut(); }});
+    busy='back';
   });
-  /* tab close / refresh / external link — browser native leave prompt */
+  /* 🧾 tab close / refresh / external page */
   window.addEventListener('beforeunload',function(e){
     if(!armed) return;
-    if(Date.now()-silentT<1200) return; // internal silent reload
+    if(Date.now()-silentT<1500) return;
     e.preventDefault();
     e.returnValue='';
   });
 
-  /* keyboard shortcut bhi confirm kar de (alt+left etc.) */
-  window.addEventListener('pagehide',function(){ /* kuch nahi — pagehide flow block nahi hota */ });
-
-  /* API */
   window.__exitGuard={
     armed:function(){ return armed; },
     disarm:function(){ armed=false; },
     rearm:function(){ armed=true; trap(); },
     silent:function(){ silentT=Date.now(); armed=false; },
     trap:trap,
-    askExit:show
+    askExit:function(){ render({cb:function(){ goOut(); }}); busy='back'; },
+    /* ✋ कस्टम सुंदर confirm — cb() चलेगा sirf 'हाँ' par */
+    confirmExit:function(cfg){ busy='custom'; render(cfg); return cfg; },
+    registerCloser:function(fn){ try{ window.__exitGuardCloseables=window.__exitGuardCloseables||[]; window.__exitGuardCloseables.push(fn); }catch(e){} },
+    dismiss:dismiss,
+    _modal:function(){ return _m(); }
   };
-
   try{ trap(); }catch(e){}
-  console.log('%c 🚪 EXIT GUARD v8.1 — bina confirm bahar nahi ja sakte ','background:#e53935;color:#fff;font-weight:bold;padding:3px;');
+  console.log('%c 🚪 EXIT GUARD v8.2 — kahi se bhi exit confirm popup ✅ ','background:linear-gradient(90deg,#e53935,#7a2bff);color:#fff;font-weight:bold;padding:3px;');
 })();
 
 </script>
