@@ -1,6 +1,160 @@
 <!DOCTYPE html>
+<!-- ═══════════════════════════════════════════════════════════
+     SewaAstra — Customer App (secure build v3)
+     बना: 5 सितम्बर 2026
+
+     इस file में तीन सुरक्षा परतें पहले से लगी हैं:
+       1. SWXSS  — innerHTML पर XSS का आख़िरी जाल (<head> में सबसे पहले)
+       2. SWID   — doc का पता फोन नंबर नहीं, Firebase Auth uid
+       3. escape-at-source — जहाँ user data HTML में जाता है
+
+     ⚠️ ये तीनों client-side हैं. असली रोक firestore.rules +
+        Cloud Functions में है — वो deploy किए बिना यह file अकेली
+        सुरक्षित नहीं. पूरा क्रम: docs/DEPLOY-GUIDE.md
+     ═══════════════════════════════════════════════════════════ -->
 <html lang="hi">
 <head>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   SWXSS — आख़िरी सुरक्षा-जाल (v3)
+   ---------------------------------------------------------------
+   सोच: app में 300 जगह innerHTML है. हर एक पर सही escape लगाना और
+        आगे भी लगा रहना — यह भरोसे की बात है, गारंटी की नहीं.
+        एक जगह छूटी तो वही stored XSS बन जाती है.
+
+        इसलिए escape को *आख़िरी दरवाज़े* पर रखा गया है: innerHTML का
+        setter खुद. कोई भी रास्ता — पुराना कोड, नया कोड, भूली हुई जगह —
+        सब यहीं से गुज़रते हैं.
+
+   ⚠️ यह escape-at-source की जगह नहीं लेता. यह उसके नीचे का जाल है.
+      दोनों साथ चाहिए.
+
+   क्या हटाता है:
+     • <script> <iframe> <object> <embed> <base> <link> <meta> <form>
+       <svg> <math>  — इन apps के किसी template में ये आते ही नहीं,
+       इसलिए हटाने से कुछ नहीं टूटता (जाँचा गया).
+     • href/src/action में javascript: vbscript: data:text/html
+     • on… attribute तभी हटते हैं जब उनमें साफ़ हमला दिखे
+       (apps inline onclick पर टिके हैं — अंधाधुंध हटाना app तोड़ देता)
+   ═══════════════════════════════════════════════════════════════ */
+(function (global) {
+  'use strict';
+  if (global.SWXSS) return;
+
+  // इन apps में ये tag कभी legitimately नहीं बनते
+  var BAD = 'script|iframe|object|embed|base|link|meta|form|svg|math|frame|frameset|applet|template';
+
+  var RE_PAIR = new RegExp('<\\s*(' + BAD + ')\\b[\\s\\S]*?<\\s*\\/\\s*\\1\\s*>', 'gi');
+  var RE_ONE  = new RegExp('<\\s*\\/?\\s*(' + BAD + ')\\b[^>]*>', 'gi');
+
+  // href/src/action में खतरनाक scheme.  data:image और data:video चलने दो.
+  var RE_URL = /(\b(?:href|src|action|formaction|data|poster|xlink:href)\s*=\s*)(["']?)\s*(?:j\s*a\s*v\s*a\s*s\s*c\s*r\s*i\s*p\s*t|v\s*b\s*s\s*c\s*r\s*i\s*p\s*t|data\s*:\s*text\s*\/\s*html)\s*:?[^"'>\s]*/gi;
+
+  // ── on… handler ──
+  // ये apps 434 inline onclick पर टिकी हैं, इसलिए सबको हटाना app तोड़ देगा.
+  // इसलिए दो परतें: (क) सिर्फ़ वही handler नाम चलेंगे जो apps सच में
+  // इस्तेमाल करते हैं — onmouseover/onanimationstart/ontoggle जैसे
+  // दर्जनों bypass रास्ते यहीं बंद. (ख) बचे हुए handler में जाना-पहचाना
+  // payload दिखा तो वो भी हटेगा.
+  var OK_ON = { onclick:1, onchange:1, oninput:1, onkeydown:1, onkeyup:1,
+                onerror:1, onload:1, onsubmit:1, onblur:1, onfocus:1 };
+
+  var RE_ON  = /(\s)(on\w+)(\s*=\s*)(["'])((?:(?!\4)[\s\S])*?)\4/gi;
+  var RE_ON2 = /(\s)(on\w+)(\s*=\s*)([^\s"'>]+)/gi;      // बिना quote वाला
+
+  // handler के अंदर ये कभी legitimately नहीं आते
+  var RE_PAYLOAD = new RegExp([
+    '<', 'javascript\\s*:', 'vbscript\\s*:', '&#', '\\\\x3c', '\\\\u003c',
+    // function जैसे — पीछे ( या [ या . चाहिए
+    '\\b(?:alert|prompt|confirm|eval|atob|btoa|unescape|decodeURI|fetch|import|Function|' +
+      'setTimeout|setInterval|XMLHttpRequest|WebSocket|EventSource|Worker|open|write|' +
+      'createElement|appendChild|insertAdjacent|setAttribute)\\s*[\\(\\[]',
+    // ये नाम अकेले ही ख़तरा — कुछ पीछे लगने की ज़रूरत नहीं
+    '\\b(?:document\\s*\\.\\s*cookie|localStorage|sessionStorage|indexedDB|' +
+      'navigator\\s*\\.\\s*sendBeacon|location\\s*\\.\\s*(?:href|replace|assign)|' +
+      'innerHTML|outerHTML|srcdoc|globalThis|constructor)\\b',
+    // bracket से property निकालना — obfuscation का पसंदीदा रास्ता
+    '\\b(?:window|self|top|parent|frames|document|this)\\s*\\['
+  ].join('|'), 'i');
+
+  var blocked = 0;
+
+  function keepHandler(name, val) {
+    if (!OK_ON[String(name).toLowerCase()]) { blocked++; return false; }
+    if (RE_PAYLOAD.test(val)) { blocked++; return false; }
+    return true;
+  }
+
+  function clean(html) {
+    var s = String(html == null ? '' : html);
+    if (s.indexOf('<') < 0 && s.indexOf('&') < 0) return s;   // सादा text — छोड़ो
+
+    var before = s;
+    s = s.replace(RE_PAIR, '').replace(RE_ONE, '');
+    s = s.replace(RE_URL, function (m, p1, q) { blocked++; return p1 + q + '#blocked'; });
+    s = s.replace(RE_ON, function (m, sp, name, eq, q, val) {
+      return keepHandler(name, val) ? m : sp;
+    });
+    s = s.replace(RE_ON2, function (m, sp, name, eq, val) {
+      return keepHandler(name, val) ? m : sp;
+    });
+    if (s !== before) blocked++;
+    return s;
+  }
+
+  function wrapProp(proto, prop) {
+    var d = Object.getOwnPropertyDescriptor(proto, prop);
+    if (!d || !d.set || d.__swxss) return;
+    var orig = d.set;
+    Object.defineProperty(proto, prop, {
+      configurable: true,
+      enumerable: d.enumerable,
+      get: d.get,
+      set: function (v) { orig.call(this, clean(v)); }
+    });
+    Object.getOwnPropertyDescriptor(proto, prop).__swxss = 1;
+  }
+
+  try { wrapProp(Element.prototype, 'innerHTML'); } catch (e) {}
+  try { wrapProp(Element.prototype, 'outerHTML'); } catch (e) {}
+
+  try {
+    var iah = Element.prototype.insertAdjacentHTML;
+    if (iah && !iah.__swxss) {
+      Element.prototype.insertAdjacentHTML = function (pos, html) {
+        return iah.call(this, pos, clean(html));
+      };
+      Element.prototype.insertAdjacentHTML.__swxss = 1;
+    }
+  } catch (e) {}
+
+  /** URL सुरक्षित है? src/href सीधे लगाने से पहले इससे गुज़ारें */
+  function safeUrl(u) {
+    var s = String(u == null ? '' : u).trim();
+    if (!s) return '';
+    if (/^(https?:|\/|\.\/|#|mailto:|tel:)/i.test(s)) return s;
+    if (/^data:(image|video|audio)\//i.test(s)) return s;   // upload preview
+    return '';                                              // बाकी सब बंद
+  }
+
+  /** HTML entity escape — escape-at-source के लिए */
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"'`=\/]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
+               "'": '&#39;', '`': '&#96;', '=': '&#61;', '/': '&#47;' }[c];
+    });
+  }
+
+  global.SWXSS = {
+    clean: clean,
+    esc: esc,
+    safeUrl: safeUrl,
+    blocked: function () { return blocked; }
+  };
+  if (!global.swEsc) global.swEsc = esc;
+})(window);
+</script>
+
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-52QKXTC1J4"></script>
 <script>
@@ -22,9 +176,197 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+<script>
+window.__SWID_ROLE = 'customer';
+/* ═══════════════════════════════════════════════════════════════
+   SWID — पहचान की एक ही जगह (v3)
+   ---------------------------------------------------------------
+   समस्या: पूरे app में doc ID के तौर पर फोन नंबर इस्तेमाल हुआ है
+           (partners/9111111111). फोन नंबर बदला जा सकता है, अंदाज़ा
+           लगाया जा सकता है, और recycle होता है — इसलिए वो पहचान
+           का आधार नहीं हो सकता. सही आधार Firebase Auth का uid है.
+
+   हल:    65+ जगह हाथ से बदलने के बजाय Firestore की doc() call को
+          एक बार लपेट देते हैं. सिर्फ *अपना* फोन नंबर चुपचाप अपने
+          uid पर मुड़ता है — किसी और का ID कभी नहीं छुआ जाता.
+
+   खुद ठीक होने वाला: boot पर देखता है कि uid-वाला doc बना है या
+          नहीं. migration के हर चरण में सही जगह पर जाता है, चाहे
+          phase1 चल रहा हो या phase3 हो चुका हो.
+   ═══════════════════════════════════════════════════════════════ */
+(function (global) {
+  'use strict';
+  if (global.SWID) return;
+
+  var KEYED = { partners: 1, users: 1 };   // सिर्फ ये दो collections
+  var _uid = null;                          // Firebase Auth uid
+  var _phone = '';                          // मेरा 10-अंकी नंबर
+  var _docId = '';                          // असल में कौन-सा ID इस्तेमाल हो
+  var _resolved = false;
+  var _waiters = [];
+  var LS = 'swid_docmode_v3';
+
+  function digits10(s) {
+    s = String(s == null ? '' : s).replace(/\D/g, '');
+    return s.length >= 10 ? s.slice(-10) : '';
+  }
+
+  /** मेरा फोन — auth token सबसे भरोसेमंद, localStorage सिर्फ सहारा */
+  function readPhone() {
+    try {
+      var u = global.firebase && firebase.auth().currentUser;
+      if (u && u.phoneNumber) return digits10(u.phoneNumber);
+    } catch (e) {}
+    try {
+      var a = localStorage.getItem('swp_phone') || localStorage.getItem('sw_user') || '';
+      return digits10(a);
+    } catch (e) {}
+    return '';
+  }
+
+  /**
+   * तय करो कि मेरा doc uid पर है या अभी भी फोन पर.
+   * phase2 के बाद uid-doc मौजूद होगा → uid.
+   * उससे पहले → फोन (कुछ नहीं टूटता).
+   */
+  function resolve(FS) {
+    if (_resolved) return Promise.resolve(_docId);
+    _uid = null;
+    try { var u = firebase.auth().currentUser; if (u) _uid = u.uid; } catch (e) {}
+    _phone = readPhone();
+
+    // logged out — कोई redirect नहीं, पर waiters ज़रूर छोड़ो
+    if (!_uid) { _docId = _phone; finish(); return Promise.resolve(_docId); }
+    if (!_phone) { _docId = _uid; finish(); return Promise.resolve(_docId); }
+
+    // पिछली बार का फ़ैसला याद है?
+    try {
+      var c = JSON.parse(localStorage.getItem(LS) || 'null');
+      if (c && c.uid === _uid && c.mode === 'uid') {
+        _docId = _uid; finish(); return Promise.resolve(_docId);
+      }
+    } catch (e) {}
+
+    var coll = (global.__SWID_ROLE === 'customer') ? 'users' : 'partners';
+    return rawDoc(FS, coll, _uid).get()
+      .then(function (s) {
+        _docId = s.exists ? _uid : _phone;
+        if (s.exists) { try { localStorage.setItem(LS, JSON.stringify({ uid: _uid, mode: 'uid' })); } catch (e) {} }
+        finish(); return _docId;
+      })
+      .catch(function () {
+        // rules ने रोका या network — सुरक्षित रास्ता: पुराना ID
+        _docId = _phone || _uid; finish(); return _docId;
+      });
+  }
+
+  function finish() {
+    _resolved = true;
+    var w = _waiters; _waiters = [];
+    w.forEach(function (fn) { try { fn(_docId); } catch (e) {} });
+  }
+
+  var _raw = null;   // लपेटने से पहले वाला असली collection()
+  function rawDoc(FS, coll, id) {
+    return (_raw ? _raw.call(FS, coll) : FS.collection(coll)).doc(id);
+  }
+
+  /**
+   * ID अनुवाद — यही पूरे shim का दिल.
+   * सिर्फ तब बदलता है जब ID *बिलकुल मेरा अपना फोन नंबर* हो.
+   * किसी और का नंबर, कोई uid, कोई code — सब वैसे के वैसे.
+   */
+  function map(coll, id) {
+    if (!KEYED[coll]) return id;
+    if (id == null) return id;
+    var s = String(id);
+    if (!_uid || !_phone) return id;
+    if (s === _phone && _docId === _uid) return _uid;
+    return id;
+  }
+
+  global.SWID = {
+    /** Firestore instance को लपेटो — app boot पर एक बार */
+    install: function (FS) {
+      if (!FS || FS.__swidWrapped) return FS;
+      _raw = FS.collection;
+      FS.collection = function (name) {
+        var c = _raw.call(this, name);
+        if (KEYED[name] && !c.__swidDoc) {
+          var origDoc = c.doc.bind(c);
+          c.doc = function (id) { return origDoc(map(name, id)); };
+          c.__swidDoc = 1;
+        }
+        return c;
+      };
+      FS.__swidWrapped = 1;
+
+      // auth बदले तो पहचान दोबारा तय करो
+      try {
+        firebase.auth().onAuthStateChanged(function () {
+          _resolved = false; _docId = ''; resolve(FS);
+        });
+      } catch (e) {}
+      resolve(FS);
+      return FS;
+    },
+
+
+    /**
+     * orders पर सही पहचान-field चुनो.
+     * migration हो चुका (mine()==uid) → partnerUid / uid
+     * उससे पहले                        → partnerPhone / mobile
+     * लौटाता है [field, value] या null अगर पहचान ही नहीं.
+     */
+    orderKey: function (role) {
+      var byUid = !!(_uid && _docId === _uid);
+      if (role === 'partner') {
+        if (byUid) return ['partnerUid', _uid];
+        return _phone ? ['partnerPhone', _phone] : null;
+      }
+      if (byUid) return ['uid', _uid];
+      return _phone ? ['mobile', _phone] : null;
+    },
+
+    /** सीधे query बना दो — null अगर पहचान नहीं */
+    orderQuery: function (FS, role) {
+      var k = this.orderKey(role);
+      return k ? FS.collection('orders').where(k[0], '==', k[1]) : null;
+    },
+
+    uid: function () { return _uid || ''; },
+    phone: function () { return _phone; },
+    /** मेरा असली doc ID — uid (या migration से पहले फोन) */
+    mine: function () { return _docId || _uid || _phone; },
+    ready: function (cb) { _resolved ? cb(_docId) : _waiters.push(cb); },
+    /** order पर मालिकाना — uid पहले, पुराने orders के लिए फोन */
+    ownsOrder: function (o) {
+      if (!o) return false;
+      if (o.partnerUid) return o.partnerUid === _uid;
+      if (o.uid) return o.uid === _uid;
+      return !!(_phone && (o.partnerPhone === _phone || o.mobile === _phone));
+    },
+    /** नया order/doc लिखते वक़्त दोनों field भरो */
+    stamp: function (obj) {
+      obj = obj || {};
+      if (_uid) obj.uid = _uid;
+      if (_phone) obj.phone = _phone;
+      return obj;
+    },
+    _map: map
+  };
+})(window);
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-functions-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-check-compat.js"></script>
+
 
 <!-- Leaflet CSS & JS for Interactive Map Selection & Live Tracking -->
 
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://cdnjs.cloudflare.com https://apis.google.com https://www.google.com https://www.gstatic.com/firebasejs/; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' data: https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.cloudfunctions.net https://nominatim.openstreetmap.org https://www.google-analytics.com; frame-src https://*.firebaseapp.com https://www.youtube.com https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"><meta name="theme-color" content="#0b1220"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="SewaAstra">
 <title>SewaAstra PRO - Home Services (Cloud Connected)</title>
@@ -793,6 +1135,119 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
 </style>
 
 <!-- v9: Agora SDK हटाया — खुद की WebRTC mask calling -->
+
+<!-- ═══════ SewaAstra SECURITY CORE v1 (auto-injected) ═══════ -->
+<script>
+(function(){
+  'use strict';
+  var SW = window.SWSec = {};
+
+  /* ── 1. HTML escaping — XSS की पहली दीवार ── */
+  var MAP={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'};
+  SW.esc = function(s){ return String(s==null?'':s).replace(/[&<>"'\/`=]/g, function(c){ return MAP[c]; }); };
+  SW.escAttr = function(s){ return SW.esc(s).replace(/\s/g,'&#32;'); };
+  /* URL sanitize — javascript: / data: वाले हमले रोके */
+  SW.safeUrl = function(u){
+    u = String(u||'').trim();
+    if(/^(javascript|data|vbscript|file):/i.test(u.replace(/[\s\u0000-\u001f]/g,''))) return '#';
+    return u;
+  };
+
+  /* ── 2. ROLE — सिर्फ Firebase ID token custom claim से. localStorage से कभी नहीं ── */
+  var _claims = Object.create(null);
+  var _ready  = false;
+  var _waiters = [];
+
+  SW.refreshClaims = function(force){
+    return new Promise(function(res){
+      try{
+        var u = firebase.auth().currentUser;
+        if(!u){ _claims = Object.create(null); _ready = true; return res(_claims); }
+        u.getIdTokenResult(!!force).then(function(t){
+          _claims = Object.freeze({
+            admin:   t.claims.admin   === true,
+            partner: t.claims.partner === true,
+            phone:   String(t.claims.phone || '')
+          });
+          _ready = true;
+          _waiters.splice(0).forEach(function(f){ try{f(_claims);}catch(e){} });
+          res(_claims);
+        }).catch(function(){ _claims=Object.create(null); _ready=true; res(_claims); });
+      }catch(e){ _claims=Object.create(null); _ready=true; res(_claims); }
+    });
+  };
+
+  /* 🔒 ये getters हैं — कोई इन्हें console से true नहीं कर सकता */
+  Object.defineProperty(SW,'isAdmin',  {get:function(){ return _claims.admin===true; }, configurable:false});
+  Object.defineProperty(SW,'isPartner',{get:function(){ return _claims.partner===true; }, configurable:false});
+  Object.defineProperty(SW,'phone',    {get:function(){ return _claims.phone||''; }, configurable:false});
+  Object.defineProperty(SW,'ready',    {get:function(){ return _ready; }, configurable:false});
+  Object.freeze(SW.esc); Object.freeze(SW.safeUrl);
+
+  SW.onReady = function(cb){ if(_ready) cb(_claims); else _waiters.push(cb); };
+
+  /* ── 3. Server से claims sync (login के बाद) ── */
+  SW.syncClaims = function(){
+    try{
+      if(!firebase.functions) return SW.refreshClaims(true);
+      return firebase.app().functions('asia-south1')
+        .httpsCallable('syncMyClaims')()
+        .then(function(){ return SW.refreshClaims(true); })
+        .catch(function(){ return SW.refreshClaims(true); });
+    }catch(e){ return SW.refreshClaims(true); }
+  };
+
+  /* ── 4. Callable helper — सारे संवेदनशील काम server पर ── */
+  SW.call = function(name, data){
+    try{
+      return firebase.app().functions('asia-south1').httpsCallable(name)(data||{})
+        .then(function(r){ return r.data; });
+    }catch(e){ return Promise.reject(e); }
+  };
+
+  /* ── 5. Auth state पर claims हमेशा ताज़ा रखो ── */
+  function hook(){
+    if(!window.firebase || !firebase.auth) return setTimeout(hook, 120);
+    firebase.auth().onAuthStateChanged(function(u){
+      SW.refreshClaims(true).then(function(c){
+        document.documentElement.setAttribute('data-role',
+          c.admin ? 'admin' : (c.partner ? 'partner' : (u ? 'user' : 'guest')));
+        /* admin-only UI सिर्फ असली admin को */
+        try{
+          document.querySelectorAll('[data-admin-only]').forEach(function(el){
+            el.style.display = c.admin ? '' : 'none';
+          });
+        }catch(e){}
+        try{ window.dispatchEvent(new CustomEvent('sw:claims', {detail:c})); }catch(e){}
+      });
+    });
+    /* हर 30 मिनट token refresh — revoke तुरंत असर करे */
+    setInterval(function(){ SW.refreshClaims(true); }, 30*60*1000);
+  }
+  hook();
+
+  /* ── 6. localStorage के नकली admin flags हमेशा साफ़ ── */
+  try{
+    ['sw_is_admin','swp_is_admin','is_admin','admin'].forEach(function(k){
+      try{ localStorage.removeItem(k); }catch(e){}
+    });
+    var _si = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = function(k,v){
+      if(/^(sw_is_admin|swp_is_admin|is_admin|admin)$/i.test(String(k))){
+        console.warn('[SWSec] blocked fake admin flag:', k);
+        return;
+      }
+      return _si(k,v);
+    };
+  }catch(e){}
+
+  /* ── 7. Clickjacking से बचाव ── */
+  try{ if(window.top !== window.self) window.top.location = window.self.location; }catch(e){}
+
+  console.log('%c🔒 SewaAstra Security Core active','background:#15a04a;color:#fff;padding:3px 8px;font-weight:bold;border-radius:4px');
+})();
+</script>
+<!-- ═══════ /SECURITY CORE ═══════ -->
 </head>
 <body id="mainBody">
 
@@ -1450,16 +1905,12 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
   }
 
   function checkAdminAccess(identifier) {
-      // 🔐 ADMIN PANEL सिर्फ REAL Firebase email check — phone/localStorage से नहीं
+      /* 🔒 C-1: सिर्फ server-issued custom claim. localStorage/email string compare नहीं. */
       var ok = false;
-      try{
-        var cu = firebase.auth().currentUser;
-        if(cu && cu.email && String(cu.email).trim().toLowerCase() === "soorshyamvishwakarma37@gmail.com") ok = true;
-      }catch(e){}
-      if(ok){ localStorage.setItem('sw_is_admin', 'true'); }
-      else { localStorage.removeItem('sw_is_admin'); }
+      try{ ok = !!(window.SWSec && window.SWSec.isAdmin); }catch(e){}
       var adminBtn = document.getElementById('adminPanelMenuBtn');
-      if(adminBtn) adminBtn.style.display = ok ? 'flex' : 'none';
+      if(adminBtn){ adminBtn.setAttribute('data-admin-only',''); adminBtn.style.display = ok ? 'flex' : 'none'; }
+      return ok;
   }
 
   function renderCategoriesGrid() {
@@ -1470,9 +1921,9 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
 
       visibleCats.forEach(cat => {
           grid.innerHTML += `
-              <div class="cat-item" onclick="load('${cat.key}', this)">
-                  <div class="cat-icon"><i class="fa ${cat.icon}"></i></div>
-                  <span>${cat.name}</span>
+              <div class="cat-item" onclick="load('${SWSec.esc(String(cat.key||'').replace(/[^A-Za-z0-9_-]/g,''))}', this)">
+                  <div class="cat-icon"><i class="fa ${SWSec.esc(String(cat.icon||'').replace(/[^A-Za-z0-9 _-]/g,''))}"></i></div>
+                  <span>${SWSec.esc(cat.name)}</span>
               </div>`;
       });
 
@@ -1504,7 +1955,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
           moreGrid.innerHTML += `
               <div class="cat-item" onclick="toggleMoreSheet(); load('${cat.key}', this);" style="background:var(--bg); padding:12px; border-radius:15px; border:1px solid #eee;">
                   <div class="cat-icon" style="width:50px; height:50px;"><i class="fa ${cat.icon}" style="font-size:20px;"></i></div>
-                  <span style="font-size:12px; margin-top:5px;">${cat.name}</span>
+                  <span style="font-size:12px; margin-top:5px;">${SWXSS.esc(cat.name)}</span>
               </div>`;
       });
   }
@@ -1519,8 +1970,8 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
           }
           carousel.innerHTML += `
               <div class="banner-card" style="${bgStyle}">
-                  <h3>${b.title}</h3>
-                  <p>${b.desc}</p>
+                  <h3>${SWXSS.esc(b.title)}</h3>
+                  <p>${SWXSS.esc(b.desc)}</p>
               </div>`;
       });
   }
@@ -1558,7 +2009,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
       let select = document.getElementById('adminCatSelect');
       select.innerHTML = "";
       categoriesData.forEach(c => {
-          select.innerHTML += `<option value="${c.key}">${c.name}</option>`;
+          select.innerHTML += `<option value="${c.key}">${SWSec.esc(c.name)}</option>`;
       });
   }
 
@@ -1568,7 +2019,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
       serviceSelect.innerHTML = `<option value="NEW">-- नई सर्विस जोड़ें (New Service) --</option>`;
       if(mainData[cat]) {
           mainData[cat].forEach((s, idx) => {
-              serviceSelect.innerHTML += `<option value="${idx}">${s.n} (₹${s.p})</option>`;
+              serviceSelect.innerHTML += `<option value="${idx}">${SWSec.esc(s.n)} (₹${Number(s.p)||0})</option>`;
           });
       }
       clearAdminServiceForm();
@@ -1685,7 +2136,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
       let bannerSelect = document.getElementById('adminBannerSelect');
       bannerSelect.innerHTML = `<option value="NEW">-- नया बैनर जोड़ें (New Banner) --</option>`;
       bannersData.forEach((b, idx) => {
-          bannerSelect.innerHTML += `<option value="${idx}">बैनर #${idx+1}: ${b.title}</option>`;
+          bannerSelect.innerHTML += `<option value="${idx}">बैनर #${idx+1}: ${SWSec.esc(b.title)}</option>`;
       });
       clearAdminBannerForm();
   }
@@ -2089,7 +2540,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
       let text = input.value.trim();
       if(!text) return;
       let container = document.getElementById('chatMsgContainer');
-      container.innerHTML += `<div class="chat-bubble user">${text}</div>`;
+      container.innerHTML += `<div class="chat-bubble user">${SWSec.esc(text)}</div>`;
       input.value = "";
       container.scrollTop = container.scrollHeight;
 
@@ -2484,7 +2935,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
           document.getElementById('sheetPic').src = savedPhoto;
       }
 
-      try{ firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){}); }catch(e){} let logged = localStorage.getItem('sw_logged'); try{ var __u=String(localStorage.getItem('sw_user')||''); if(!logged&&/^\d{10}$/.test(__u)) logged='true'; }catch(e){}
+      try{ firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){}); }catch(e){} let logged = localStorage.getItem('sw_logged'); try{ var __u=String(localStorage.getItem('sw_user')||''); /* 🔒 B-3: सिर्फ नंबर होने से logged-in नहीं माना जाएगा */ }catch(e){}
       let user = localStorage.getItem('sw_user');
       if (logged && user) {
           document.getElementById('authOverlay').style.display = 'none';
@@ -2511,6 +2962,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
 
 /* ─────────────── HELPERS ─────────────── */
 const FS = firebase.firestore();
+try{ SWID.install(FS); }catch(e){ console.warn('SWID', e); }
 const STATUS_LIST = ['Order Placed', 'Accepted', 'On the Way', 'Working', 'Completed', 'Cancelled'];
 const STATUS_HI = {
   'Order Placed': '📦 ऑर्डर प्राप्त', 'Accepted': '✅ स्वीकृत', 'On the Way': '🛵 रास्ते में',
@@ -2523,7 +2975,7 @@ const STATUS_CLR = {
 function proEsc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function getUID() { try { return firebase.auth().currentUser ? firebase.auth().currentUser.uid : null; } catch (e) { return null; } }
 function getIdent() { return localStorage.getItem('sw_user') || ''; }
-function isAdminUser() { return localStorage.getItem('sw_is_admin') === 'true'; }
+function isAdminUser(){ /* 🔒 C-1: अब सिर्फ Firebase custom claim — localStorage नहीं */ try{ return !!(window.SWSec && window.SWSec.isAdmin); }catch(e){ return false; } }
 let CLOUD_CONFIG = {};   // {upiId, ...}
 let myOrdersCache = {};  // id -> status (notification diff ke liye)
 let unsubMyOrders = null, unsubAllOrders = null, unsubChat = null;
@@ -2639,10 +3091,10 @@ function myOrdersQuery() {
   const uid = getUID();
   if (uid) return FS.collection('orders').where('uid', '==', uid);
   const ident = getIdent();
-  return FS.collection('orders').where('mobile', '==', ident);
+  return SWID.orderQuery(FS,'customer') || FS.collection('orders').where('mobile', '==', ident);
 }
 
-function swCxPop(t,m){ try{ var ov=document.getElementById('swCxEvOv'); if(!ov){ ov=document.createElement('div'); ov.id='swCxEvOv'; document.body.appendChild(ov); } ov.style.cssText='position:fixed;inset:0;z-index:2147483635;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(5,8,18,.82);font-family:system-ui,Arial,sans-serif;box-sizing:border-box;'; ov.style.display='flex'; ov.innerHTML='<div style="background:#fff;border-radius:24px;padding:24px;max-width:320px;width:100%;text-align:center;color:#222;"><div style="font-weight:900;font-size:16px;">'+t+'</div><div style="font-size:13px;color:#555;margin:8px 0 14px;line-height:1.6;">'+m+'</div><button id="swCxEvX" style="width:100%;border:none;border-radius:13px;padding:13px;font-weight:900;background:#111;color:#fff;cursor:pointer;">OK</button></div>'; document.getElementById('swCxEvX').onclick=function(){ ov.style.display='none'; }; }catch(e){} } function swCxEvt(o){ try{ if(o.status==='Cancelled'){ swCxPop('Order Cancel ho gaya','Kaaran: '+((o.cancelReason||o.cancelledBy)||'nahi likha')); return; } if(o.status==='Completed'){ swCxPop('Kaam Complete!','Partner ne kaam pura kar diya. Kripya rating dein.'); setTimeout(function(){ try{ if(typeof openRateModal==='function'){ openRateModal(o.id); } else if(window.openRateModal){ window.openRateModal(o.id); } }catch(e){} },3000); return; } }catch(e){} } function startMyOrdersListener() {
+function swCxPop(t,m){ try{ var ov=document.getElementById('swCxEvOv'); if(!ov){ ov=document.createElement('div'); ov.id='swCxEvOv'; document.body.appendChild(ov); } ov.style.cssText='position:fixed;inset:0;z-index:2147483635;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(5,8,18,.82);font-family:system-ui,Arial,sans-serif;box-sizing:border-box;'; ov.style.display='flex'; ov.innerHTML='<div style="background:#fff;border-radius:24px;padding:24px;max-width:320px;width:100%;text-align:center;color:#222;"><div style="font-weight:900;font-size:16px;">'+t+'</div><div style="font-size:13px;color:#555;margin:8px 0 14px;line-height:1.6;">'+SWSec.esc(m)+'</div><button id="swCxEvX" style="width:100%;border:none;border-radius:13px;padding:13px;font-weight:900;background:#111;color:#fff;cursor:pointer;">OK</button></div>'; document.getElementById('swCxEvX').onclick=function(){ ov.style.display='none'; }; }catch(e){} } function swCxEvt(o){ try{ if(o.status==='Cancelled'){ swCxPop('Order Cancel ho gaya','Kaaran: '+((o.cancelReason||o.cancelledBy)||'nahi likha')); return; } if(o.status==='Completed'){ swCxPop('Kaam Complete!','Partner ne kaam pura kar diya. Kripya rating dein.'); setTimeout(function(){ try{ if(typeof openRateModal==='function'){ openRateModal(o.id); } else if(window.openRateModal){ window.openRateModal(o.id); } }catch(e){} },3000); return; } }catch(e){} } function startMyOrdersListener() {
   if (isAdminUser()) return;             // admin apna tab use karega
   if (unsubMyOrders) unsubMyOrders();
   if (!getUID() && !getIdent()) return;
@@ -4386,7 +4838,7 @@ window.adminVerifyPayment = function(oid, ref){
           : '<span class="pro-paystat" style="background:#f4f0ec;color:#888;">💵 ' + proEsc(p.status||'Cash') + '</span>';
         var del = cards[i].querySelector('.pro-adm-del');
         var host = document.createElement('div');
-        host.innerHTML = tag + (verifying ? '<button class="pro-verify-btn" onclick="adminVerifyPayment(\'' + o.id + '\',\'' + proEsc(p.ref||'') + '\')">💜 PhonePe में UTR check करके Payment VERIFY करें</button>' : '');
+        host.innerHTML = tag + (verifying ? '<button class="pro-verify-btn" onclick="adminVerifyPayment(\'' + SWSec.esc(String(o.id||'').replace(/[^A-Za-z0-9_-]/g,'')) + '\',\'' + proEsc(p.ref||'') + '\')">💜 PhonePe में UTR check करके Payment VERIFY करें</button>' : '');
         if(del) cards[i].insertBefore(host, del); else cards[i].appendChild(host);
       }
     }catch(e){}
@@ -4801,7 +5253,7 @@ console.log('%c REAL AUTH MODE ✅ (Direct Login removed) ', 'background:#15a04a
       firebase.firestore().collection('sos_alerts').add(rec).then(function(d){
         window.cSosClose();
         showAlert('🚨 EMERGENCY ALERT भेज दिया गया!','Admin dashboard पर तुरंत 🔴 red alert + sound के साथ दिखेगा। वे आपको तुरंत कॉल करेंगे।<br><br>🆘 बहुत गंभीर हो तो <b>112</b> पर भी कॉल करें।');
-        try{ window.open('https://wa.me/917869969190?text='+encodeURIComponent('🚨 SEWAASTRA EMERGENCY\n📱 '+ph+(nm?('\n👤 '+nm):'')+'\n📍 '+(loc?('lat:'+loc.lat+',lon:'+loc.lon):'GPS off')+'\n🗒️ '+m+'\n🧾 Last order: '+(lastOrder||'-')),'_blank'); }catch(e){}
+        try{ window.open('https://wa.me/917869969190?text='+encodeURIComponent('🚨 SEWAASTRA EMERGENCY\n📱 '+ph+(nm?('\n👤 '+nm):'')+'\n📍 '+(loc?('lat:'+loc.lat+',lon:'+loc.lon):'GPS off')+'\n🗒️ '+SWSec.esc(m)+'\n🧾 Last order: '+(lastOrder||'-')),'_blank'); }catch(e){}
       }).catch(function(e){ showAlert('त्रुटि', e.message); });
     }
     try{
@@ -4917,7 +5369,7 @@ console.log('%c REAL AUTH MODE ✅ (Direct Login removed) ', 'background:#15a04a
     if(!ph){ setTimeout(boot,1500); return; }
     if(watcher) return;
     try{
-      watcher=firebase.firestore().collection('orders').where('mobile','==',ph).onSnapshot(resolve,function(){ setTimeout(boot,3000); watcher=null; });
+      watcher=(SWID.orderQuery(FS,'customer')||firebase.firestore().collection('orders').where('mobile','==',ph)).onSnapshot(resolve,function(){ setTimeout(boot,3000); watcher=null; });
     }catch(e){ setTimeout(boot,2000); }
   }
   setTimeout(boot,900);
@@ -5074,7 +5526,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
     var uid=myUid(), ph=myPh();
     if(!uid&&!ph) return;
     try{
-      var q=uid? FS.collection('orders').where('uid','==',uid) : FS.collection('orders').where('mobile','==',ph);
+      var q=SWID.orderQuery(FS,'customer') || (uid? FS.collection('orders').where('uid','==',uid) : FS.collection('orders').where('mobile','==',ph));
       q.get().then(function(s){
         s.docs.forEach(function(d){
           var o=d.data(); var oid=o.id||d.id;
@@ -5717,7 +6169,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
         FS.collection('service_ratings').add({cat:i.cat,catName:i.catName||'',sn:i.n,stars:stars,orderId:oid,by:(localStorage.getItem('sw_user')||getUID()||'anon'),ts:Date.now(),at:new Date().toLocaleString('en-IN')}).catch(function(){});
         try{
           var key=String(i.cat||'')+'__'+String(i.n||'').replace(/[^A-Za-z0-9]/g,'_');
-          FS.collection('svc_stats').doc(key).set({cat:i.cat||'',catName:i.catName||'',sn:i.n||'',sum:firebase.firestore.FieldValue.increment(stars),count:firebase.firestore.FieldValue.increment(1),lastAt:Date.now()},{merge:true}).catch(function(){});
+          /* 🔒 counters अब server trigger से बढ़ते हैं (rating हैक बंद) */ void ({cat:i.cat||'',catName:i.catName||'',sn:i.n||'',sum:firebase.firestore.FieldValue.increment(stars),count:firebase.firestore.FieldValue.increment(1),lastAt:Date.now()},{merge:true}).catch(function(){});
         }catch(e){}
       });
     }).catch(function(){});
@@ -5821,7 +6273,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
     if(!(a>=10)) return showAlert('राशि','कम से कम ₹10 डालें');
     if(a>(Number(wC.swBal)||0)) return showAlert('राशि','बैलेंस से ज़्यादा नहीं');
     closeCustomAlert();
-    FS.collection('users').doc(wKey()).collection('withdrawals').add({amt:a,upi:upi,status:'Requested',kind:'customer',by:wKey(),ts:Date.now(),at:new Date().toLocaleString('en-IN')})
+    /* 🔒 customer withdrawal भी server से */ SWSec.call('requestWithdrawal',{amt:a,upi:upi}); void ({amt:a,upi:upi,status:'Requested',kind:'customer',by:wKey(),ts:Date.now(),at:new Date().toLocaleString('en-IN')})
       .then(function(){ showToast('💸 Request भेज दी! Admin जल्द payout करेंगे'); c44Wallet(); })
       .catch(function(e){ showAlert('त्रुटि', e.message); });
   };
@@ -6906,7 +7358,7 @@ function silentHide(){ ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); 
 function failCall(msg){ var oid=st.oid; ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); st={s:'idle',oid:''}; if(oid) clearCands(oid); paint(head('⚠️','कॉल नहीं जुड़ी',oid||'',esc(msg)+'<br>💡 फिर try करें या 💬 Chat use करें')+'<div style="display:flex;gap:10px;margin-top:18px;"><button class="swcB" id="swcOk" style="background:#0d6efd;">ठीक है</button></div>'); bind('swcOk',function(){ fsHide(); }); }
 /* ---- incoming watcher ---- */
 var orderUn=null,docSubs={};
-function myQuery(){ try{ if(ROLE==='partner'){ var ph=myPhone(); if(!ph||ph.length<10) return null; return FS.collection('orders').where('partnerPhone','==',ph); } var u=null; try{ u=firebase.auth().currentUser; }catch(e){} if(u&&u.uid) return FS.collection('orders').where('uid','==',u.uid); try{ var ph2=''; try{ ph2=String(localStorage.getItem('sw_user')||'').replace(/[^0-9]/g,''); }catch(e){} if(ph2&&ph2.length>=10){ if(ph2.length>10) ph2=ph2.slice(-10); return FS.collection('orders').where('mobile','==',ph2); } }catch(e){} return null; }catch(e){ return null; } }
+function myQuery(){ try{ var q=SWID.orderQuery(FS, ROLE==='partner'?'partner':'customer'); if(q) return q; }catch(e){} try{ if(ROLE==='partner'){ var ph=myPhone(); if(!ph||ph.length<10) return null; return FS.collection('orders').where('partnerPhone','==',ph); } var u=null; try{ u=firebase.auth().currentUser; }catch(e){} if(u&&u.uid) return FS.collection('orders').where('uid','==',u.uid); try{ var ph2=''; try{ ph2=String(localStorage.getItem('sw_user')||'').replace(/[^0-9]/g,''); }catch(e){} if(ph2&&ph2.length>=10){ if(ph2.length>10) ph2=ph2.slice(-10); return FS.collection('orders').where('mobile','==',ph2); } }catch(e){} return null; }catch(e){ return null; } }
 function watchMine(){
 try{ if(orderUn) orderUn(); }catch(e){} orderUn=null;
 var q=null; try{ q=myQuery(); }catch(e){}
@@ -7621,5 +8073,5 @@ try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now
 },3000);
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a362cb88edfc2c7b',t:'MTc4ODU4NTczNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
