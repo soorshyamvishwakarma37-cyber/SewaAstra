@@ -2072,10 +2072,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
       document.getElementById('liveTrackingModal').style.display = 'none';
   }
 
-  function openMaskCall() {
-      showAlert("Mask Calling", "सुरक्षित कॉलिंग कनेक्ट हो रही है... (आपका असली नंबर पार्टनर को नहीं दिखेगा)");
-      setTimeout(() => { window.location.href = "tel:7869969190"; }, 1500);
-  }
+  function openMaskCall(oid){ try{ oid=String(oid||'').trim(); }catch(e){ oid=''; } try{ var S=window['SW'+'Agora']; if(S&&typeof S.dial==='function'){ if(oid){ S.dial(oid); return; } } }catch(e){} showAlert("Mask Calling", "Surakshit calling connect ho rahi hai..."); setTimeout(function(){ window.location.href = "tel:7869969190"; }, 1500);   }
 
   function openInAppChat() {
       document.getElementById('chatCallModal').style.display = 'flex';
@@ -2487,7 +2484,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
           document.getElementById('sheetPic').src = savedPhoto;
       }
 
-      let logged = localStorage.getItem('sw_logged');
+      let logged = localStorage.getItem('sw_logged'); try{ var __u=String(localStorage.getItem('sw_user')||''); if(!logged&&/^\d{10}$/.test(__u)) logged='true'; }catch(e){}
       let user = localStorage.getItem('sw_user');
       if (logged && user) {
           document.getElementById('authOverlay').style.display = 'none';
@@ -6807,10 +6804,10 @@ var ringT=null,vibT=null;
 function ringStart(incoming){ ringStop(); ringT=setInterval(function(){ tone(440,0,0.32,0.3); tone(480,0.38,0.32,0.3); if(!incoming){ tone(660,0.82,0.16,0.2); } },1400); vibT=setInterval(function(){ vib([420,150,420,150,420]); },1750); tone(440,0,0.32,0.3); tone(480,0.38,0.32,0.3); vib([420,150,420]); }
 function ringStop(){ if(ringT){ clearInterval(ringT); ringT=null; } if(vibT){ clearInterval(vibT); vibT=null; } try{ if(navigator.vibrate) navigator.vibrate(0); }catch(e){} }
 /* state */
-var pc=null,localS=null,remoteA=null,st={s:'idle',oid:''},docUn=null,candUn=null,seenC={},waitT=null,secT=null,secs=0,muted=false,bigSpk=true;
+var pc=null,localS=null,remoteA=null,st={s:'idle',oid:''},docUn=null,candUn=null,seenC={},waitT=null,secT=null,secs=0,muted=false,bigSpk=true,remReady=false,pendC=[];
 function callDoc(oid){ return FS.collection('orders').doc(oid).collection('swcall').doc('live'); }
 function callCands(oid){ return FS.collection('orders').doc(oid).collection('swcall').doc('live').collection('cands'); }
-function rtcConf(){ return {iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}], iceCandidatePoolSize:8}; }
+function rtcConf(){ return {iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']},{urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},{urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},{urls:'turns:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'}], iceCandidatePoolSize:8}; }
 /* ---- FULL SCREEN UI ---- */
 function ensureUI(){
 if(document.getElementById('swCallFS')){ remoteA=document.getElementById('swCallRemote'); return; }
@@ -6842,11 +6839,12 @@ function mkPc(oid){
 closePc(); var P=null;
 try{ P=new RTCPeerConnection(rtcConf()); }catch(e){ return null; }
 pc=P;
-P.ontrack=function(ev){ try{ remoteA.srcObject=ev.streams[0]; var pr=remoteA.play(); if(pr&&pr.catch) pr.catch(function(){}); }catch(e){} };
+P.ontrack=function(ev){ try{ remoteA.srcObject=ev.streams[0]; try{ remoteA.muted=false; remoteA.volume=1; }catch(e){} var pr=remoteA.play(); if(pr&&pr.catch) pr.catch(function(){}); }catch(e){} };
 P.onicecandidate=function(ev){ if(ev.candidate){ try{ callCands(oid).add({from:myKey(),role:ROLE,cand:JSON.stringify(ev.candidate),ts:Date.now()}).catch(function(){}); }catch(e){} } };
 return P;
 }
-function listenCands(oid){ try{ if(candUn) candUn(); }catch(e){} try{ candUn=callCands(oid).onSnapshot(function(sn){ sn.docChanges().forEach(function(ch){ if(ch.type!=='added') return; if(seenC[ch.doc.id]) return; var m=ch.doc.data()||{}; if(m.from===myKey()) return; seenC[ch.doc.id]=1; if(!pc) return; try{ var c=new RTCIceCandidate(JSON.parse(m.cand)); pc.addIceCandidate(c).catch(function(){}); }catch(e){} }); },function(){}); }catch(e){} }
+function flushC(){ try{ if(!pc||!pc.remoteDescription) return; var q=pendC; pendC=[]; q.forEach(function(c){ try{ pc.addIceCandidate(c).catch(function(){}); }catch(e){} }); }catch(e){} }
+function listenCands(oid){ try{ if(candUn) candUn(); }catch(e){} try{ candUn=callCands(oid).onSnapshot(function(sn){ sn.docChanges().forEach(function(ch){ if(ch.type!=='added') return; if(seenC[ch.doc.id]) return; var m=ch.doc.data()||{}; if(m.from===myKey()) return; seenC[ch.doc.id]=1; if(!pc) return; try{ var c=new RTCIceCandidate(JSON.parse(m.cand)); if(pc.remoteDescription){ pc.addIceCandidate(c).catch(function(){}); } else { pendC.push(c); } }catch(e){} }); },function(){}); }catch(e){} }
 function clearCands(oid){ try{ callCands(oid).get().then(function(sn){ sn.docs.forEach(function(d){ d.ref.delete().catch(function(){}); }); }).catch(function(){}); }catch(e){} }
 /* ---- caller ---- */
 function dial(oid){
@@ -6854,7 +6852,7 @@ oid=String(oid||'').trim();
 if(!oid){ nt('पहले कोई active ऑर्डर खोलें, फिर Call दबाएँ'); return; }
 if(st.s!=='idle'){ nt('एक कॉल पहले से चल रही है — पहले उसे End करें'); return; }
 if(!window.RTCPeerConnection){ failCall('इस browser में voice-call support नहीं (Chrome use करें)'); return; }
-st={s:'dial',oid:oid}; seenC={}; muted=false; bigSpk=true;
+st={s:'dial',oid:oid}; seenC={}; pendC=[]; remReady=false; muted=false; bigSpk=true;
 paintOut(oid); ringStart(false);
 function go(stream){ localS=stream; startCaller(oid); }
 try{
@@ -6869,7 +6867,7 @@ listenCands(oid);
 P.createOffer({offerToReceiveAudio:true}).then(function(off){ return P.setLocalDescription(off).then(function(){ return callDoc(oid).set({type:'offer',sdp:off.sdp,from:myKey(),role:ROLE,state:'ringing',ts:Date.now()}); }); }).then(function(){
 try{ if(docUn) docUn(); }catch(e){}
 try{ docUn=callDoc(oid).onSnapshot(function(d){ if(!d.exists||st.oid!==oid) return; var x=d.data()||{};
-if(x.state==='answered'&&x.sdp&&x.role!==ROLE&&st.s==='dial'){ try{ pc.setRemoteDescription({type:'answer',sdp:x.sdp}).then(function(){ goLive(oid); }).catch(function(){}); }catch(e){} }
+if(x.state==='answered'&&x.sdp&&x.role!==ROLE&&st.s==='dial'){ try{ pc.setRemoteDescription({type:'answer',sdp:x.sdp}).then(function(){ remReady=true; try{ flushC(); }catch(e){} goLive(oid); }).catch(function(){}); }catch(e){} }
 else if(x.state==='declined'&&st.s!=='live'){ endCall('सामने वाले ने काट दिया',''); }
 else if(x.state==='ended'&&st.s==='live'){ endCall('कॉल समाप्त',''); }
 },function(){}); }catch(e){}
@@ -6880,7 +6878,7 @@ waitT=setTimeout(function(){ if(st.s==='dial'&&st.oid===oid) endCall('कोई 
 /* ---- callee ---- */
 function answerCall(oid){
 if(st.s!=='ringin'||st.oid!==oid) return;
-st={s:'ans',oid:oid}; seenC={}; muted=false; bigSpk=true;
+st={s:'ans',oid:oid}; seenC={}; pendC=[]; remReady=false; muted=false; bigSpk=true;
 paint(head('🔒','जुड़ रहे हैं…',oid,'Secure voice बन रहा है'));
 try{
 if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){ failCall('Mic support नहीं'); return; }
@@ -6893,7 +6891,7 @@ if(x.state!=='ringing'||!x.sdp){ failCall('कॉल पहले ही कट 
 var P=mkPc(oid); if(!P){ failCall('Voice engine नहीं चला'); return; }
 try{ localS.getTracks().forEach(function(t){ P.addTrack(t,localS); }); }catch(e){}
 listenCands(oid);
-P.setRemoteDescription({type:'offer',sdp:x.sdp}).then(function(){ return P.createAnswer(); }).then(function(ans){ return P.setLocalDescription(ans).then(function(){
+P.setRemoteDescription({type:'offer',sdp:x.sdp}).then(function(){ remReady=true; try{ flushC(); }catch(e){} return P.createAnswer(); }).then(function(ans){ return P.setLocalDescription(ans).then(function(){
 return callDoc(oid).update({type:'answer',sdp:ans.sdp,state:'answered',from:myKey(),role:ROLE,ansAt:Date.now()});
 }); }).then(function(){ goLive(oid); liveWatch(oid); }).catch(function(){ failCall('जुड़ नहीं पाए — फिर try करें'); });
 }).catch(function(){ failCall('जुड़ नहीं पाए'); });
@@ -6902,7 +6900,10 @@ return callDoc(oid).update({type:'answer',sdp:ans.sdp,state:'answered',from:myKe
 }
 function liveWatch(oid){ try{ if(docUn) docUn(); }catch(e){} try{ docUn=callDoc(oid).onSnapshot(function(d){ if(st.oid!==oid) return; if(!d.exists) return; var x=d.data()||{}; if(x.state==='ended'&&st.s==='live'){ endCall('कॉल समाप्त',''); } },function(){}); }catch(e){} }
 function declineCall(oid){ try{ callDoc(oid).update({state:'declined'}).catch(function(){}); }catch(e){} ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); st={s:'idle',oid:''}; fsHide(); }
-function goLive(oid){ st={s:'live',oid:oid}; ringStop(); stopTimer(); if(waitT){ clearTimeout(waitT); waitT=null; } vib([80,60,80]); tone(880,0,0.15,0.2); paintLive(oid); startTimer(); }
+function goLive(oid){ st={s:'live',oid:oid}; ringStop(); stopTimer(); if(waitT){ clearTimeout(waitT); waitT=null; } vib([80,60,80]); tone(880,0,0.15,0.2); paintLive(oid); startTimer();
+try{ if(remoteA){ remoteA.muted=false; remoteA.volume=1; var pr=remoteA.play(); if(pr&&pr.catch) pr.catch(function(){}); } }catch(e){}
+try{ var un=function(){ try{ if(remoteA&&(remoteA.paused||remoteA.muted)){ remoteA.muted=false; remoteA.volume=1; var q=remoteA.play(); if(q&&q.catch) q.catch(function(){}); } }catch(e){} }; document.addEventListener('touchstart',un,{once:true,passive:true}); document.addEventListener('click',un,{once:true}); }catch(e){}
+setTimeout(function(){ try{ if(remoteA&&remoteA.paused){ var el=document.getElementById('swCallInner'); if(el&&!document.getElementById('swcTap')){ var b=document.createElement('button'); b.id='swcTap'; b.className='swcB'; b.style.cssText='width:100%;margin-top:14px;background:linear-gradient(135deg,#ff9a3d,#ff6b00);animation:swcPulse 1.2s infinite;'; b.innerHTML='🔊 सुनने के लिए TAP करें'; b.onclick=function(){ try{ remoteA.muted=false; remoteA.volume=1; var r=remoteA.play(); if(r&&r.catch) r.catch(function(){}); }catch(e){} try{ b.remove(); }catch(x){} }; el.appendChild(b); } } }catch(e){} },2500); }
 function endCall(t,s){ var oid=st.oid; ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); st={s:'idle',oid:''}; if(oid){ try{ callDoc(oid).update({state:'ended',ts:Date.now()}).catch(function(){}); }catch(e){} clearCands(oid); } if(t){ paintEnd(t,s); setTimeout(function(){ fsHide(); },1600); } else { fsHide(); } }
 function silentHide(){ ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); st={s:'idle',oid:''}; fsHide(); }
 function failCall(msg){ var oid=st.oid; ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); st={s:'idle',oid:''}; if(oid) clearCands(oid); paint(head('⚠️','कॉल नहीं जुड़ी',oid||'',esc(msg)+'<br>💡 फिर try करें या 💬 Chat use करें')+'<div style="display:flex;gap:10px;margin-top:18px;"><button class="swcB" id="swcOk" style="background:#0d6efd;">ठीक है</button></div>'); bind('swcOk',function(){ fsHide(); }); }
@@ -7615,13 +7616,13 @@ console.log('%c 👆 FAST SCROLL v21 ','background:#15a04a;color:#fff;font-weigh
 <script>
 /* ═══ v21 — 3 SECOND AUTO SYNC (bina dikhe, bina net-ghehra) — customer ═══ */
 (function(){
-if(window.__swTick21) return; window.__swTick21=1;
+if(window.__swTick21) return; window.__swTick21=1; window.__swOrdT=0;
 setInterval(function(){
 try{ if(document.hidden) return; }catch(e){}
 try{ var b=document.getElementById('swLiveB'); if(b){ var on=navigator.onLine; b.innerHTML=on?'⚡ Live':'📴 Offline'; b.style.background=on?'rgba(21,160,74,.75)':'rgba(180,30,30,.8)'; } }catch(e){}
-try{ var h=document.getElementById('swDotH'); }catch(e){}
+try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now(); if(!__swOrdT||__nt-__swOrdT>60000){ __swOrdT=__nt; if(localStorage.getItem('sw_logged')==='true'&&typeof startMyOrdersListener==='function'){ startMyOrdersListener(); } } }catch(e){}
 },3000);
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35ffa880bebff72',t:'MTc4ODU1NjIwMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3618c26db7b2666',t:'MTc4ODU3MjY1Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
