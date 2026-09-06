@@ -1,17 +1,4 @@
 <!DOCTYPE html>
-<!-- ═══════════════════════════════════════════════════════════
-     SewaAstra — Customer App (secure build v3)
-     बना: 5 सितम्बर 2026
-
-     इस file में तीन सुरक्षा परतें पहले से लगी हैं:
-       1. SWXSS  — innerHTML पर XSS का आख़िरी जाल (<head> में सबसे पहले)
-       2. SWID   — doc का पता फोन नंबर नहीं, Firebase Auth uid
-       3. escape-at-source — जहाँ user data HTML में जाता है
-
-     ⚠️ ये तीनों client-side हैं. असली रोक firestore.rules +
-        Cloud Functions में है — वो deploy किए बिना यह file अकेली
-        सुरक्षित नहीं. पूरा क्रम: docs/DEPLOY-GUIDE.md
-     ═══════════════════════════════════════════════════════════ -->
 <html lang="hi">
 <head>
 <script>
@@ -331,7 +318,9 @@ window.__SWID_ROLE = 'customer';
     /** सीधे query बना दो — null अगर पहचान नहीं */
     orderQuery: function (FS, role) {
       var k = this.orderKey(role);
-      return k ? FS.collection('orders').where(k[0], '==', k[1]) : null;
+      // 🔒 rules में orders.list पर capped(100) है — बिना .limit() के
+      //    पूरी query reject हो जाती थी और अपने ही orders नहीं दिखते थे.
+      return k ? FS.collection('orders').where(k[0], '==', k[1]).limit(100) : null;
     },
 
     uid: function () { return _uid || ''; },
@@ -364,7 +353,7 @@ window.__SWID_ROLE = 'customer';
 
 <!-- Leaflet CSS & JS for Interactive Map Selection & Live Tracking -->
 
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://cdnjs.cloudflare.com https://apis.google.com https://www.google.com https://www.gstatic.com/firebasejs/; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' data: https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.cloudfunctions.net https://nominatim.openstreetmap.org https://www.google-analytics.com; frame-src https://*.firebaseapp.com https://www.youtube.com https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://www.google.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' data: https://cdnjs.cloudflare.com https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.cloudfunctions.net https://*.firebaseapp.com https://*.google-analytics.com https://*.analytics.google.com https://nominatim.openstreetmap.org; frame-src 'self' https://*.firebaseapp.com https://www.google.com https://accounts.google.com https://www.youtube.com; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta charset="UTF-8" />
@@ -1208,7 +1197,17 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
   /* ── 5. Auth state पर claims हमेशा ताज़ा रखो ── */
   function hook(){
     if(!window.firebase || !firebase.auth) return setTimeout(hook, 120);
+    var _synced = false;
     firebase.auth().onAuthStateChanged(function(u){
+      /* 🔑 claim server पर बनता है, login पर अपने आप नहीं आता.
+         पहली बार user दिखते ही एक बार sync कराओ — वरना असली admin/partner
+         भी बाहर ही खड़ा रह जाता है. (यह call पहले कहीं से होती ही नहीं थी.) */
+      if (u && !_synced) {
+        _synced = true;
+        try { SW.syncClaims(); } catch (e) {}
+      }
+      if (!u) _synced = false;
+
       SW.refreshClaims(true).then(function(c){
         document.documentElement.setAttribute('data-role',
           c.admin ? 'admin' : (c.partner ? 'partner' : (u ? 'user' : 'guest')));
@@ -1747,7 +1746,6 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
   const firebaseConfig = {
       apiKey: "AIzaSyA4kInzUxzF6Or1sHfzXavx1nVM0x40lak",
       authDomain: "sewaastra.firebaseapp.com",
-      databaseURL: "https://sewaastra-default-rtdb.firebaseio.com",
       projectId: "sewaastra",
       storageBucket: "sewaastra.firebasestorage.app",
       messagingSenderId: "211091351218",
@@ -2385,7 +2383,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
       } else if (type === 'Safety') {
           showAlert("Safety & Hygiene Guidelines", "हमारे सभी सर्विस पार्टनर्स वैक्सिनेटेड हैं, मास्क पहनते हैं और हर काम से पहले सैनिटाइजेशन सुनिश्चित करते हैं। 🛡️");
       } else if (type === 'Partner') {
-          window.open("https://soorshyamvishwakarma37-cyber.github.io/Sewaastra-partner/", "_blank");
+          window.open("https://soorshyamvishwakarma37-cyber.github.io/Sewaastra-partner/", "_blank", 'noopener,noreferrer');
       } else if (type === 'Feedback') {
           showAlert("Rate App", "SewaAstra को 5-स्टार रेटिंग देने के लिए धन्यवाद! ⭐⭐⭐⭐⭐");
       } else if (type === 'TandC') {
@@ -2738,7 +2736,7 @@ body.dark-mode .pro-sk::after{background:linear-gradient(90deg,transparent,rgba(
       showAlert("बुकिंग सफल! 🎉", `आपका ऑर्डर <b>${orderDetails.id}</b> सफलतापूर्वक दर्ज कर लिया गया है!<br><br>WhatsApp पर बुकिंग विवरण भेजा जा रहा है...`);
       
       setTimeout(() => {
-          window.open(`https://wa.me/917869969190?text=${orderMsg}`, '_blank');
+          window.open(`https://wa.me/917869969190?text=${orderMsg}`, '_blank', 'noopener,noreferrer');
       }, 1500);
   }
 
@@ -3078,7 +3076,7 @@ window.handleFinalOrder = function () {
       extra = `<br><a href="${upi}" style="display:inline-block;margin-top:10px;background:#15a04a;color:#fff;padding:10px 18px;border-radius:10px;text-decoration:none;font-weight:bold;">💳 UPI से ₹${finalAmt} Pay करें</a>`;
     }
     showAlert('बुकिंग सफल! 🎉', `आपका ऑर्डर <b>${oid}</b> ☁️ cloud में सेव हो गया है!<br>स्टेटस अपडेट आपको यहीं मिलेंगे (📋 History में देखें)।${extra}<br><br>WhatsApp पर विवरण भेजा जा रहा है...`);
-    setTimeout(() => { window.open(`https://wa.me/917869969190?text=${waMsg}`, '_blank'); }, 1800);
+    setTimeout(() => { window.open(`https://wa.me/917869969190?text=${waMsg}`, '_blank', 'noopener,noreferrer'); }, 1800);
     startMyOrdersListener();
   }).catch(e => {
     hideLoader();
@@ -3218,7 +3216,9 @@ window.submitProRating = function (oid) {
   const cmt = (document.getElementById('proRateCmt')?.value || '').trim();
   FS.collection('reviews').add({
     orderId: oid, rating: currentRating, comment: cmt,
-    by: getIdent() || getUID() || 'anon', ts: Date.now()
+    // 🔒 यहाँ कभी फोन नंबर नहीं — reviews सबके लिए खुली हैं.
+    //    पहले getIdent() (यानी फोन) जाता था — कोई भी सारे ग्राहक नंबर उठा लेता.
+    by: getUID() || 'anon', ts: Date.now()
   }).then(() => FS.collection('orders').doc(oid).update({ rated: true, rating: currentRating }))
     .then(() => { closeCustomAlert(); showToast('⭐ धन्यवाद! रिव्यू सेव हो गया'); })
     .catch(e => showAlert('त्रुटि', e.message));
@@ -3325,8 +3325,8 @@ function renderAdminOrders(orders) {
         </select>
         <button onclick="openOrderChat('${o.id}')" style="background:#0d6efd;color:#fff;border:none;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:bold;cursor:pointer;">💬</button>
         <a href="tel:${o.mobile}" style="background:#28a745;color:#fff;border-radius:8px;padding:7px 10px;font-size:11px;text-decoration:none;font-weight:bold;">📞</a>
-        ${o.maps ? `<a href="${proEsc(o.maps)}" target="_blank" style="background:#7b2ff2;color:#fff;border-radius:8px;padding:7px 10px;font-size:11px;text-decoration:none;font-weight:bold;">🗺️</a>` : ''}
-        <a href="https://wa.me/91${proEsc(o.mobile)}" target="_blank" style="background:#25D366;color:#fff;border-radius:8px;padding:7px 10px;font-size:11px;text-decoration:none;font-weight:bold;">WA</a>
+        ${o.maps ? `<a href="${proEsc(o.maps)}" target="_blank" style="background:#7b2ff2;color:#fff;border-radius:8px;padding:7px 10px;font-size:11px;text-decoration:none;font-weight:bold;" rel="noopener noreferrer">🗺️</a>` : ''}
+        <a href="https://wa.me/91${proEsc(o.mobile)}" target="_blank" style="background:#25D366;color:#fff;border-radius:8px;padding:7px 10px;font-size:11px;text-decoration:none;font-weight:bold;" rel="noopener noreferrer">WA</a>
       </div>
     </div>`;
   }).join('');
@@ -3524,7 +3524,7 @@ function subscribeTrack(oid) {
           <span style="background:rgba(13,110,253,.12);color:#0d6efd;border-radius:12px;padding:5px 10px;font-size:10.5px;font-weight:900;">⏱️ ETA: ~${etaTxt}</span>
           <span style="background:rgba(176,120,0,.14);color:#8a5a00;border-radius:12px;padding:5px 10px;font-size:10.5px;font-weight:900;">🕐 last ${lastTxt}</span>
         </div>
-        <a href="${navLn}" target="_blank" style="display:block;text-align:center;background:#0d47a1;color:#fff;text-decoration:none;border-radius:11px;padding:9px;font-size:11.5px;font-weight:900;margin-bottom:6px;">🧭 Partner तक Navigation (Google Maps)</a>` : ''}`}
+        <a href="${navLn}" target="_blank" style="display:block;text-align:center;background:#0d47a1;color:#fff;text-decoration:none;border-radius:11px;padding:9px;font-size:11.5px;font-weight:900;margin-bottom:6px;" rel="noopener noreferrer">🧭 Partner तक Navigation (Google Maps)</a>` : ''}`}
         <div style="display:flex;gap:10px;margin-top:8px;">
           <button onclick="openMaskCall('${oid}')" style="flex:1;background:#15a04a;color:#fff;border:none;padding:11px;border-radius:12px;font-weight:800;cursor:pointer;"><i class="fa fa-phone-alt"></i> 🔒 Masked Call</button>
           <button onclick="closeLiveTracking();openOrderChat('${oid}')" style="flex:1;background:#ff6b00;color:#fff;border:none;padding:11px;border-radius:12px;font-weight:800;cursor:pointer;"><i class="fa fa-comment-dots"></i> Live Chat</button>
@@ -3602,8 +3602,8 @@ window.renderAdminOrders = function (orders) {
         <button onclick="adminShareLoc('${o.id}')" title="Live location share" style="background:${sharing ? '#e53935' : '#7b2ff2'};color:#fff;border:none;border-radius:10px;padding:8px 10px;font-size:11px;font-weight:800;cursor:pointer;">📡${sharing ? ' STOP' : ''}</button>
         <button onclick="openOrderChat('${o.id}')" style="background:#0d6efd;color:#fff;border:none;border-radius:10px;padding:8px 10px;font-size:11px;font-weight:800;cursor:pointer;">💬</button>
         <a href="tel:${o.mobile}" style="background:#28a745;color:#fff;border-radius:10px;padding:8px 10px;font-size:11px;text-decoration:none;font-weight:800;">📞</a>
-        ${o.maps && o.maps !== 'Not Provided' ? `<a href="${proEsc(o.maps)}" target="_blank" style="background:#ff6b00;color:#fff;border-radius:10px;padding:8px 10px;font-size:11px;text-decoration:none;font-weight:800;">🗺️</a>` : ''}
-        <a href="https://wa.me/91${proEsc(o.mobile)}" target="_blank" style="background:#25D366;color:#fff;border-radius:10px;padding:8px 10px;font-size:11px;text-decoration:none;font-weight:800;">WA</a>
+        ${o.maps && o.maps !== 'Not Provided' ? `<a href="${proEsc(o.maps)}" target="_blank" style="background:#ff6b00;color:#fff;border-radius:10px;padding:8px 10px;font-size:11px;text-decoration:none;font-weight:800;" rel="noopener noreferrer">🗺️</a>` : ''}
+        <a href="https://wa.me/91${proEsc(o.mobile)}" target="_blank" style="background:#25D366;color:#fff;border-radius:10px;padding:8px 10px;font-size:11px;text-decoration:none;font-weight:800;" rel="noopener noreferrer">WA</a>
       </div>
     </div>`;
   }).join('');
@@ -3784,7 +3784,7 @@ window.openCustomersList = function(){
         </div>
         <div style="display:flex;flex-direction:column;gap:5px;">
           ${ph ? `<a href="tel:+91${ph}" style="background:#15a04a;color:#fff;padding:6px 9px;border-radius:8px;font-size:11px;text-decoration:none;">📞</a>
-          <a href="https://wa.me/91${ph}" target="_blank" style="background:#25d366;color:#fff;padding:6px 9px;border-radius:8px;font-size:11px;text-decoration:none;">💬</a>` : ''}
+          <a href="https://wa.me/91${ph}" target="_blank" style="background:#25d366;color:#fff;padding:6px 9px;border-radius:8px;font-size:11px;text-decoration:none;" rel="noopener noreferrer">💬</a>` : ''}
         </div>
       </div>`;
     });
@@ -4123,12 +4123,17 @@ window.proRateChip = function(el){
 /* ---------- SUBMIT: review + PARTNER ke data me save ---------- */
 window.submitProRating = function(oid){
   var cmt = (document.getElementById('proRateCmt') ? document.getElementById('proRateCmt').value : '').trim();
-  var by = getIdent() || getUID() || 'anon';
+  // 🔒 फोन नहीं, uid. reviews public हैं.
+  var by = getUID() || 'anon';
   showLoader('रिव्यू सेव हो रहा है...');
   FS.collection('orders').doc(oid).get().then(function(d){
     var o = d.exists ? d.data() : {};
     var partnerPh = String(o.partnerPhone || PRO_PARTNER_PHONE);
-    var review = { orderId: oid, rating: currentRating, comment: cmt, by: by, partner: partnerPh, ts: Date.now(), at: new Date().toLocaleString('en-IN') };
+    /* 🔒 partner का फोन भी नहीं जाता — partnerUid से पहचान होती है.
+       order में partnerUid है तो वही, वरना कुछ नहीं (पुराने orders के लिए). */
+    var pUid = (o && o.partnerUid) ? o.partnerUid : '';
+    var review = { orderId: oid, rating: currentRating, comment: cmt, by: by,
+                   partnerUid: pUid, ts: Date.now(), at: new Date().toLocaleString('en-IN') };
     var pref = FS.collection('partners').doc(partnerPh);
     return Promise.all([
       FS.collection('reviews').add(review),
@@ -4552,7 +4557,7 @@ window.proCloseBill = function(){
 };
 window.proPrintBill = function(oid){
   var inner = document.getElementById('proBillInner');
-  var w = window.open('', '_blank');
+  var w = window.open('', '_blank', 'noopener,noreferrer');
   w.document.write('<html><head><title>SewaAstra Bill ' + oid + '</title><style>body{font-family:sans-serif;max-width:420px;margin:20px auto;}table{width:100%;border-collapse:collapse;font-size:13px;}td{padding:6px 0;border-bottom:1px dashed #ccc;}.tr{text-align:right;font-weight:bold;}.pro-bill-head{background:#0b1220;color:#fff;padding:16px;border-radius:12px;}button,a{display:none!important;}img,canvas{display:block!important;margin:10px auto;}</style></head><body>' + inner.innerHTML + '<p style="text-align:center;font-size:11px;color:#888;">धन्यवाद! SewaAstra — आपकी सेवा में 🙏</p></body></html>');
   w.document.close();
   setTimeout(function(){ w.print(); }, 600);
@@ -4725,7 +4730,7 @@ window.handleFinalOrder = function(){
         ? '<br><span style="color:#b07800;font-weight:800;">⏳ Payment verification में — UTR: ' + proEsc(payment.ref||'') + '<br>Admin जल्द confirm करेंगे</span>'
         : '';
       showAlert('बुकिंग सफल! 🎉', 'आपका ऑर्डर <b>' + oid + '</b> ☁️ cloud में सेव हो गया है!' + payLine + '<br>स्टेटस अपडेट 📋 History में मिलेंगे।<br><br>WhatsApp पर विवरण भेजा जा रहा है...');
-      setTimeout(function(){ window.open('https://wa.me/917869969190?text=' + waMsg, '_blank'); }, 1800);
+      setTimeout(function(){ window.open('https://wa.me/917869969190?text=' + waMsg, '_blank', 'noopener,noreferrer'); }, 1800);
       startMyOrdersListener();
       proStartRatingWatcher();
     }).catch(function(e){ hideLoader(); showAlert('त्रुटि', 'ऑर्डर सेव नहीं हो सका: ' + e.message); });
@@ -5369,7 +5374,7 @@ console.log('%c REAL AUTH MODE ✅ (Direct Login removed) ', 'background:#15a04a
     if(!ph){ setTimeout(boot,1500); return; }
     if(watcher) return;
     try{
-      watcher=(SWID.orderQuery(FS,'customer')||firebase.firestore().collection('orders').where('mobile','==',ph)).onSnapshot(resolve,function(){ setTimeout(boot,3000); watcher=null; });
+      watcher=(SWID.orderQuery(FS,'customer')||firebase.firestore().collection('orders').where('mobile','==',ph).limit(100)).onSnapshot(resolve,function(){ setTimeout(boot,3000); watcher=null; });
     }catch(e){ setTimeout(boot,2000); }
   }
   setTimeout(boot,900);
@@ -5482,7 +5487,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
   function listen(){
     if(v39L) return; v39L=true;
     try{
-      firebase.firestore().collection('broadcasts').where('active','==',true).onSnapshot(function(s){
+      firebase.firestore().collection('broadcasts').where('active','==',true).limit(30).onSnapshot(function(s){
         v39B=s.docs.map(function(d){ var b=d.data(); b._id=d.id; return b; }).filter(function(b){ var t=b.to||'all'; return t==='all'||t==='customer'; }).sort(function(a,b2){ return (b2.ts||0)-(a.ts||0); });
         v39B.forEach(function(b){
           if(!v39Prev[b._id]&&!v39Seen[b._id]){ try{ var t=document.getElementById('welcomeToast'); if(t){ t.innerText='📢 '+em(b)+' '+(b.title||'नया update!'); t.style.display='block'; setTimeout(function(){ t.style.display='none'; },3200); } }catch(e){} }
@@ -6108,7 +6113,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
     try{
       /* SCALE: service_ratings (हर rating की row — अनबाउंड) की जगह ab svc_stats
          (हर service का 1 aggregate doc — bounded, chhota) subscribe होता है */
-      FS.collection('svc_stats').onSnapshot(function(s){
+      FS.collection('svc_stats').limit(200).onSnapshot(function(s){
         var a={};
         s.docs.forEach(function(d){ var x=d.data(); var k=String(x.cat||'')+'|'+String(x.sn||''); if(!a[k]) a[k]={sum:0,count:0}; a[k].sum+=Number(x.sum)||0; a[k].count+=Number(x.count)||0; });
         window.__rAgg=a; rAgg=a;
@@ -6116,7 +6121,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
       },function(){});
       /* पुराने ratings (svc_stats बनने से पहले) — एक बार सीमित backfill */
       try{
-        FS.collection('svc_stats').get().then(function(st){
+        FS.collection('svc_stats').limit(200).get().then(function(st){
           if(st.empty){
             return FS.collection('service_ratings').limit(400).get().then(function(rs){
               var a2={};
@@ -6166,7 +6171,23 @@ body.dark-mode .v39mg span{background:#2e2e2e}
       var items=(o.items||[]).map(function(i){ return {n:i.n,p:i.p,qty:i.qty||1,cat:i.cat||'',catName:i.catName||'',r:{stars:stars,at:new Date().toLocaleString('en-IN')}}; });
       FS.collection('orders').doc(oid).update({items:items}).catch(function(){});
       items.forEach(function(i){
-        FS.collection('service_ratings').add({cat:i.cat,catName:i.catName||'',sn:i.n,stars:stars,orderId:oid,by:(localStorage.getItem('sw_user')||getUID()||'anon'),ts:Date.now(),at:new Date().toLocaleString('en-IN')}).catch(function(){});
+        /* 🔒 by में कभी फोन नहीं — यह collection बिना login के भी पढ़ी जा सकती है.
+     पहले localStorage('sw_user') यानी फोन नंबर जाता था. */
+      /* 🔒 पहले .add() था — हर बार नई random ID, यानी एक ही order पर बटन
+         दबाते रहो और rating बढ़ती जाए (svc_stats हर बार increment होता है).
+         अब ID fields से तय होती है, इसलिए दूसरी बार वही ID बनेगी और rules
+         उसे create नहीं करने देंगी: एक order = एक rating प्रति service.
+         '/' हटाना ज़रूरी है, वरना doc ID का रास्ता टूट जाता है — rules भी
+         यही शर्त लगाती हैं. */
+      (function(){
+        var rCat=String(i.cat||'').replace(/\//g,'_').slice(0,40);
+        var rSn =String(i.n||'').replace(/\//g,'_').slice(0,80);
+        var rid = String(oid)+'__'+rCat+'__'+rSn;
+        FS.collection('service_ratings').doc(rid).set({
+          cat:rCat, catName:i.catName||'', sn:rSn, stars:stars, orderId:oid,
+          by:(getUID()||'anon'), ts:Date.now(), at:new Date().toLocaleString('en-IN')
+        }).catch(function(){});
+      })();
         try{
           var key=String(i.cat||'')+'__'+String(i.n||'').replace(/[^A-Za-z0-9]/g,'_');
           /* 🔒 counters अब server trigger से बढ़ते हैं (rating हैक बंद) */ void ({cat:i.cat||'',catName:i.catName||'',sn:i.n||'',sum:firebase.firestore.FieldValue.increment(stars),count:firebase.firestore.FieldValue.increment(1),lastAt:Date.now()},{merge:true}).catch(function(){});
@@ -6246,7 +6267,7 @@ body.dark-mode .v39mg span{background:#2e2e2e}
         '<div style="color:#666;margin-top:3px;">अपना कोड <b style="color:var(--primary);">'+wEsc(code)+'</b> दोस्तों को दो। उनके पूरे orders पर आपको मिलेंगे:</div>'+
         '<div style="font-size:11px;margin-top:5px;line-height:1.9;">'+[100,100,150,150,500].map(function(v,i){ return (i<paid?'<b style="color:#15a04a;">✓</b> ':'<b style="color:#ccc;">'+ (i+1) +'.</b> ')+'Order #'+(i+1)+' complete → <b style="color:#b07800;">'+v+' coin</b>'; }).join('<br>')+'</div>'+
         '<div style="font-size:10.5px;color:#15a04a;font-weight:800;margin-top:5px;">अब तक '+(paid||0)+'/5 • कुल '+prog+' coin मिले</div>'+
-        '<a href="'+share+'" target="_blank" style="display:block;text-align:center;margin-top:9px;background:#25d366;color:#fff;text-decoration:none;padding:11px;border-radius:12px;font-weight:800;font-size:12px;">💬 WhatsApp पर share करें</a>'+
+        '<a href="'+share+'" target="_blank" style="display:block;text-align:center;margin-top:9px;background:#25d366;color:#fff;text-decoration:none;padding:11px;border-radius:12px;font-weight:800;font-size:12px;" rel="noopener noreferrer">💬 WhatsApp पर share करें</a>'+
         '<div style="margin-top:12px;background:#f6f6f6;border-radius:12px;padding:9px 11px;">'+(rBy?rBy:'<span style="font-size:11px;">किसी ने आपको <b>refer code</b> भेजा है? नीचे डालें — 1000 coin कमाने का मौका:</span><div style="display:flex;gap:7px;margin-top:7px;"><input id="c44RefI" placeholder="Refer code (मोबाइल नं.)" style="flex:1;border:1px solid #ddd;border-radius:9px;padding:9px;font-size:12px;outline:none;"><button onclick="c44ApplyRef()" style="border:none;background:var(--primary);color:#fff;padding:9px 14px;border-radius:9px;font-weight:800;cursor:pointer;font-size:12px;">लागू करें</button></div>')+'</div>'+
       '</div></div>';
       showAlert('💰 Wallet • Coins • Refer', html);
@@ -6931,7 +6952,7 @@ var LGS=[['hi','हिन्दी'],['en','English']];
       .catch(function(e){ showAlert('त्रुटि',e.message); });
   };
   window.proWABill=function(oid){
-    try{ FS.collection('orders').doc(oid).get().then(function(d){ if(!d.exists) return; var o=d.data(); var txt='🧾 *SewaAstra Steel Pvt Ltd — TAX INVOICE*%0A🆔 '+oid+'%0A'+(o.items||[]).map(function(i){ return '• '+i.n+(i.qty>1?' x'+i.qty:'')+' = ₹'+((Number(i.p)||0)*(i.qty||1)); }).join('%0A')+'%0A💰 Total: ₹'+o.total; window.open('https://wa.me/?text='+txt,'_blank'); }).catch(function(){}); }catch(e){}
+    try{ FS.collection('orders').doc(oid).get().then(function(d){ if(!d.exists) return; var o=d.data(); var txt='🧾 *SewaAstra Steel Pvt Ltd — TAX INVOICE*%0A🆔 '+oid+'%0A'+(o.items||[]).map(function(i){ return '• '+i.n+(i.qty>1?' x'+i.qty:'')+' = ₹'+((Number(i.p)||0)*(i.qty||1)); }).join('%0A')+'%0A💰 Total: ₹'+o.total; window.open('https://wa.me/?text='+txt, '_blank', 'noopener,noreferrer'); }).catch(function(){}); }catch(e){}
   };
   /* print: clean A4 */
   window.proPrintBill=function(oid){
@@ -6941,7 +6962,7 @@ var LGS=[['hi','हिन्दी'],['en','English']];
         var cfg2={}; FS.collection('config').doc('global').get().then(function(cd){ if(cd.exists) cfg2=cd.data(); }).catch(function(){}).then(function(){
           var sub=Number(o.subtotal)||0, disc=Number(o.discount)||0, gstPct=Math.max(0,Number(cfg2.gstPct)||0);
           var rows=(o.items||[]).map(function(it){ var q=it.qty||1; return '<tr><td style="padding:7px 4px;border-bottom:1px dashed #ccc;">'+(it.n||'')+(it.selectedSub?'<br><span style="color:#777;font-size:11px;">'+proEsc(it.selectedSub)+'</span>':'')+'</td><td style="text-align:center;">'+(it.qty||1)+'</td><td style="text-align:right;">₹'+((Number(it.p)||0))+'</td><td style="text-align:right;font-weight:bold;">₹'+(sub?((Number(it.p)||0)*q):0)+'</td></tr>'; }).join('');
-          var w=window.open('','_blank');
+          var w=window.open('', '_blank', 'noopener,noreferrer');
           w.document.write('<html><head><title>Invoice '+proEsc(oid)+'</title><style>body{font-family:Arial,sans-serif;color:#000;max-width:720px;margin:18px auto;padding:0 14px;font-size:12px;}h1{font-size:22px;margin:0}.head{display:flex;justify-content:space-between;border-bottom:3px double #000;padding-bottom:10px;}.muted{color:#555;font-size:10.5px;}table{width:100%;border-collapse:collapse;margin-top:10px;}th{background:#eee;text-align:left;padding:6px 4px;border-bottom:2px solid #000;}td{padding:6px 4px;border-bottom:1px solid #ccc;}.tot td{border-top:3px double #000;font-size:14px;font-weight:bold;}.sig{display:flex;justify-content:space-between;margin-top:34px;}button,a{display:none!important;}.stamp{border:2.5px solid #c62828;color:#c62828;border-radius:8px;padding:6px 12px;display:inline-block;font-size:10px;font-weight:bold;letter-spacing:1px;text-align:center;line-height:1.5;}</style></head><body>'+
           '<div class="head"><div><h1>🛠️ SewaAstra Steel Pvt Ltd</h1><div class="muted">'+proEsc(CO.tag)+'<br>'+proEsc(CO.addr)+' • ☎ +91 '+CO.ph+'</div><div class="muted"><b>GSTIN: '+proEsc(CO.gstin)+'</b></div></div><div style="text-align:right;"><b style="font-size:16px;">TAX INVOICE</b><br>🆔 '+proEsc(oid)+'<br>'+proEsc(o.timestamp||'')+'</div></div>'+
           '<div class="muted" style="margin-top:8px;">👤 Billed To: +91 '+proEsc(o.mobile||'')+(o.address?' &nbsp;•&nbsp; 📍 '+proEsc(o.address):'')+'</div>'+
