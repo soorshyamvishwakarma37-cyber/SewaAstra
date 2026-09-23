@@ -8097,45 +8097,49 @@ try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now
 <script src="https://checkout.razorpay.com/v1/checkout.js" crossorigin="anonymous"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════════════
-   RAZORPAY v1 — सारे ONLINE भुगतान अब Razorpay Checkout से
+   RAZORPAY v2 — DIRECT (बिना Cloud Function)
    -------------------------------------------------------------------------
-   पुराना UPI-QR / PhonePe + manual-UTR flow हटा दिया गया है.
+   सारे ONLINE भुगतान Razorpay Checkout से. कोई server नहीं, कोई function
+   नहीं — checkout.js सीधे browser से Razorpay से बात करता है.
 
    Flow:
-     1. Customer → Cart → Online → "ऑर्डर पक्का करें"
-     2. यह block असली order-write को पकड़ता है (Firestore .set() को hold)
-        — यानी amount / wallet / coins / coupon सब पहले जैसा ही तय होता है
-     3. Cloud Function `createRzpOrder` से असली Razorpay order बनता है
-        (server पर Key Secret — कभी browser में नहीं)
-     4. Razorpay Checkout खुलता है
-     5. सफलता पर Cloud Function `verifyRzpPayment` signature verify करता है
-     6. तभी order Firestore में लिखा जाता है — payment.verified = true
+     Cart → Online → "💳 भुगतान करें"
+       1. Razorpay Checkout खुलता है (key + amount सीधे)
+       2. customer भुगतान करता है → handler में payment_id मिलता है
+       3. तभी order Firestore में लिखा जाता है
+       4. payment.verified = false  →  admin panel से confirm
 
-   ⚠️  Key Secret सिर्फ़ Firebase Functions में. index.html में कभी नहीं.
+   ⚠️ DIRECT मोड की सीमा — यह जानना ज़रूरी है:
+      signature verify करने के लिए Key Secret चाहिए, और secret browser में
+      कभी नहीं रखा जा सकता. इसलिए यहाँ भुगतान *server-verified* नहीं होता —
+      order 'Payment Verifying' में बनता है और admin को confirm करना होता है
+      (जैसे पुराने UTR वाले flow में था). Razorpay Dashboard → Payments में
+      payment_id मिलाकर पक्का करें.
+      बाद में auto-verify चाहिए हो तो functions/ deploy कर दें — यह ब्लॉक
+      उसे अपने आप इस्तेमाल करने लगेगा (window.RZP_CFG.useFunction = true).
+
    ⚠️  Live पर जाने से पहले नीचे keyId बदलें: rzp_live_XXXX
    ═══════════════════════════════════════════════════════════════════════ */
 (function (global) {
   'use strict';
-  if (global.__rzpV1) return;
-  global.__rzpV1 = 1;
+  if (global.__rzpV2) return;
+  global.__rzpV2 = 1;
 
   /* ─── CONFIG ─────────────────────────────────────────────────────── */
   var RZP = global.RZP_CFG = {
-    keyId:        'rzp_test_TfTNHTZ21d4UtB',   /* 🔁 live पर: rzp_live_... */
-    fnRegion:     'asia-south1',               /* जिस region में functions deployed हैं */
+    keyId:        'rzp_test_TYb2eg0TLvapOO',   /* 🔁 live पर: rzp_live_... */
     currency:     'INR',
     name:         'SewaAstra',
-    brand:        '#ff6b00',
     description:  'Home Services Booking',
     image:        '',                          /* logo URL (https) डालें तो और अच्छा */
-    themeColor:   '#0b6cff',                   /* Razorpay Checkout की accent colour */
-    /* order_id Cloud Function से न मिले तो सीधा Checkout खोल दें?
-       ⚠️ सिर्फ़ testing — production में false ही रखें (signature verify नहीं होगा) */
-    allowNoOrder: true,
-    notesKey:     'sewaastra_order'            /* Razorpay order के notes में हमारा order-id */
+    themeColor:   '#0b6cff',
+    /* true करने पर Cloud Function से order/verify करेगा (अगर deployed हो).
+       DIRECT मोड में false ही रखें. */
+    useFunction:  false,
+    fnRegion:     'asia-south1',
+    notesKey:     'sewaastra_order'
   };
 
-  var SCRIPT_URL = 'https://checkout.razorpay.com/v1/checkout.js';
   var _loading = null;
 
   /* ─── helpers ────────────────────────────────────────────────────── */
@@ -8144,31 +8148,44 @@ try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
-  function toast(m) { try { showToast(m); } catch (e) { console.warn(m); } }
   function alertBox(t, m) {
     try { showAlert(t, m); }
     catch (e) { global.alert(t + '\n' + String(m).replace(/<[^>]+>/g, '')); }
   }
   function loader(t) { try { showLoader(t || 'प्रतीक्षा करें...'); } catch (e) {} }
   function noLoader() { try { hideLoader(); } catch (e) {} }
+  function toast(m) { try { showToast(m); } catch (e) {} }
 
-  /* हर Cloud Function call app के अपने helper से होती है (SW.call),
-     वो न मिले तो सीधा firebase SDK. */
-  function callFn(name, data) {
-    if (global.SW && typeof SW.call === 'function') {
-      return SW.call(name, data || {});
-    }
-    return firebase.app().functions(RZP.fnRegion).httpsCallable(name)(data || {})
-      .then(function (r) { return r.data; });
+  /* ⚠️ app में `cart`, `selectedMode` आदि top-level `let` हैं — वे window पर
+     नहीं होते, इसलिए सीधे identifier से पढ़ो और न मिलें तो window पर गिरो. */
+  function payMode() {
+    try { if (typeof selectedMode !== 'undefined') return selectedMode; } catch (e) {}
+    return global.selectedMode;
+  }
+  function digits10(s) {
+    s = String(s == null ? '' : s).replace(/\D/g, '');
+    return s.length > 10 ? s.slice(-10) : s;
+  }
+  function custInfo(order) {
+    var o = order || {};
+    var ph = digits10(o.mobile || '');
+    var uid = '';
+    try { uid = (firebase.auth().currentUser || {}).uid || ''; } catch (e) {}
+    var nm = 'SewaAstra User';
+    try {
+      var ls = JSON.parse(localStorage.getItem('sw_user_data') || '{}');
+      if (ls && ls.name) nm = String(ls.name).slice(0, 40);
+    } catch (e) {}
+    return { name: nm, contact: ph ? '+91' + ph : '', email: uid ? uid.slice(0, 8) + '@sewaastra.app' : '' };
   }
 
-  /* checkout.js एक ही बार load हो (CSP में checkout.razorpay.com पहले से allow है) */
+  /* checkout.js एक ही बार load हो */
   function loadCheckout() {
     if (global.Razorpay) return Promise.resolve(global.Razorpay);
     if (_loading) return _loading;
     _loading = new Promise(function (res, rej) {
       var s = document.createElement('script');
-      s.src = SCRIPT_URL;
+      s.src = 'https://checkout.razorpay.com/v1/checkout.js';
       s.async = true;
       s.onload = function () {
         if (global.Razorpay) res(global.Razorpay);
@@ -8180,89 +8197,52 @@ try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now
     return _loading;
   }
 
-  /* ⚠️ app में `cart`, `selectedMode` आदि top-level `let` हैं — वे window पर
-     नहीं होते. इसलिए सीधे identifier से पढ़ो (इसी scope chain में मिलेंगे),
-     और न मिलें तो window पर गिरो. */
-  function payMode() {
-    try { if (typeof selectedMode !== 'undefined') return selectedMode; } catch (e) {}
-    return global.selectedMode;
-  }
-  function digits10(s) {
-    s = String(s == null ? '' : s).replace(/\D/g, '');
-    return s.length > 10 ? s.slice(-10) : s;
+  /* ─── optional: Cloud Function (सिर्फ़ useFunction=true पर) ───────── */
+  function callFn(name, data) {
+    if (global.SW && typeof SW.call === 'function') return SW.call(name, data || {});
+    return firebase.app().functions(RZP.fnRegion).httpsCallable(name)(data || {})
+      .then(function (r) { return r.data; });
   }
 
-  function custInfo(order) {
-    var o = order || {};
-    var ph = digits10(o.mobile || '');
-    var uid = '';
-    try { uid = (firebase.auth().currentUser || {}).uid || ''; } catch (e) {}
-    var nm = 'SewaAstra User';
-    try {
-      var ls = JSON.parse(localStorage.getItem('sw_user_data') || '{}');
-      if (ls && ls.name) nm = String(ls.name).slice(0, 40);
-    } catch (e) {}
-    return {
-      name: nm,
-      contact: ph ? '+91' + ph : '',
-      email: uid ? uid.slice(0, 8) + '@sewaastra.app' : ''
-    };
-  }
-
-  /* ─── 1) Razorpay order बनाओ (server पर) ─────────────────────────── */
-  function rzpCreateOrder(amount, orderId) {
-    return callFn('createRzpOrder', { amount: amount, orderId: orderId });
-  }
-
-  /* ─── 2) Checkout खोलो ───────────────────────────────────────────── */
-  function rzpOpen(rzpOrder, ctx) {
+  /* ─── Checkout खोलो ──────────────────────────────────────────────── */
+  function rzpOpen(amount, ctx) {
     return loadCheckout().then(function () {
       return new Promise(function (resolve) {
         var opts = {
           key: RZP.keyId,
-          amount: rzpOrder.amount,
-          currency: rzpOrder.currency || RZP.currency,
+          amount: amount,                       /* paise */
+          currency: RZP.currency,
           name: RZP.name,
           description: RZP.description,
-          order_id: rzpOrder.id || undefined,
-          prefill: {
-            name: ctx.prefill.name,
-            contact: ctx.prefill.contact,
-            email: ctx.prefill.email
-          },
+          order_id: ctx.rzpOrderId || undefined, /* DIRECT मोड में नहीं होता */
+          prefill: { name: ctx.prefill.name, contact: ctx.prefill.contact, email: ctx.prefill.email },
           notes: (function () {
             var n = {};
             n[RZP.notesKey] = ctx.orderId;
             n.customer = ctx.prefill.contact || '';
             return n;
           })(),
-          theme: { color: RZP.themeColor, hide_topbar: false },
+          theme: { color: RZP.themeColor },
           modal: {
-            ondismiss: function () {
-              resolve({ ok: false, cancelled: true, reason: 'user_closed_checkout' });
-            },
+            ondismiss: function () { resolve({ ok: false, reason: 'user_closed' }); },
             escape: true,
             backdropclose: false
           },
-          handler: function (resp) {
+          handler: function (r) {
             resolve({
               ok: true,
-              razorpay_order_id: resp.razorpay_order_id || rzpOrder.id || '',
-              razorpay_payment_id: resp.razorpay_payment_id || '',
-              razorpay_signature: resp.razorpay_signature || ''
+              razorpay_order_id: r.razorpay_order_id || ctx.rzpOrderId || '',
+              razorpay_payment_id: r.razorpay_payment_id || '',
+              razorpay_signature: r.razorpay_signature || ''
             });
           }
         };
         if (RZP.image) opts.image = RZP.image;
+
         var rzp = new global.Razorpay(opts);
-        rzp.on('payment.failed', function (resp) {
-          var er = (resp && resp.error) || {};
-          resolve({
-            ok: false,
-            reason: 'payment_failed',
-            code: er.code || 'PAYMENT_FAILED',
-            desc: er.description || 'भुगतान असफल रहा'
-          });
+        rzp.on('payment.failed', function (r) {
+          var er = (r && r.error) || {};
+          resolve({ ok: false, reason: 'payment_failed', desc: er.description || 'भुगतान असफल रहा' });
         });
         try { rzp.open(); }
         catch (e) { resolve({ ok: false, reason: 'checkout_error', desc: e.message }); }
@@ -8270,103 +8250,107 @@ try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now
     });
   }
 
-  /* ─── 3) signature server पर verify ──────────────────────────────── */
-  function rzpVerify(payload, order) {
-    return callFn('verifyRzpPayment', payload)
-      .then(function (r) {
-        var ok = !!(r && r.ok);
-        var status = (r && r.status) || 'captured';
-        return {
-          method: 'Razorpay',
-          gateway: 'Razorpay',
-          status: ok ? ('Paid (' + status + ')') : 'Payment Verifying',
-          verified: ok,
-          serverVerified: ok,
-          amount: payload.amount,
-          order_id: payload.razorpay_order_id,
-          ref: payload.razorpay_payment_id,
-          signature_ok: ok,
-          paidAt: Date.now()
-        };
-      })
-      .catch(function (e) {
-        /* function deploy नहीं / network — order बनेगा, पर admin को verify करना होगा */
-        console.warn('verifyRzpPayment:', e);
-        return {
-          method: 'Razorpay',
-          gateway: 'Razorpay',
-          status: 'Payment Verifying',
-          verified: false,
-          serverVerified: false,
-          amount: payload.amount,
-          order_id: payload.razorpay_order_id,
-          ref: payload.razorpay_payment_id,
-          signature_ok: false,
-          verifyError: String((e && e.message) || e).slice(0, 120),
-          paidAt: Date.now()
-        };
-      });
-  }
-
-  /* ─── 4) पूरा भुगतान चक्र — नए order और पुराने pending order दोनों के लिए ── */
-  var pending = null;   /* {orderId, amount, order, done, fail} */
-
-  function payForOrder(orderId, amount, orderObj) {
-    var amt = Math.max(1, Math.round(Number(amount) || 0));
+  /* ─── पूरा भुगतान चक्र ──────────────────────────────────────────── */
+  function payForOrder(orderId, rupees, orderObj) {
+    var amt = Math.max(1, Math.round(Number(rupees) || 0));
+    var paise = amt * 100;
     var ctx = { orderId: orderId, amount: amt, order: orderObj || {}, prefill: custInfo(orderObj) };
 
     noLoader();
-    loader('🔐 Razorpay order बन रहा है...');
+    loader('💳 भुगतान पेज खुल रहा है...');
 
-    return rzpCreateOrder(amt, orderId)
-      .then(function (r) {
-        if (!r || !r.ok || !r.order || !r.order.id) throw new Error((r && r.error) || 'Razorpay order नहीं बना');
-        return r.order;
-      })
-      .catch(function (e) {
-        if (!RZP.allowNoOrder) throw e;
-        console.warn('createRzpOrder नहीं चला — बिना order_id Checkout:', e);
-        return { id: '', amount: amt * 100, currency: RZP.currency };
-      })
-      .then(function (rzpOrder) {
-        noLoader();
-        return rzpOpen(rzpOrder, ctx);
-      })
+    /* useFunction=true हो तो पहले server से order बनवा लो, वरना सीधा Checkout */
+    var step = RZP.useFunction
+      ? callFn('createRzpOrder', { amount: amt, orderId: orderId })
+          .then(function (r) {
+            if (!r || !r.ok || !r.order) throw new Error('function ने order नहीं दिया');
+            ctx.rzpOrderId = r.order.id;
+          })
+          .catch(function (e) {
+            ctx.rzpOrderId = '';
+            toast('⚠️ server order नहीं बना — सीधे Checkout खोल रहे हैं');
+            console.warn('createRzpOrder:', e);
+          })
+      : Promise.resolve();
+
+    return step
+      .then(function () { noLoader(); return rzpOpen(paise, ctx); })
       .then(function (res) {
         if (!res || !res.ok) {
-          var msg = res && res.reason === 'payment_failed'
-            ? esc(res.desc || 'भुगतान असफल')
-            : 'Checkout बंद कर दिया गया।';
           noLoader();
-          alertBox('भुगतान पूरा नहीं हुआ', msg + '<br><br>कोई रकम नहीं कटी है। दोबारा कोशिश करें।');
+          alertBox('भुगतान पूरा नहीं हुआ',
+            esc((res && res.desc) || 'Checkout बंद कर दिया गया।') +
+            '<br><br>कोई रकम नहीं कटी है। दोबारा कोशिश करें।');
           return { ok: false };
         }
+
+        /* ── DIRECT मोड: signature verify नहीं हो सकता → admin confirm करेगा ── */
+        if (!RZP.useFunction) {
+          noLoader();
+          return {
+            ok: true,
+            payment: {
+              method: 'Razorpay',
+              gateway: 'Razorpay',
+              status: 'Payment Verifying',
+              verified: false,
+              serverVerified: false,
+              amount: amt,
+              order_id: res.razorpay_order_id || '',
+              ref: res.razorpay_payment_id,
+              signature: res.razorpay_signature || '',
+              paidAt: Date.now(),
+              note: 'Direct checkout — admin Dashboard से payment_id मिलाकर confirm करें'
+            }
+          };
+        }
+
+        /* ── optional: function से verify ── */
         loader('✅ भुगतान मिला — verify हो रहा है...');
-        return rzpVerify({
+        return callFn('verifyRzpPayment', {
           razorpay_order_id: res.razorpay_order_id,
           razorpay_payment_id: res.razorpay_payment_id,
           razorpay_signature: res.razorpay_signature,
-          amount: amt,
-          orderId: orderId
-        }, ctx.order).then(function (payment) {
+          amount: amt, orderId: orderId
+        }).then(function (r) {
           noLoader();
-          return { ok: true, payment: payment };
+          var okv = !!(r && r.ok);
+          return {
+            ok: true,
+            payment: {
+              method: 'Razorpay', gateway: 'Razorpay',
+              status: okv ? 'Paid (' + ((r && r.status) || 'captured') + ')' : 'Payment Verifying',
+              verified: okv, serverVerified: okv,
+              amount: amt, order_id: res.razorpay_order_id,
+              ref: res.razorpay_payment_id, signature_ok: okv, paidAt: Date.now()
+            }
+          };
+        }).catch(function () {
+          noLoader();
+          return {
+            ok: true,
+            payment: {
+              method: 'Razorpay', gateway: 'Razorpay',
+              status: 'Payment Verifying', verified: false, serverVerified: false,
+              amount: amt, order_id: res.razorpay_order_id,
+              ref: res.razorpay_payment_id, paidAt: Date.now(),
+              note: 'verify function नहीं चला — admin confirm करें'
+            }
+          };
         });
       })
       .catch(function (e) {
         noLoader();
-        alertBox('Razorpay त्रुटि',
-          esc(e && e.message ? e.message : e) +
-          '<br><br><span style="font-size:11px;color:#666;">Cloud Function deploy है? ' +
-          '<code>createRzpOrder</code> / <code>verifyRzpPayment</code> और ' +
-          '<code>RZP_KEY_SECRET</code> set हैं?</span>');
+        alertBox('Razorpay त्रुटि', esc((e && e.message) || e));
         return { ok: false };
       });
   }
 
-  /* ─── 5) handleFinalOrder को लपेटो: Online → पहले भुगतान, फिर order ─── */
+  /* ─── handleFinalOrder को लपेटो: Online → पहले भुगतान, फिर order ─── */
+  var pending = null;
+
   function commitPending(payment) {
-    if (!pending) return Promise.resolve();
+    if (!pending) return Promise.resolve({ ok: false });
     var p = pending;
     pending = null;
     return p.done({ orderId: p.orderId, order: p.order, payment: payment });
@@ -8381,7 +8365,7 @@ try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now
       if (payMode() !== 'Online') return _hfo.apply(this, arguments);
       if (pending) return;                       /* दोबारा tap — कुछ मत करो */
 
-      /* असली write पकड़ लो (Firestore तक न जाए), बाक़ी सब app ही तय करेगा */
+      /* असली write पकड़ लो (Firestore तक न जाए) — amount/wallet/coupon app ही तय करे */
       var cap = null;
       var _coll = FS.collection;
       FS.collection = function (name) {
@@ -8393,7 +8377,7 @@ try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now
           var _set = d.set.bind(d);
           d.set = function (data) {
             cap = { id: id, data: data };
-            return new Promise(function () {});   /* कभी resolve नहीं — हम बाद में लिखेंगे */
+            return new Promise(function () {});  /* कभी resolve नहीं — हम बाद में लिखेंगे */
           };
           return d;
         };
@@ -8402,19 +8386,15 @@ try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now
 
       try { _hfo(); } finally { FS.collection = _coll; }
 
-      if (!cap) {                                  /* validation पर अटका — कुछ नहीं हुआ */
-        noLoader();
-        return;
-      }
+      if (!cap) { noLoader(); return; }           /* validation पर अटका */
 
       var orderId = cap.id;
       var amount  = Math.round(Number(cap.data && cap.data.total) || 0);
+      cap.data.payment = { method: 'Razorpay', gateway: 'Razorpay', status: 'Initiated', verified: false };
       pending = {
-        orderId: orderId,
-        amount: amount,
-        order: cap.data,
+        orderId: orderId, amount: amount, order: cap.data,
         done: function (info) {
-          try { noLoader(); } catch (e) {}
+          noLoader();
           return _coll.call(FS, 'orders').doc(info.orderId).set(info.order)
             .then(function () { return { ok: true, orderId: info.orderId }; })
             .catch(function (e) {
@@ -8426,9 +8406,6 @@ try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now
         }
       };
 
-      /* order object में भुगतान की जगह पहले से बना दो — नीचे भर जाएगी */
-      pending.order.payment = { method: 'Razorpay', gateway: 'Razorpay', status: 'Initiated', verified: false };
-
       var settle = function (payment) {
         pending.order.payment = payment;
         return commitPending(payment).then(function (r) {
@@ -8436,10 +8413,10 @@ try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now
             alertBox('बुकिंग सफल! 🎉',
               'ऑर्डर <b>' + esc(orderId) + '</b> ☁️ सेव हो गया।' +
               (payment.verified
-                ? '<br><span style="color:#15a04a;font-weight:800;">✅ भुगतान सफल — ₹' + amount +
-                  ' (Razorpay verified)</span><br><span style="font-size:10px;color:#777;">Payment ID: ' +
-                  esc(payment.ref || '-') + '</span>'
-                : '<br><span style="color:#b07800;font-weight:800;">⏳ भुगतान मिला — server verification बाक़ी</span>') +
+                ? '<br><span style="color:#15a04a;font-weight:800;">✅ भुगतान सफल — ₹' + amount + '</span>'
+                : '<br><span style="color:#b07800;font-weight:800;">⏳ ₹' + amount +
+                  ' भुगतान मिला — admin जल्द confirm करेंगे</span>') +
+              '<br><span style="font-size:10px;color:#777;">Payment ID: ' + esc(payment.ref || '-') + '</span>' +
               '<br>स्टेटस 📋 History में मिलेगा।');
             try { global.startMyOrdersListener && startMyOrdersListener(); } catch (e) {}
             try { global.proStartRatingWatcher && proStartRatingWatcher(); } catch (e) {}
@@ -8450,8 +8427,8 @@ try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now
 
       return payForOrder(orderId, amount, pending.order).then(function (res) {
         if (res && res.ok) return settle(res.payment);
-        pending = null;                 /* रद्द / विफल — order लिखा ही नहीं गया */
-        try { noLoader(); } catch (e) {}
+        pending = null;                          /* रद्द/विफल — order लिखा ही नहीं */
+        noLoader();
         try { global.closeCart && closeCart(); } catch (e) {}
         return { ok: false };
       });
@@ -8459,16 +8436,16 @@ try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now
 
     wrapped.__rzpWrapped = true;
     global.handleFinalOrder = wrapped;
-    console.log('%c Razorpay v1 ✅ — Online भुगतान अब Razorpay Checkout से ',
+    console.log('%c Razorpay v2 (DIRECT) ✅ — बिना Cloud Function ',
       'background:#0b6cff;color:#fff;font-weight:bold;padding:4px;');
   }
 
-  /* ─── 6) "Place Order" बटन की भाषा mode के हिसाब से ─────────────── */
+  /* ─── "Place Order" बटन की भाषा mode के हिसाब से ─────────────────── */
   function wrapPayMode() {
     var _spm = global.setPayMode;
     if (typeof _spm !== 'function' || _spm.__rzpWrapped) return;
     var wrapped = function (mode) {
-      _spm(mode);                       /* असली setPayMode ही app का state सेट करे */
+      _spm(mode);                                /* असली setPayMode ही app का state सेट करे */
       try {
         /* html में कोई id नहीं जोड़ा — बटन को onclick से ढूँढो */
         var b = document.getElementById('placeOrderBtn') ||
@@ -8484,51 +8461,28 @@ try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now
     global.setPayMode = wrapped;
   }
 
-  /* ─── 7) पहले से बने (unpaid) Online order को बाद में pay करना ───── */
-  function payExistingOrder(oid) {
-    try { closeCustomAlert(); } catch (e) {}
-    loader('ऑर्डर लोड हो रहा है...');
-    FS.collection('orders').doc(oid).get().then(function (d) {
-      if (!d.exists) { noLoader(); return alertBox('त्रुटि', 'ऑर्डर नहीं मिला'); }
-      var o = d.data();
-      noLoader();
-      return payForOrder(o.id || oid, o.total, o).then(function (res) {
-        if (!res || !res.ok) return;
-        return FS.collection('orders').doc(oid).update({
-          payment: res.payment,
-          mode: 'Online',
-          rzpPaidAt: Date.now()
-        }).then(function () {
-          alertBox('भुगतान सफल ✅',
-            '₹' + o.total + ' मिल गया।' +
-            (res.payment.verified ? '' : '<br><span style="font-size:11px;color:#b07800;">⏳ Server verification बाक़ी — admin जल्द confirm करेंगे</span>') +
-            '<br><span style="font-size:10px;color:#777;">Payment ID: ' + esc(res.payment.ref || '-') + '</span>');
-          try { global.proShowBill && proShowBill(oid); } catch (e) {}
-        });
-      });
-    }).catch(function (e) {
-      noLoader();
-      alertBox('त्रुटि', esc(e.message || e));
-    });
+  /* ─── bill का UPI-QR / PhonePe → Razorpay Pay बटन ───────────────── */
+  function rzpPayBtn(oid, amt) {
+    return '<button onclick="rzpPayOrder(\'' + esc(oid) + '\')" style="flex:1;min-width:74px;' +
+      'background:linear-gradient(90deg,#0b6cff,#3f8cff);color:#fff;border:none;padding:8px;' +
+      'border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">💳 Pay ₹' +
+      Math.round(Number(amt) || 0) + '</button>';
   }
+  global.rzpPayBtn = rzpPayBtn;
 
-
-  /* ─── 8) पुराने bill का UPI-QR / PhonePe → Razorpay Pay बटन ─────────
-     html में कुछ काटना न पड़े, इसलिए bill render होने के बाद DOM में
-     QR वाला पूरा ब्लॉक बदल देते हैं. (proShowBill को wrap करते हैं.) */
   function swapQrForPayBtn(oid) {
     try {
       var box = document.getElementById('proQrBox');
       if (!box) return;
-      var host = box.parentElement;              /* QR + UPI ID + दोनों UPI बटन */
+      var host = box.parentElement;               /* QR + UPI ID + दोनों UPI बटन */
       if (!host || host.getAttribute('data-rzp') === '1') return;
       FS.collection('orders').doc(oid).get().then(function (d) {
         if (!d.exists) return;
         var o = d.data() || {};
         var paid = !!(o.payment && (o.payment.verified || /^paid/i.test(o.payment.status || '')));
         var isCash = /cash|cod/i.test(o.mode || '');
-        if (paid || isCash) { host.setAttribute('data-rzp', '1'); return; }
         host.setAttribute('data-rzp', '1');
+        if (paid || isCash) return;
         host.innerHTML =
           '<div style="font-size:12.5px;font-weight:900;color:#0b4bb3;">💳 भुगतान बाक़ी — Razorpay से भरें</div>' +
           '<div style="font-size:10.5px;color:#5b6b85;margin:4px 0 8px;">Card / UPI / NetBanking / Wallet — सब एक जगह</div>' +
@@ -8542,10 +8496,7 @@ try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now
     if (typeof _sb !== 'function' || _sb.__rzpWrapped) return;
     var wrapped = function (oid) {
       var r = _sb.apply(this, arguments);
-      /* bill async बनता है — कुछ देर बाद QR ब्लॉक बदलो */
-      [300, 900, 1800].forEach(function (ms) {
-        setTimeout(function () { swapQrForPayBtn(oid); }, ms);
-      });
+      [300, 900, 1800].forEach(function (ms) { setTimeout(function () { swapQrForPayBtn(oid); }, ms); });
       return r;
     };
     wrapped.__rzpWrapped = true;
@@ -8560,8 +8511,7 @@ try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now
         if (!row || row.querySelector('[data-rzp-hist]')) return;
         var m = (b.getAttribute('onclick') || '').match(/proShowBill\('([^']+)'\)/);
         if (!m) return;
-        var oid = m[1];
-        FS.collection('orders').doc(oid).get().then(function (d) {
+        FS.collection('orders').doc(m[1]).get().then(function (d) {
           if (!d.exists) return;
           var o = d.data() || {};
           var paid = !!(o.payment && (o.payment.verified || /^paid/i.test(o.payment.status || '')));
@@ -8569,28 +8519,44 @@ try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now
           if (row.querySelector('[data-rzp-hist]')) return;
           var w = document.createElement('span');
           w.setAttribute('data-rzp-hist', '1');
-          w.innerHTML = rzpPayBtn(oid, o.total);
+          w.innerHTML = rzpPayBtn(m[1], o.total);
           row.appendChild(w.firstChild);
         }).catch(function () {});
       });
     } catch (e) {}
   }
 
+  /* ─── पहले से बना (unpaid) order बाद में pay करना ───────────────── */
+  function payExistingOrder(oid) {
+    try { closeCustomAlert(); } catch (e) {}
+    loader('ऑर्डर लोड हो रहा है...');
+    FS.collection('orders').doc(oid).get().then(function (d) {
+      if (!d.exists) { noLoader(); return alertBox('त्रुटि', 'ऑर्डर नहीं मिला'); }
+      var o = d.data();
+      noLoader();
+      return payForOrder(o.id || oid, o.total, o).then(function (res) {
+        if (!res || !res.ok) return;
+        return FS.collection('orders').doc(oid).update({
+          payment: res.payment, mode: 'Online', rzpPaidAt: Date.now()
+        }).then(function () {
+          alertBox('भुगतान सफल ✅',
+            '₹' + o.total + ' भुगतान मिला।' +
+            (res.payment.verified
+              ? ''
+              : '<br><span style="font-size:11px;color:#b07800;">⏳ Admin जल्द confirm करेंगे</span>') +
+            '<br><span style="font-size:10px;color:#777;">Payment ID: ' + esc(res.payment.ref || '-') + '</span>');
+          try { global.proShowBill && proShowBill(oid); } catch (e) {}
+        });
+      });
+    }).catch(function (e) { noLoader(); alertBox('त्रुटि', esc(e.message || e)); });
+  }
+
   /* ─── expose ─────────────────────────────────────────────────────── */
   global.rzpEsc = esc;
+  global.rzpPayNow = payForOrder;
+  global.rzpPayOrder = payExistingOrder;
   global.rzpSwapBillQr = swapQrForPayBtn;
-  global.rzpPayNow        = payForOrder;
-  global.rzpPayOrder      = payExistingOrder;   /* bill / history के "Pay" बटन से */
-  global.rzpCreateOrder   = rzpCreateOrder;
-  global.rzpLoadCheckout  = loadCheckout;
-
-  /* UI में कहीं "Pay" बटन चाहिए तो:  <button onclick="rzpPayOrder('SW123456')">💳 Pay</button> */
-  global.rzpPayBtn = function (oid, amt) {
-    return '<button onclick="rzpPayOrder(\'' + esc(oid) + '\')" style="flex:1;min-width:74px;' +
-      'background:linear-gradient(90deg,#0b6cff,#3f8cff);color:#fff;border:none;padding:8px;' +
-      'border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;">💳 Pay ₹' +
-      Math.round(Number(amt) || 0) + '</button>';
-  };
+  global.rzpLoadCheckout = loadCheckout;
 
   wrapFinalOrder();
   wrapPayMode();
@@ -8602,5 +8568,5 @@ try{ var h=document.getElementById('swDotH'); }catch(e){} try{ var __nt=Date.now
 })(window);
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3f8e9959f254461',t:'MTc5MDE1OTgyOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3f98c4a5b20ff7b',t:'MTc5MDE2NjQ5Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
